@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tabla Campeonato de Truco</title>
-    
-    <link rel="manifest" href="manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a472a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --verde-mesa: #1a472a;
@@ -42,12 +41,12 @@
         }
 
         .table-container { 
-            background: transparent; 
-            width: 100%; 
-            display: block; 
-            overflow: hidden; 
-            border: none;
-        }
+    background: transparent; 
+    width: 100%; 
+    display: block; 
+    overflow: hidden; 
+    border: none; /* Aseguramos que no haya borde aquí */
+}
 
         table { width: 100%; border-collapse: collapse; color: #000; table-layout: fixed; border: none; }
         
@@ -102,6 +101,7 @@
         .sube { color: #15803d; }
         .baja { color: #dc2626; }
 
+        /* Estilos Resumen Dark */
         #resumenCompacto {
             background: #111;
             color: #fff;
@@ -128,18 +128,18 @@
         .btn-update { background: #22c55e; color: #000; }
         .btn-share { background: #25d366; color: white; }
         .btn-undo-ui { 
-            background: #facc15; 
-            color: #000; 
-            padding: 4px 10px; 
-            font-size: 0.65rem; 
-            border-radius: 4px; 
-            border: none;
-            font-weight: bold; 
-            cursor: pointer; 
-            float: right; 
-            margin: 8px 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
+    background: #facc15; 
+    color: #000; 
+    padding: 4px 10px; 
+    font-size: 0.65rem; 
+    border-radius: 4px; 
+    border: none; /* Sin borde negro */
+    font-weight: bold; 
+    cursor: pointer; 
+    float: right; 
+    margin: 8px 5px; /* Un poco más de aire arriba */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Una sombra sutil para que tenga profundidad */
+}
         .btn-add { background: #3b82f6; color: white; margin-top: 0; }
         
         .btn-backup { background: #6b7280; color: white; font-size: 0.7rem; margin-top: 5px; }
@@ -194,19 +194,24 @@
 
 <script>
     let undoStack = [];
-    const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
+    // Función para la pequeña vibración
     function vibrar() {
-        if (navigator.vibrate) navigator.vibrate(80);
+        if (navigator.vibrate) {
+            navigator.vibrate(80);
+        }
     }
 
-    function sonar() {
-        sonidoShare.play().catch(error => console.log("Audio bloqueado:", error));
-    }
+// Definimos el sonido (este es un "ping" tipo notificación, claro y fuerte)
+const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+
+function sonar() {
+    sonidoShare.play().catch(error => console.log("El navegador bloqueó el audio:", error));
+}
 
     function saveUndoState() {
         undoStack.push(JSON.stringify(stats));
-        if (undoStack.length > 30) undoStack.shift();
+        if (undoStack.length > 30) undoStack.shift(); // Limite de 10 deshacer
     }
 
     function undoLastAction() {
@@ -217,6 +222,12 @@
         } else {
             alert("No hay más acciones para deshacer");
         }
+    }
+
+    function cursorAlFinal(input) {
+        const temp = input.value;
+        input.value = '';
+        input.value = temp;
     }
 
     function updateTitle(val) {
@@ -244,6 +255,7 @@
 
     function renderResumen() {
         if (stats.length === 0) return;
+        
         const data = stats.map(p => {
             const total = p.g + p.p;
             return {
@@ -252,6 +264,7 @@
                 racha: getRacha(p.history)
             };
         });
+
         const topPerc = [...data].sort((a,b) => b.perc - a.perc).slice(0, 3);
         const botPerc = [...data].sort((a,b) => a.perc - b.perc).slice(0, 3);
         const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
@@ -279,21 +292,28 @@
         saveUndoState();
         const currentVal = parseInt(stats[idx][field]) || 0;
         handleStatChange(idx, field, currentVal + 1);
-        render();
+        render(); // Renderiza sin ordenar
     }
 
     function render() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
+
         stats.forEach((p, i) => {
-            const total = p.g + p.p;
-            const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
-            const colorTxt = (perc >= 75 || perc < 35) ? 'white' : 'black';
-            let posDisplay = i + 1;
-            if (i === 0) posDisplay = '🏆';
-            else if (i === 1) posDisplay = '🥈';
-            else if (i === 2) posDisplay = '🥉';
-            else if (i === stats.length - 1 && stats.length > 3) posDisplay = '💀';
+    const total = p.g + p.p;
+    const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
+    const colorTxt = (perc >= 75 || perc < 35) ? 'white' : 'black';
+    
+    let posDisplay = i + 1;
+    if (i === 0) {
+        posDisplay = '🏆';
+    } else if (i === 1) {
+        posDisplay = '🥈';
+    } else if (i === 2) {
+        posDisplay = '🥉';
+    } else if (i === stats.length - 1 && stats.length > 3) { 
+        posDisplay = '💀';
+    };
 
             let rachaIcon = '';
             const oldIndex = prevOrder.indexOf(p.name);
@@ -305,7 +325,9 @@
             const history = p.history || [];
             const lastFive = history.slice(-5);
             let dotsHtml = '<div class="dots-container">';
-            lastFive.forEach(res => { dotsHtml += `<span class="dot dot-${res}"></span>`; });
+            lastFive.forEach(res => {
+                dotsHtml += `<span class="dot dot-${res}"></span>`;
+            });
             dotsHtml += '</div>';
 
             tbody.innerHTML += `
@@ -346,12 +368,18 @@
         newVal = parseInt(newVal) || 0;
         const oldVal = stats[idx][field];
         if (!stats[idx].history) stats[idx].history = [];
+
         if (newVal > oldVal) {
-            for(let k = 0; k < (newVal - oldVal); k++) stats[idx].history.push(field); 
+            for(let k = 0; k < (newVal - oldVal); k++) {
+                stats[idx].history.push(field); 
+            }
         } else if (newVal < oldVal) {
             for(let k = 0; k < (oldVal - newVal); k++) {
                 const lastIdx = [...stats[idx].history].reverse().findIndex(x => x === field);
-                if (lastIdx !== -1) stats[idx].history.splice(stats[idx].history.length - 1 - lastIdx, 1);
+                if (lastIdx !== -1) {
+                    const realIdx = stats[idx].history.length - 1 - lastIdx;
+                    stats[idx].history.splice(realIdx, 1);
+                }
             }
         }
         stats[idx][field] = newVal;
@@ -373,19 +401,23 @@
 
     function saveTableData() {
         vibrar();
+        // Guardamos el orden actual antes de reordenar para las flechitas
         prevOrder = stats.map(s => s.name);
         localStorage.setItem('torneo_prev_order', JSON.stringify(prevOrder));
+
+        // Ordenamos los stats
         stats.sort((a, b) => {
             if (b.g !== a.g) return b.g - a.g;
             let perA = a.g / (a.g + a.p || 1);
             let perB = b.g / (b.g + b.p || 1);
             return perB - perA;
         });
+
         render();
     }
 
     async function shareAsImage() {
-        sonar();
+        sonar(); // <--- AGREGÁ ESTO ACÁ
         vibrar();
         render();
         const captureArea = document.getElementById('captureArea');
@@ -395,7 +427,9 @@
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
             const file = new File([blob], 'liga_truco.png', { type: 'image/png' });
             document.body.classList.remove('exporting');
-            if (navigator.share) await navigator.share({ files: [file], title: 'Tabla Truco', text: '¡Tabla actualizada!' });
+            if (navigator.share) {
+                await navigator.share({ files: [file], title: 'Tabla Truco', text: '¡Tabla actualizada!' });
+            }
         } catch (err) {
             document.body.classList.remove('exporting');
         }
@@ -434,6 +468,7 @@
         vibrar();
         const name = document.getElementById('newPlayerName').value.trim();
         if (name) {
+            vibrar();
             saveUndoState();
             stats.push({ name: name, p: 0, g: 0, food: 0, history: [] });
             document.getElementById('newPlayerName').value = '';
@@ -444,6 +479,7 @@
     function deletePlayer(index) {
         vibrar();
         if (confirm(`¿Borrar a ${stats[index].name}?`)) {
+            vibrar();
             saveUndoState();
             stats.splice(index, 1);
             render();
