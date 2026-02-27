@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tabla Campeonato de Truco</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a472a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --verde-mesa: #1a472a;
+            --header-table: #000000;
+            --azul-oscuro: #002060;
+            --celeste-claro: #d9e2f3;
+            --celeste-medio: #cfd9e8;
+            --rojo-delete: #ef4444;
+            --win-dot: #22c55e;
+            --loss-dot: #ef4444;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: var(--verde-mesa); 
+            color: #f3f4f6; 
+            margin: 0; padding: 5px; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container { max-width: 100%; margin: auto; }
+        
+        #captureArea {
+            background: var(--verde-mesa);
+            padding: 0;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .table-container { 
+            background: transparent; 
+            width: 100%; 
+            display: block; 
+            overflow: hidden; 
+            border: none;
+        }
+
+        table { width: 100%; border-collapse: collapse; color: #000; table-layout: fixed; border: none; }
+        
+        th { background: var(--header-table); color: #ffffff; padding: 3px 1px; font-size: 0.6rem; border: 1px solid #444; }
+        #displayTitle { font-size: 0.6rem; font-weight: 800; margin: 0; display: block; }
+
+        td { padding: 0; text-align: center; border: 1px solid #000000; font-size: 0.85rem; font-weight: 700; height: 32px; vertical-align: middle; }
+
+        .table-input { 
+            width: 100%; height: 32px; background: transparent; border: none; 
+            text-align: center; font-size: 0.95rem; font-weight: 800; color: inherit; outline: none;
+            padding: 0; margin: 0; line-height: 32px;
+            cursor: pointer;
+        }
+
+        .input-snapshot { display: none; font-size: 0.95rem; font-weight: 800; line-height: 32px; text-align: center; }
+
+        .exporting .table-input, .exporting .btn-delete, .exporting .btn-undo-ui { display: none !important; }
+        .exporting .input-snapshot { display: block !important; }
+
+        .btn-delete { color: var(--rojo-delete); background: transparent; border: none; font-size: 0.75rem; padding: 0 2px; }
+
+        .col-pos { background: var(--azul-oscuro); color: white; width: 28px; font-size: 0.8rem; }
+        .name-col { text-align: left; padding: 0 5px; background: var(--celeste-claro); width: auto; font-size: 0.75rem; }
+        
+        .name-wrapper { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%;
+            height: 100%;
+        }
+
+        .dots-container { 
+            display: flex; 
+            gap: 2px; 
+            margin-left: 4px;
+            flex-shrink: 0; 
+        }
+        
+        .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+        .dot-g { background-color: var(--win-dot); }
+        .dot-p { background-color: var(--loss-dot); }
+
+        .col-pj { background: var(--celeste-medio); width: 30px; }
+        .col-p { background: var(--celeste-medio); color: #dc2626; width: 32px; }
+        .col-g { background: var(--azul-oscuro); color: white; width: 32px; }
+        .col-food { background: var(--celeste-claro); width: 32px; }
+        .perc-cell { font-size: 0.85rem; color: #000; width: 42px; }
+
+        .racha { font-size: 0.8rem; margin-left: 3px; font-weight: bold; }
+        .sube { color: #15803d; }
+        .baja { color: #dc2626; }
+
+        #resumenCompacto {
+            background: #111;
+            color: #fff;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            border-top: 1px solid #333;
+        }
+        .resumen-section { font-size: 0.65rem; }
+        .resumen-section h4 { 
+            margin: 0 0 4px 0; 
+            font-size: 0.6rem; 
+            text-transform: uppercase; 
+            color: #888; 
+            border-bottom: 1px solid #222;
+        }
+        .resumen-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .val-win { color: #22c55e; font-weight: bold; }
+        .val-loss { color: #ef4444; font-weight: bold; }
+
+        .card { background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.2); }
+        .btn { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; }
+        .btn-update { background: #22c55e; color: #000; }
+        .btn-share { background: #25d366; color: white; }
+        .btn-undo-ui { 
+            background: #facc15; 
+            color: #000; 
+            padding: 4px 10px; 
+            font-size: 0.65rem; 
+            border-radius: 4px; 
+            border: none;
+            font-weight: bold; 
+            cursor: pointer; 
+            float: right; 
+            margin: 8px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .btn-add { background: #3b82f6; color: white; margin-top: 0; }
+        
+        .btn-backup { background: #6b7280; color: white; font-size: 0.7rem; margin-top: 5px; }
+        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px; }
+        
+        .input-group { display: flex; gap: 5px; margin-top: 5px; }
+        input[type="text"] { flex: 1; background: #fff; border: 1px solid #3b82f6; padding: 6px; border-radius: 4px; font-size: 0.85rem; color: #000; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="captureArea">
+        <div class="table-container">
+            <button class="btn-undo-ui" onclick="undoLastAction()">↩ DESHACER</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 28px;">Pos</th>
+                        <th><span id="displayTitle">TORNEO VIERNES</span></th>
+                        <th style="width: 30px;">J</th>
+                        <th style="width: 32px;">P</th>
+                        <th style="width: 32px;">G</th>
+                        <th style="width: 42px;">%</th>
+                        <th style="width: 32px;">🍴🍺</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+            <div id="resumenCompacto"></div>
+        </div>
+    </div>
+
+    <div class="btn-main" style="padding: 0 5px;">
+        <button class="btn btn-update" onclick="saveTableData()">Actualizar Ranking</button>
+        <button class="btn btn-share" onclick="shareAsImage()">Compartir Tabla 📲</button>
+
+        <div class="card">
+            <div class="input-group">
+                <input type="text" id="newPlayerName" placeholder="Nombre...">
+                <button class="btn btn-add" style="width: auto;" onclick="addNewPlayer()">+</button>
+            </div>
+            <input type="text" id="editTitle" style="width: 93%; margin-top: 8px;" placeholder="Título" oninput="updateTitle(this.value)">
+            
+            <div class="actions-grid">
+                <button class="btn btn-backup" onclick="exportData()">💾 Guardar Backup</button>
+                <button class="btn btn-backup" onclick="importData()">📂 Cargar Backup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let undoStack = [];
+    const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+
+    function vibrar() {
+        if (navigator.vibrate) navigator.vibrate(80);
+    }
+
+    function sonar() {
+        sonidoShare.play().catch(error => console.log("Audio bloqueado:", error));
+    }
+
+    function saveUndoState() {
+        undoStack.push(JSON.stringify(stats));
+        if (undoStack.length > 30) undoStack.shift();
+    }
+
+    function undoLastAction() {
+        vibrar();
+        if (undoStack.length > 0) {
+            stats = JSON.parse(undoStack.pop());
+            render();
+        } else {
+            alert("No hay más acciones para deshacer");
+        }
+    }
+
+    function updateTitle(val) {
+        document.getElementById('displayTitle').innerText = val;
+        localStorage.setItem('torneo_titulo', val);
+    }
+
+    const savedTitle = localStorage.getItem('torneo_titulo') || "TABLA DE TRUCO";
+    document.getElementById('displayTitle').innerText = savedTitle;
+    document.getElementById('editTitle').value = savedTitle;
+
+    let stats = JSON.parse(localStorage.getItem('torneo_final_stats')) || [];
+    let prevOrder = JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
+
+    function getRacha(history) {
+        if (!history || history.length === 0) return 0;
+        let racha = 0;
+        const last = history[history.length - 1];
+        for (let i = history.length - 1; i >= 0; i--) {
+            if (history[i] === last) racha++;
+            else break;
+        }
+        return last === 'g' ? racha : -racha;
+    }
+
+    function renderResumen() {
+        if (stats.length === 0) return;
+        const data = stats.map(p => {
+            const total = p.g + p.p;
+            return {
+                name: p.name,
+                perc: total > 0 ? (p.g / total) * 100 : 0,
+                racha: getRacha(p.history)
+            };
+        });
+        const topPerc = [...data].sort((a,b) => b.perc - a.perc).slice(0, 3);
+        const botPerc = [...data].sort((a,b) => a.perc - b.perc).slice(0, 3);
+        const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
+        const botRacha = [...data].sort((a,b) => a.racha - b.racha).slice(0, 3);
+
+        const html = `
+            <div class="resumen-section">
+                <h4>Mejores (%)</h4>
+                ${topPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${Math.round(p.perc)}%</span></div>`).join('')}
+                <h4 style="margin-top:6px">Peores (%)</h4>
+                ${botPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${Math.round(p.perc)}%</span></div>`).join('')}
+            </div>
+            <div class="resumen-section">
+                <h4>Mejores Rachas</h4>
+                ${topRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${p.racha > 0 ? '🔥' + p.racha : '-'}</span></div>`).join('')}
+                <h4 style="margin-top:6px">Peores Rachas</h4>
+                ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
+            </div>
+        `;
+        document.getElementById('resumenCompacto').innerHTML = html;
+    }
+
+    function quickAdd(idx, field) {
+        vibrar();
+        saveUndoState();
+        const currentVal = parseInt(stats[idx][field]) || 0;
+        handleStatChange(idx, field, currentVal + 1);
+        render();
+    }
+
+    function render() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        stats.forEach((p, i) => {
+            const total = p.g + p.p;
+            const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
+            const colorTxt = (perc >= 75 || perc < 35) ? 'white' : 'black';
+            let posDisplay = i + 1;
+            if (i === 0) posDisplay = '🏆';
+            else if (i === 1) posDisplay = '🥈';
+            else if (i === 2) posDisplay = '🥉';
+            else if (i === stats.length - 1 && stats.length > 3) posDisplay = '💀';
+
+            let rachaIcon = '';
+            const oldIndex = prevOrder.indexOf(p.name);
+            if (oldIndex !== -1) {
+                if (i < oldIndex) rachaIcon = '<span class="racha sube">↑</span>';
+                else if (i > oldIndex) rachaIcon = '<span class="racha baja">↓</span>';
+            }
+
+            const history = p.history || [];
+            const lastFive = history.slice(-5);
+            let dotsHtml = '<div class="dots-container">';
+            lastFive.forEach(res => { dotsHtml += `<span class="dot dot-${res}"></span>`; });
+            dotsHtml += '</div>';
+
+            tbody.innerHTML += `
+                <tr>
+                    <td class="col-pos">${posDisplay}</td>
+                    <td class="name-col">
+                        <div class="name-wrapper">
+                            <div style="display:flex; align-items:center; overflow: hidden;">
+                                <button class="btn-delete" onclick="deletePlayer(${i})">✕</button>
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</span>
+                                ${rachaIcon}
+                            </div>
+                            ${dotsHtml}
+                        </div>
+                    </td>
+                    <td class="col-pj">${total}</td>
+                    <td class="col-p" onclick="quickAdd(${i}, 'p')">
+                        <input type="number" class="table-input" readonly value="${p.p}">
+                        <span class="input-snapshot">${p.p}</span>
+                    </td>
+                    <td class="col-g" onclick="quickAdd(${i}, 'g')">
+                        <input type="number" class="table-input" readonly value="${p.g}">
+                        <span class="input-snapshot">${p.g}</span>
+                    </td>
+                    <td class="perc-cell" style="background:${getGradientColor(perc)}; color:${colorTxt}">${perc}%</td>
+                    <td class="col-food" onclick="handleFoodChange(${i})">
+                        <input type="number" class="table-input" readonly value="${p.food}">
+                        <span class="input-snapshot">${p.food}</span>
+                    </td>
+                </tr>
+            `;
+        });
+        localStorage.setItem('torneo_final_stats', JSON.stringify(stats));
+        renderResumen();
+    }
+
+    function handleStatChange(idx, field, newVal) {
+        newVal = parseInt(newVal) || 0;
+        const oldVal = stats[idx][field];
+        if (!stats[idx].history) stats[idx].history = [];
+        if (newVal > oldVal) {
+            for(let k = 0; k < (newVal - oldVal); k++) stats[idx].history.push(field); 
+        } else if (newVal < oldVal) {
+            for(let k = 0; k < (oldVal - newVal); k++) {
+                const lastIdx = [...stats[idx].history].reverse().findIndex(x => x === field);
+                if (lastIdx !== -1) stats[idx].history.splice(stats[idx].history.length - 1 - lastIdx, 1);
+            }
+        }
+        stats[idx][field] = newVal;
+    }
+
+    function handleFoodChange(idx) {
+        vibrar();
+        saveUndoState();
+        stats[idx].food = (parseInt(stats[idx].food) || 0) + 1;
+        render();
+    }
+
+    function getGradientColor(perc) {
+        if (perc >= 75) return "#548235"; 
+        if (perc >= 50) return "#ffc000"; 
+        if (perc >= 35) return "#ed7d31"; 
+        return "#ff0000"; 
+    }
+
+    function saveTableData() {
+        vibrar();
+        prevOrder = stats.map(s => s.name);
+        localStorage.setItem('torneo_prev_order', JSON.stringify(prevOrder));
+        stats.sort((a, b) => {
+            if (b.g !== a.g) return b.g - a.g;
+            let perA = a.g / (a.g + a.p || 1);
+            let perB = b.g / (b.g + b.p || 1);
+            return perB - perA;
+        });
+        render();
+    }
+
+    async function shareAsImage() {
+        sonar();
+        vibrar();
+        render();
+        const captureArea = document.getElementById('captureArea');
+        document.body.classList.add('exporting');
+        try {
+            const canvas = await html2canvas(captureArea, { backgroundColor: "#000000", scale: 3 });
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const file = new File([blob], 'liga_truco.png', { type: 'image/png' });
+            document.body.classList.remove('exporting');
+            if (navigator.share) await navigator.share({ files: [file], title: 'Tabla Truco', text: '¡Tabla actualizada!' });
+        } catch (err) {
+            document.body.classList.remove('exporting');
+        }
+    }
+
+    function exportData() {
+        vibrar();
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stats));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "backup_truco_liga.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    function importData() {
+        vibrar();
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.readAsText(file,'UTF-8');
+            reader.onload = readerEvent => {
+                try {
+                    stats = JSON.parse(readerEvent.target.result);
+                    render();
+                } catch(e) { alert("Error al cargar backup."); }
+            }
+        }
+        input.click();
+    }
+
+    function addNewPlayer() {
+        vibrar();
+        const name = document.getElementById('newPlayerName').value.trim();
+        if (name) {
+            saveUndoState();
+            stats.push({ name: name, p: 0, g: 0, food: 0, history: [] });
+            document.getElementById('newPlayerName').value = '';
+            render();
+        }
+    }
+
+    function deletePlayer(index) {
+        vibrar();
+        if (confirm(`¿Borrar a ${stats[index].name}?`)) {
+            saveUndoState();
+            stats.splice(index, 1);
+            render();
+        }
+    }
+
+    render();
+</script>
+
+</body>
+</html>
