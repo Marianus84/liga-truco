@@ -6,7 +6,7 @@
     <title>Tabla Campeonato de Truco</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a472a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -41,12 +41,12 @@
         }
 
         .table-container { 
-    background: transparent; 
-    width: 100%; 
-    display: block; 
-    overflow: hidden; 
-    border: none; /* Aseguramos que no haya borde aquí */
-}
+            background: transparent; 
+            width: 100%; 
+            display: block; 
+            overflow: hidden; 
+            border: none;
+        }
 
         table { width: 100%; border-collapse: collapse; color: #000; table-layout: fixed; border: none; }
         
@@ -82,12 +82,14 @@
 
         .dots-container { 
             display: flex; 
-            gap: 2px; 
+            gap: 1px; 
             margin-left: 4px;
             flex-shrink: 0; 
+            flex-wrap: nowrap; /* Asegura que no bajen */
+            justify-content: flex-end;
         }
         
-        .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+        .dot { width: 4px; height: 4px; border-radius: 50%; display: inline-block; }
         .dot-g { background-color: var(--win-dot); }
         .dot-p { background-color: var(--loss-dot); }
 
@@ -128,18 +130,18 @@
         .btn-update { background: #22c55e; color: #000; }
         .btn-share { background: #25d366; color: white; }
         .btn-undo-ui { 
-    background: #facc15; 
-    color: #000; 
-    padding: 4px 10px; 
-    font-size: 0.65rem; 
-    border-radius: 4px; 
-    border: none; /* Sin borde negro */
-    font-weight: bold; 
-    cursor: pointer; 
-    float: right; 
-    margin: 8px 5px; /* Un poco más de aire arriba */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Una sombra sutil para que tenga profundidad */
-}
+            background: #facc15; 
+            color: #000; 
+            padding: 4px 10px; 
+            font-size: 0.65rem; 
+            border-radius: 4px; 
+            border: none;
+            font-weight: bold; 
+            cursor: pointer; 
+            float: right; 
+            margin: 8px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
         .btn-add { background: #3b82f6; color: white; margin-top: 0; }
         
         .btn-backup { background: #6b7280; color: white; font-size: 0.7rem; margin-top: 5px; }
@@ -194,24 +196,22 @@
 
 <script>
     let undoStack = [];
+    let stats = JSON.parse(localStorage.getItem('torneo_final_stats')) || [];
+    let prevOrder = JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
 
-    // Función para la pequeña vibración
     function vibrar() {
-        if (navigator.vibrate) {
-            navigator.vibrate(80);
-        }
+        if (navigator.vibrate) navigator.vibrate(80);
     }
 
-// Definimos el sonido (este es un "ping" tipo notificación, claro y fuerte)
-const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+    const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
-function sonar() {
-    sonidoShare.play().catch(error => console.log("El navegador bloqueó el audio:", error));
-}
+    function sonar() {
+        sonidoShare.play().catch(error => console.log("Audio block:", error));
+    }
 
     function saveUndoState() {
         undoStack.push(JSON.stringify(stats));
-        if (undoStack.length > 30) undoStack.shift(); // Limite de 10 deshacer
+        if (undoStack.length > 30) undoStack.shift();
     }
 
     function undoLastAction() {
@@ -224,12 +224,6 @@ function sonar() {
         }
     }
 
-    function cursorAlFinal(input) {
-        const temp = input.value;
-        input.value = '';
-        input.value = temp;
-    }
-
     function updateTitle(val) {
         document.getElementById('displayTitle').innerText = val;
         localStorage.setItem('torneo_titulo', val);
@@ -238,9 +232,6 @@ function sonar() {
     const savedTitle = localStorage.getItem('torneo_titulo') || "TABLA DE TRUCO";
     document.getElementById('displayTitle').innerText = savedTitle;
     document.getElementById('editTitle').value = savedTitle;
-
-    let stats = JSON.parse(localStorage.getItem('torneo_final_stats')) || [];
-    let prevOrder = JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
 
     function getRacha(history) {
         if (!history || history.length === 0) return 0;
@@ -255,7 +246,6 @@ function sonar() {
 
     function renderResumen() {
         if (stats.length === 0) return;
-        
         const data = stats.map(p => {
             const total = p.g + p.p;
             return {
@@ -264,7 +254,6 @@ function sonar() {
                 racha: getRacha(p.history)
             };
         });
-
         const topPerc = [...data].sort((a,b) => b.perc - a.perc).slice(0, 3);
         const botPerc = [...data].sort((a,b) => a.perc - b.perc).slice(0, 3);
         const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
@@ -292,7 +281,7 @@ function sonar() {
         saveUndoState();
         const currentVal = parseInt(stats[idx][field]) || 0;
         handleStatChange(idx, field, currentVal + 1);
-        render(); // Renderiza sin ordenar
+        render();
     }
 
     function render() {
@@ -300,20 +289,15 @@ function sonar() {
         tbody.innerHTML = '';
 
         stats.forEach((p, i) => {
-    const total = p.g + p.p;
-    const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
-    const colorTxt = (perc >= 75 || perc < 35) ? 'white' : 'black';
-    
-    let posDisplay = i + 1;
-    if (i === 0) {
-        posDisplay = '🏆';
-    } else if (i === 1) {
-        posDisplay = '🥈';
-    } else if (i === 2) {
-        posDisplay = '🥉';
-    } else if (i === stats.length - 1 && stats.length > 3) { 
-        posDisplay = '💀';
-    };
+            const total = p.g + p.p;
+            const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
+            const colorTxt = (perc >= 75 || perc < 35) ? 'white' : 'black';
+            
+            let posDisplay = i + 1;
+            if (i === 0) posDisplay = '🏆';
+            else if (i === 1) posDisplay = '🥈';
+            else if (i === 2) posDisplay = '🥉';
+            else if (i === stats.length - 1 && stats.length > 3) posDisplay = '💀';
 
             let rachaIcon = '';
             const oldIndex = prevOrder.indexOf(p.name);
@@ -323,9 +307,10 @@ function sonar() {
             }
 
             const history = p.history || [];
-            const lastFive = history.slice(-5);
+            // Toma los últimos 10 resultados
+            const lastResults = history.slice(-10); 
             let dotsHtml = '<div class="dots-container">';
-            lastFive.forEach(res => {
+            lastResults.forEach(res => {
                 dotsHtml += `<span class="dot dot-${res}"></span>`;
             });
             dotsHtml += '</div>';
@@ -335,7 +320,7 @@ function sonar() {
                     <td class="col-pos">${posDisplay}</td>
                     <td class="name-col">
                         <div class="name-wrapper">
-                            <div style="display:flex; align-items:center; overflow: hidden;">
+                            <div style="display:flex; align-items:center; overflow: hidden; flex: 1;">
                                 <button class="btn-delete" onclick="deletePlayer(${i})">✕</button>
                                 <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</span>
                                 ${rachaIcon}
@@ -401,23 +386,19 @@ function sonar() {
 
     function saveTableData() {
         vibrar();
-        // Guardamos el orden actual antes de reordenar para las flechitas
         prevOrder = stats.map(s => s.name);
         localStorage.setItem('torneo_prev_order', JSON.stringify(prevOrder));
-
-        // Ordenamos los stats
         stats.sort((a, b) => {
             if (b.g !== a.g) return b.g - a.g;
             let perA = a.g / (a.g + a.p || 1);
             let perB = b.g / (b.g + b.p || 1);
             return perB - perA;
         });
-
         render();
     }
 
     async function shareAsImage() {
-        sonar(); // <--- AGREGÁ ESTO ACÁ
+        sonar();
         vibrar();
         render();
         const captureArea = document.getElementById('captureArea');
@@ -468,7 +449,6 @@ function sonar() {
         vibrar();
         const name = document.getElementById('newPlayerName').value.trim();
         if (name) {
-            vibrar();
             saveUndoState();
             stats.push({ name: name, p: 0, g: 0, food: 0, history: [] });
             document.getElementById('newPlayerName').value = '';
@@ -479,7 +459,6 @@ function sonar() {
     function deletePlayer(index) {
         vibrar();
         if (confirm(`¿Borrar a ${stats[index].name}?`)) {
-            vibrar();
             saveUndoState();
             stats.splice(index, 1);
             render();
