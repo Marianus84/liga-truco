@@ -246,16 +246,27 @@
 
     function renderResumen() {
         if (stats.length === 0) return;
+        
+        // Obtener máximo de partidos jugados para filtrar BA en el resumen
+        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 0);
+
         const data = stats.map(p => {
             const total = p.g + p.p;
             return {
                 name: p.name,
+                pj: total,
                 perc: total > 0 ? (p.g / total) * 100 : 0,
                 racha: getRacha(p.history)
             };
         });
-        const topPerc = [...data].sort((a,b) => b.perc - a.perc).slice(0, 3);
-        const botPerc = [...data].sort((a,b) => a.perc - b.perc).slice(0, 3);
+
+        // Filtrar jugadores con Baja Asistencia para estadísticas de porcentaje
+        const filteredForPerc = (maxPJ >= 7) 
+            ? data.filter(d => d.pj >= (maxPJ / 2))
+            : data;
+
+        const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
+        const botPerc = [...filteredForPerc].sort((a,b) => a.perc - b.perc).slice(0, 3);
         const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
         const botRacha = [...data].sort((a,b) => a.racha - b.racha).slice(0, 3);
 
@@ -288,10 +299,18 @@
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
 
+        // Obtener máximo de partidos jugados para lógica de BA
+        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 0);
+
         stats.forEach((p, i) => {
             const total = p.g + p.p;
             const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
-            const colorTxt = (perc >= 75 || perc < 35) ? 'white' : 'black';
+            
+            // Lógica de Baja Asistencia
+            const isBA = maxPJ >= 7 && total < (maxPJ / 2);
+            const nameToDisplay = isBA ? `${p.name} (BA)` : p.name;
+            const bgPerc = isBA ? '#888' : getGradientColor(perc);
+            const colorTxt = (isBA || perc >= 75 || perc < 35) ? 'white' : 'black';
             
             let posDisplay = i + 1;
             if (i === 0) posDisplay = '🏆';
@@ -307,7 +326,6 @@
             }
 
             const history = p.history || [];
-            // Toma los últimos 10 resultados
             const lastResults = history.slice(-10); 
             let dotsHtml = '<div class="dots-container">';
             lastResults.forEach(res => {
@@ -322,7 +340,7 @@
                         <div class="name-wrapper">
                             <div style="display:flex; align-items:center; overflow: hidden; flex: 1;">
                                 <button class="btn-delete" onclick="deletePlayer(${i})">✕</button>
-                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</span>
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${nameToDisplay}</span>
                                 ${rachaIcon}
                             </div>
                             ${dotsHtml}
@@ -337,7 +355,7 @@
                         <input type="number" class="table-input" readonly value="${p.g}">
                         <span class="input-snapshot">${p.g}</span>
                     </td>
-                    <td class="perc-cell" style="background:${getGradientColor(perc)}; color:${colorTxt}">${perc}%</td>
+                    <td class="perc-cell" style="background:${bgPerc}; color:${colorTxt}">${perc}%</td>
                     <td class="col-food" onclick="handleFoodChange(${i})">
                         <input type="number" class="table-input" readonly value="${p.food}">
                         <span class="input-snapshot">${p.food}</span>
