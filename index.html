@@ -20,6 +20,7 @@
             --rojo-delete: #ef4444;
             --win-dot: #22c55e;
             --loss-dot: #ef4444;
+            --dorado-campeon: #ffd700;
         }
 
         body { 
@@ -53,7 +54,17 @@
         th { background: var(--header-table); color: #ffffff; padding: 3px 1px; font-size: 0.6rem; border: 1px solid #444; }
         #displayTitle { font-size: 0.6rem; font-weight: 800; margin: 0; display: block; }
 
-        td { padding: 0; text-align: center; border: 1px solid #000000; font-size: 0.85rem; font-weight: 700; height: 32px; vertical-align: middle; }
+        td { padding: 0; text-align: center; border: 1px solid #000000; font-size: 0.85rem; font-weight: 700; height: 32px; vertical-align: middle; transition: background 0.3s; }
+
+        .fila-campeon td {
+            background: var(--dorado-campeon) !important;
+            color: #000 !important;
+            border-color: #b8860b !important;
+        }
+        .fila-campeon .col-pos, .fila-campeon .col-g {
+            background: #b8860b !important;
+            color: #fff !important;
+        }
 
         .table-input { 
             width: 100%; height: 32px; background: transparent; border: none; 
@@ -67,10 +78,8 @@
         .exporting .table-input, .exporting .btn-delete, .exporting .btn-undo-ui { display: none !important; }
         .exporting .input-snapshot { display: block !important; }
 
-        .btn-delete { color: var(--rojo-delete); background: transparent; border: none; font-size: 0.75rem; padding: 0 2px; }
-
         .col-pos { background: var(--azul-oscuro); color: white; width: 28px; font-size: 0.8rem; }
-        .name-col { text-align: left; padding: 0 5px; background: var(--celeste-claro); width: auto; font-size: 0.75rem; }
+        .name-col { text-align: left; padding: 0 5px; background: var(--celeste-claro); width: auto; font-size: 0.75rem; position: relative; user-select: none; -webkit-user-select: none; }
         
         .name-wrapper { 
             display: flex; 
@@ -85,7 +94,7 @@
             gap: 1px; 
             margin-left: 4px;
             flex-shrink: 0; 
-            flex-wrap: nowrap; /* Asegura que no bajen */
+            flex-wrap: nowrap; 
             justify-content: flex-end;
         }
         
@@ -103,7 +112,6 @@
         .sube { color: #15803d; }
         .baja { color: #dc2626; }
 
-        /* Estilos Resumen Dark */
         #resumenCompacto {
             background: #111;
             color: #fff;
@@ -149,6 +157,36 @@
         
         .input-group { display: flex; gap: 5px; margin-top: 5px; }
         input[type="text"] { flex: 1; background: #fff; border: 1px solid #3b82f6; padding: 6px; border-radius: 4px; font-size: 0.85rem; color: #000; }
+
+        /* Modal personalizado mejorado */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: #1a1a1a; padding: 20px; border-radius: 12px; width: 90%; max-width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6); border: 1px solid #333;
+        }
+        .modal-title { margin-top: 0; color: #fff; font-size: 1.1rem; text-align: center; margin-bottom: 20px; font-weight: 800; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-btn {
+            width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 8px; border: none;
+            font-weight: 900; cursor: pointer; font-size: 0.85rem; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-modal-edit { background: #3b82f6; color: white; }
+        .btn-modal-champ { background: var(--dorado-campeon); color: #000; }
+        .btn-modal-del { background: var(--rojo-delete); color: white; }
+        .btn-modal-cancel { background: #333; color: #aaa; margin-top: 5px; }
+        
+        /* Contenedor de edición rápida dentro del modal */
+        #editNameContainer { display: none; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        #editNameInput { width: 100%; padding: 12px; border-radius: 6px; border: 2px solid #3b82f6; font-size: 1rem; box-sizing: border-box; }
+        .edit-actions { display: flex; gap: 5px; }
+        .btn-save-name { background: #22c55e; color: #000; flex: 1; padding: 10px; border-radius: 6px; font-weight: bold; border: none; }
+        
+        /* Contenedor de confirmación de borrado */
+        #confirmDelContainer { display: none; flex-direction: column; gap: 10px; text-align: center; margin-bottom: 15px; }
+        .btn-confirm-del { background: #ef4444; color: white; padding: 12px; border-radius: 6px; font-weight: bold; border: none; }
     </style>
 </head>
 <body>
@@ -194,13 +232,46 @@
     </div>
 </div>
 
+<div id="playerModal" class="modal-overlay">
+    <div class="modal-content">
+        <h4 id="modalPlayerName" class="modal-title">Opciones</h4>
+        
+        <!-- Vista principal del modal -->
+        <div id="modalMainActions">
+            <button class="modal-btn btn-modal-edit" onclick="showEditSection()">✏️ EDITAR NOMBRE</button>
+            <button class="modal-btn btn-modal-champ" onclick="modalAction('champion')">👑 MARCAR CAMPEÓN</button>
+            <button class="modal-btn btn-modal-del" onclick="showDelSection()">🗑️ ELIMINAR</button>
+        </div>
+
+        <!-- Sección Editar (Oculta por defecto) -->
+        <div id="editNameContainer">
+            <input type="text" id="editNameInput">
+            <div class="edit-actions">
+                <button class="btn-save-name" onclick="modalAction('edit')">GUARDAR</button>
+                <button class="btn-modal-cancel" style="flex:1" onclick="resetModalViews()">ATRÁS</button>
+            </div>
+        </div>
+
+        <!-- Sección Confirmar Borrado (Oculta por defecto) -->
+        <div id="confirmDelContainer">
+            <p style="color: #ef4444; font-weight: bold; font-size: 0.9rem;">¿ESTÁS SEGURO?</p>
+            <button class="btn-confirm-del" onclick="modalAction('delete')">SÍ, ELIMINAR JUGADOR</button>
+            <button class="modal-btn btn-modal-cancel" onclick="resetModalViews()">CANCELAR</button>
+        </div>
+
+        <button id="modalGlobalCancel" class="modal-btn btn-modal-cancel" onclick="closeModal()">CERRAR</button>
+    </div>
+</div>
+
 <script>
     let undoStack = [];
     let stats = JSON.parse(localStorage.getItem('torneo_final_stats')) || [];
     let prevOrder = JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
+    let activePlayerIdx = null;
+    let pressTimer = null;
 
-    function vibrar() {
-        if (navigator.vibrate) navigator.vibrate(80);
+    function vibrar(ms = 80) {
+        if (navigator.vibrate) navigator.vibrate(ms);
     }
 
     const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
@@ -219,8 +290,6 @@
         if (undoStack.length > 0) {
             stats = JSON.parse(undoStack.pop());
             render();
-        } else {
-            alert("No hay más acciones para deshacer");
         }
     }
 
@@ -232,6 +301,75 @@
     const savedTitle = localStorage.getItem('torneo_titulo') || "Apertura Truco 2026";
     document.getElementById('displayTitle').innerText = savedTitle;
     document.getElementById('editTitle').value = savedTitle;
+
+    function handleStart(idx) {
+        pressTimer = setTimeout(() => {
+            openPlayerModal(idx);
+        }, 5000);
+    }
+
+    function handleEnd() {
+        clearTimeout(pressTimer);
+    }
+
+    function openPlayerModal(idx) {
+        vibrar(200);
+        activePlayerIdx = idx;
+        document.getElementById('modalPlayerName').innerText = stats[idx].name;
+        resetModalViews();
+        document.getElementById('playerModal').style.display = 'flex';
+    }
+
+    function showEditSection() {
+        document.getElementById('modalMainActions').style.display = 'none';
+        document.getElementById('modalGlobalCancel').style.display = 'none';
+        document.getElementById('editNameContainer').style.display = 'flex';
+        document.getElementById('editNameInput').value = stats[activePlayerIdx].name;
+        document.getElementById('editNameInput').focus();
+    }
+
+    function showDelSection() {
+        document.getElementById('modalMainActions').style.display = 'none';
+        document.getElementById('modalGlobalCancel').style.display = 'none';
+        document.getElementById('confirmDelContainer').style.display = 'flex';
+    }
+
+    function resetModalViews() {
+        document.getElementById('modalMainActions').style.display = 'block';
+        document.getElementById('modalGlobalCancel').style.display = 'flex';
+        document.getElementById('editNameContainer').style.display = 'none';
+        document.getElementById('confirmDelContainer').style.display = 'none';
+    }
+
+    function closeModal() {
+        document.getElementById('playerModal').style.display = 'none';
+        activePlayerIdx = null;
+    }
+
+    function modalAction(type) {
+        const idx = activePlayerIdx;
+        if (idx === null) return;
+
+        if (type === 'edit') {
+            const newName = document.getElementById('editNameInput').value.trim();
+            if (newName && newName !== "") {
+                saveUndoState();
+                stats[idx].name = newName;
+                render();
+            }
+        } else if (type === 'champion') {
+            saveUndoState();
+            const wasChampion = stats[idx].isChampion;
+            stats.forEach(s => s.isChampion = false);
+            stats[idx].isChampion = !wasChampion;
+            render();
+        } else if (type === 'delete') {
+            saveUndoState();
+            stats.splice(idx, 1);
+            render();
+        }
+        closeModal();
+    }
 
     function getRacha(history) {
         if (!history || history.length === 0) return 0;
@@ -245,11 +383,11 @@
     }
 
     function renderResumen() {
-        if (stats.length === 0) return;
-        
-        // Obtener máximo de partidos jugados para filtrar BA en el resumen
+        if (stats.length === 0) {
+             document.getElementById('resumenCompacto').innerHTML = '';
+             return;
+        }
         const maxPJ = Math.max(...stats.map(p => p.g + p.p), 0);
-
         const data = stats.map(p => {
             const total = p.g + p.p;
             return {
@@ -260,11 +398,7 @@
             };
         });
 
-        // Filtrar jugadores con Baja Asistencia para estadísticas de porcentaje
-        const filteredForPerc = (maxPJ >= 7) 
-            ? data.filter(d => d.pj >= (maxPJ / 2))
-            : data;
-
+        const filteredForPerc = (maxPJ >= 7) ? data.filter(d => d.pj >= (maxPJ / 2)) : data;
         const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
         const botPerc = [...filteredForPerc].sort((a,b) => a.perc - b.perc).slice(0, 3);
         const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
@@ -298,15 +432,11 @@
     function render() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
-
-        // Obtener máximo de partidos jugados para lógica de BA
         const maxPJ = Math.max(...stats.map(p => p.g + p.p), 0);
 
         stats.forEach((p, i) => {
             const total = p.g + p.p;
             const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
-            
-            // Lógica de Baja Asistencia
             const isBA = maxPJ >= 7 && total < (maxPJ / 2);
             const bgPerc = isBA ? '#888' : getGradientColor(perc);
             const colorTxt = (isBA || perc >= 75 || perc < 35) ? 'white' : 'black';
@@ -332,15 +462,18 @@
             });
             dotsHtml += '</div>';
 
+            const esFilaCampeon = (i === 0 && p.isChampion);
+
             tbody.innerHTML += `
-                <tr>
+                <tr class="${esFilaCampeon ? 'fila-campeon' : ''}">
                     <td class="col-pos">${posDisplay}</td>
-                    <td class="name-col">
+                    <td class="name-col" 
+                        onmousedown="handleStart(${i})" onmouseup="handleEnd()" onmouseleave="handleEnd()"
+                        ontouchstart="handleStart(${i})" ontouchend="handleEnd()">
                         <div class="name-wrapper">
                             <div style="display:flex; align-items:center; overflow: hidden; flex: 1;">
-                                <button class="btn-delete" onclick="deletePlayer(${i})">✕</button>
                                 <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    ${p.name}${isBA ? ' <small style="font-size: 0.5rem; opacity: 0.7;">(BA)</small>' : ''}
+                                    ${p.isChampion ? '👑 ' : ''}${p.name}${isBA ? ' <small style="font-size: 0.5rem; opacity: 0.7;">(BA)</small>' : ''}
                                 </span>
                                 ${rachaIcon}
                             </div>
@@ -356,7 +489,7 @@
                         <input type="number" class="table-input" readonly value="${p.g}">
                         <span class="input-snapshot">${p.g}</span>
                     </td>
-                    <td class="perc-cell" style="background:${bgPerc}; color:${colorTxt}">${perc}%</td>
+                    <td class="perc-cell" style="background:${esFilaCampeon ? 'transparent' : bgPerc}; color:${esFilaCampeon ? 'inherit' : colorTxt}">${perc}%</td>
                     <td class="col-food" onclick="handleFoodChange(${i})">
                         <input type="number" class="table-input" readonly value="${p.food}">
                         <span class="input-snapshot">${p.food}</span>
@@ -469,17 +602,8 @@
         const name = document.getElementById('newPlayerName').value.trim();
         if (name) {
             saveUndoState();
-            stats.push({ name: name, p: 0, g: 0, food: 0, history: [] });
+            stats.push({ name: name, p: 0, g: 0, food: 0, history: [], isChampion: false });
             document.getElementById('newPlayerName').value = '';
-            render();
-        }
-    }
-
-    function deletePlayer(index) {
-        vibrar();
-        if (confirm(`¿Borrar a ${stats[index].name}?`)) {
-            saveUndoState();
-            stats.splice(index, 1);
             render();
         }
     }
