@@ -447,12 +447,12 @@
                 ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
             </div>
             <div class="resumen-section resumen-full-width">
-                <h4>Probabilidades de Campeón</h4>
-                <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 4px; max-height: 100px; overflow-y: auto; padding-right: 2px;">
+                <h4>Probabilidades de Campeón (26 fechas)</h4>
+                <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 2px; max-height: 100px; overflow-y: hidden; padding-right: 0px;">
                 ${probs.map((p) => `
-                    <div style="text-align: center; min-width: 50px; flex: 0 0 auto; padding: 2px 4px; background: rgba(255,255,255,0.05); border-radius: 3px;">
-                        <div style="font-weight: 800; color: #fff; font-size: 0.55rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65px;">${p.name}</div>
-                        <div class="val-prob" style="font-size: 0.75rem; color: ${p.chance > 0 ? 'var(--dorado-campeon)' : '#666'}">${p.chance}%</div>
+                    <div style="text-align: center; min-width: 48px; flex: 1 0 auto; padding: 2px 2px; background: rgba(255,255,255,0.05); border-radius: 3px;">
+                        <div style="font-weight: 800; color: #fff; font-size: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${p.name}</div>
+                        <div class="val-prob" style="font-size: 0.7rem; color: ${p.chance > 0 ? 'var(--dorado-campeon)' : '#666'}">${p.chance}%</div>
                     </div>
                 `).join('')}
                 </div>
