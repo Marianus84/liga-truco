@@ -129,9 +129,11 @@
             color: #888; 
             border-bottom: 1px solid #222;
         }
+        .resumen-full-width { grid-column: span 2; border-top: 1px solid #222; padding-top: 6px; margin-top: 4px; }
         .resumen-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
         .val-win { color: #22c55e; font-weight: bold; }
         .val-loss { color: #ef4444; font-weight: bold; }
+        .val-prob { color: var(--dorado-campeon); font-weight: bold; }
 
         .card { background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.2); }
         .btn { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; }
@@ -393,10 +395,29 @@
             return {
                 name: p.name,
                 pj: total,
+                g: p.g,
                 perc: total > 0 ? (p.g / total) * 100 : 0,
                 racha: getRacha(p.history)
             };
         });
+
+        // Cálculo de Probabilidades de Campeón (Basado en proyección a 26 fechas)
+        const TOTAL_FECHAS = 26;
+        const proyecciones = data.map(d => {
+            const partidosRestantes = Math.max(0, TOTAL_FECHAS - d.pj);
+            const winRateActual = d.pj > 0 ? (d.g / d.pj) : 0.5;
+            // Proyección: Victorias actuales + (partidos restantes * probabilidad de ganar según historial)
+            const puntosProyectados = d.g + (partidosRestantes * winRateActual);
+            return { name: d.name, projection: puntosProyectados };
+        });
+
+        // Ordenamos por proyección y normalizamos para obtener un % relativo entre los 3 primeros
+        const topCandidates = [...proyecciones].sort((a,b) => b.projection - a.projection).slice(0, 3);
+        const sumProy = topCandidates.reduce((acc, curr) => acc + curr.projection, 0) || 1;
+        const probs = topCandidates.map(c => ({
+            name: c.name,
+            chance: Math.round((c.projection / sumProy) * 100)
+        }));
 
         const filteredForPerc = (maxPJ >= 7) ? data.filter(d => d.pj >= (maxPJ / 2)) : data;
         const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
@@ -416,6 +437,17 @@
                 ${topRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${p.racha > 0 ? '🔥' + p.racha : '-'}</span></div>`).join('')}
                 <h4 style="margin-top:6px">Peores Rachas</h4>
                 ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
+            </div>
+            <div class="resumen-section resumen-full-width">
+                <h4>Probabilidades de Campeón (Proyección 26 Fechas)</h4>
+                <div style="display: flex; justify-content: space-between; gap: 10px;">
+                ${probs.map((p, idx) => `
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-weight: 800; color: #fff; font-size: 0.7rem;">${p.name}</div>
+                        <div class="val-prob" style="font-size: 0.9rem;">${p.chance}%</div>
+                    </div>
+                `).join('')}
+                </div>
             </div>
         `;
         document.getElementById('resumenCompacto').innerHTML = html;
