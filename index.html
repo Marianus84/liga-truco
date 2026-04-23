@@ -259,10 +259,11 @@
             <h3>Lógica de Probabilidades</h3>
             <p>El cálculo de probabilidades para ser campeón se basa en una proyección estadística a un total de <strong>26 fechas</strong>:</p>
             <ul>
+                <li><strong>Disponibilidad:</strong> Las probabilidades solo se muestran una vez superada la mitad del torneo (fecha 14), para asegurar que los datos proyectados tengan relevancia estadística.</li>
                 <li><strong>Eliminación Matemática:</strong> Si un jugador, ganando todos los partidos restantes (26 menos los partidos del líder), no alcanza las victorias actuales del puntero, su probabilidad cae automáticamente a <strong>0%</strong>.</li>
-                <li><strong>Proyección de Victorias:</strong> Se estima el puntaje final sumando las victorias actuales a una proyección basada en el <em>Win Rate</em> histórico de cada jugador aplicado a los partidos restantes.</li>
+                <li><strong>Proyección de Victorias:</strong> Se estima el puntaje final sumando las victorias actuales a una proyección basada en el <em>Win Rate</em>. Se utiliza un <strong>suavizado de Laplace</strong> (regla de sucesión) para evitar que resultados aislados asignen 100% o 0% de efectividad futura.</li>
                 <li><strong>Factor de Asistencia:</strong> Se penaliza la falta de regularidad. Si un jugador ha faltado a muchas fechas respecto al promedio, su proyección se reduce proporcionalmente para evitar que rachas cortas inflen sus posibilidades.</li>
-                <li><strong>Partidas Compartidas:</strong> Se considera que los jugadores que comparten equipo o mesa no pueden sacarse ventaja entre sí en esos encuentros. Por ejemplo, si los dos punteros juegan juntos, la diferencia entre ellos se mantiene constante, lo que influye en la dificultad de remontar posiciones.</li>
+                <li><strong>Partidas Compartidas:</strong> Se considera que los jugadores que comparten equipo o mesa no pueden sacarse ventaja entre sí en esos encuentros.</li>
                 <li><strong>Ponderación No Lineal:</strong> Se utiliza un factor de potencia (cubo) sobre el puntaje proyectado para acentuar la brecha entre los líderes reales y los que dependen de "milagros" matemáticos.</li>
             </ul>
         </div>
@@ -426,6 +427,7 @@
         }
         const maxPJ = Math.max(...stats.map(p => p.g + p.p), 1);
         const currentLeaderG = Math.max(...stats.map(p => p.g), 0);
+        const TOTAL_FECHAS = 26;
         
         const data = stats.map(p => {
             const total = p.g + p.p;
@@ -439,8 +441,6 @@
         });
 
         // --- CÁLCULO DE PROBABILIDADES DE CAMPEÓN ---
-        const TOTAL_FECHAS = 26;
-        
         const rawProbs = data.map(d => {
             const r = Math.max(0, TOTAL_FECHAS - maxPJ); 
             const maxPossibleG = d.g + r;
@@ -449,10 +449,10 @@
                 return { name: d.name, score: 0 };
             }
 
-            const winRate = d.pj > 0 ? (d.g / d.pj) : 0.5;
+            const smoothedWinRate = (d.g + 1) / (d.pj + 2);
             const attendanceFactor = d.pj / maxPJ; 
             
-            const projectedScore = Math.pow(d.g + (r * winRate * attendanceFactor), 3);
+            const projectedScore = Math.pow(d.g + (r * smoothedWinRate * attendanceFactor), 3);
             return { name: d.name, score: projectedScore };
         });
 
@@ -484,12 +484,15 @@
             <div class="resumen-section resumen-full-width">
                 <h4 style="text-align: center;">PROBABILIDADES DE SER CAMPEÓN (26 FECHAS)</h4>
                 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-height: 100px; overflow-y: hidden; padding-right: 0px;">
-                ${probs.map((p) => `
-                    <div style="text-align: center; min-width: 48px; flex: 1 0 auto; padding: 2px 2px; background: rgba(255,255,255,0.05); border-radius: 3px;">
-                        <div style="font-weight: 800; color: #fff; font-size: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${p.name}</div>
-                        <div class="val-prob" style="font-size: 0.7rem; color: ${p.chance > 0 ? 'var(--dorado-campeon)' : '#666'}">${p.chance}%</div>
-                    </div>
-                `).join('')}
+                ${maxPJ > (TOTAL_FECHAS / 2) ? 
+                    probs.map((p) => `
+                        <div style="text-align: center; min-width: 48px; flex: 1 0 auto; padding: 2px 2px; background: rgba(255,255,255,0.05); border-radius: 3px;">
+                            <div style="font-weight: 800; color: #fff; font-size: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${p.name}</div>
+                            <div class="val-prob" style="font-size: 0.7rem; color: ${p.chance > 0 ? 'var(--dorado-campeon)' : '#666'}">${p.chance}%</div>
+                        </div>
+                    `).join('') 
+                    : `<div style="text-align:center; width:100%; color:#666; font-size:0.6rem; padding: 5px 0;">Cálculos disponibles al superar la fecha 13 (mitad del torneo)</div>`
+                }
                 </div>
             </div>
         `;
