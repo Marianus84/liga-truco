@@ -407,21 +407,23 @@
         const TOTAL_FECHAS = 26;
         
         const rawProbs = data.map(d => {
-            const r = TOTAL_FECHAS - d.pj;
+            // Partidos reales que quedan para CUALQUIER jugador hasta el fin del torneo
+            const r = Math.max(0, TOTAL_FECHAS - maxPJ); 
             const maxPossibleG = d.g + r;
             
-            // Si matemáticamente no llega a las victorias del líder actual, o no ha jugado nada
+            // ELIMINACIÓN MATEMÁTICA: Si ganando todo lo que queda NO alcanza al líder actual
             if (maxPossibleG < currentLeaderG || d.pj === 0) {
                 return { name: d.name, score: 0 };
             }
 
             // WinRate suavizado
             const winRate = d.pj > 0 ? (d.g / d.pj) : 0.5;
-            // Factor de asistencia (castiga a quien no va nunca)
-            const attendanceFactor = Math.pow(d.pj / maxPJ, 1.2); 
+            // Factor de asistencia (castiga a quien ha faltado mucho respecto al líder)
+            const attendanceFactor = d.pj / maxPJ; 
             
-            // Puntuación proyectada relativa
-            const projectedScore = d.g + (r * winRate * attendanceFactor);
+            // Puntuación proyectada: Se eleva a una potencia (3) para que las 
+            // diferencias pesen mucho más y no reparta % altos a milagros matemáticos.
+            const projectedScore = Math.pow(d.g + (r * winRate * attendanceFactor), 3);
             return { name: d.name, score: projectedScore };
         });
 
