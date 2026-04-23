@@ -389,7 +389,9 @@
              document.getElementById('resumenCompacto').innerHTML = '';
              return;
         }
-        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 0);
+        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 1);
+        const currentLeaderG = Math.max(...stats.map(p => p.g), 0);
+        
         const data = stats.map(p => {
             const total = p.g + p.p;
             return {
@@ -401,23 +403,33 @@
             };
         });
 
-        // Cálculo de Probabilidades de Campeón (Basado en proyección a 26 fechas)
+        // --- CÁLCULO DE PROBABILIDADES DE CAMPEÓN ---
         const TOTAL_FECHAS = 26;
-        const proyecciones = data.map(d => {
-            const partidosRestantes = Math.max(0, TOTAL_FECHAS - d.pj);
-            const winRateActual = d.pj > 0 ? (d.g / d.pj) : 0.5;
-            // Proyección: Victorias actuales + (partidos restantes * probabilidad de ganar según historial)
-            const puntosProyectados = d.g + (partidosRestantes * winRateActual);
-            return { name: d.name, projection: puntosProyectados };
+        
+        const rawProbs = data.map(d => {
+            const r = TOTAL_FECHAS - d.pj;
+            const maxPossibleG = d.g + r;
+            
+            // Si matemáticamente no llega a las victorias del líder actual, o no ha jugado nada
+            if (maxPossibleG < currentLeaderG || d.pj === 0) {
+                return { name: d.name, score: 0 };
+            }
+
+            // WinRate suavizado
+            const winRate = d.pj > 0 ? (d.g / d.pj) : 0.5;
+            // Factor de asistencia (castiga a quien no va nunca)
+            const attendanceFactor = Math.pow(d.pj / maxPJ, 1.2); 
+            
+            // Puntuación proyectada relativa
+            const projectedScore = d.g + (r * winRate * attendanceFactor);
+            return { name: d.name, score: projectedScore };
         });
 
-        // Ordenamos por proyección y normalizamos para obtener un % relativo entre los 3 primeros
-        const topCandidates = [...proyecciones].sort((a,b) => b.projection - a.projection).slice(0, 3);
-        const sumProy = topCandidates.reduce((acc, curr) => acc + curr.projection, 0) || 1;
-        const probs = topCandidates.map(c => ({
-            name: c.name,
-            chance: Math.round((c.projection / sumProy) * 100)
-        }));
+        const totalScore = rawProbs.reduce((acc, curr) => acc + curr.score, 0) || 1;
+        const probs = rawProbs.map(p => ({
+            name: p.name,
+            chance: p.score > 0 ? Math.round((p.score / totalScore) * 100) : 0
+        })).sort((a,b) => b.chance - a.chance);
 
         const filteredForPerc = (maxPJ >= 7) ? data.filter(d => d.pj >= (maxPJ / 2)) : data;
         const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
@@ -439,12 +451,12 @@
                 ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
             </div>
             <div class="resumen-section resumen-full-width">
-                <h4>Probabilidades de Campeón (Proyección 26 Fechas)</h4>
-                <div style="display: flex; justify-content: space-between; gap: 10px;">
-                ${probs.map((p, idx) => `
-                    <div style="flex: 1; text-align: center;">
-                        <div style="font-weight: 800; color: #fff; font-size: 0.7rem;">${p.name}</div>
-                        <div class="val-prob" style="font-size: 0.9rem;">${p.chance}%</div>
+                <h4>Probabilidades de Campeón (Todos los jugadores)</h4>
+                <div style="display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; max-height: 120px; overflow-y: auto; padding-right: 5px;">
+                ${probs.map((p) => `
+                    <div style="text-align: center; min-width: 60px; flex: 0 0 auto; padding: 4px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+                        <div style="font-weight: 800; color: #fff; font-size: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 75px;">${p.name}</div>
+                        <div class="val-prob" style="font-size: 0.8rem; color: ${p.chance > 0 ? 'var(--dorado-campeon)' : '#666'}">${p.chance}%</div>
                     </div>
                 `).join('')}
                 </div>
