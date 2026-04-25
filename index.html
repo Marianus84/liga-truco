@@ -639,7 +639,7 @@
             const file = new File([blob], 'liga_truco.png', { type: 'image/png' });
             document.body.classList.remove('exporting');
             if (navigator.share) {
-                await navigator.share({ files: [file], title: 'Tabla Truco', text: '¡Tabla actualizada!' });
+                await navigator.share({ files: [file], title: 'Tabla Truco', text: '' });
             }
         } catch (err) {
             document.body.classList.remove('exporting');
