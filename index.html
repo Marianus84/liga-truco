@@ -75,7 +75,7 @@
 
         .input-snapshot { display: none; font-size: 0.95rem; font-weight: 800; line-height: 32px; text-align: center; }
 
-        .exporting .table-input, .exporting .btn-delete, .exporting .btn-undo-ui { display: none !important; }
+        .exporting .table-input, .exporting .btn-delete, .exporting .btn-undo-ui, .exporting .btn-edit-ui { display: none !important; }
         .exporting .input-snapshot { display: block !important; }
 
         .col-pos { background: var(--azul-oscuro); color: white; width: 28px; font-size: 0.8rem; }
@@ -139,6 +139,7 @@
         .btn { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; }
         .btn-update { background: #22c55e; color: #000; }
         .btn-share { background: #25d366; color: white; }
+        
         .btn-undo-ui { 
             background: #facc15; 
             color: #000; 
@@ -152,6 +153,26 @@
             margin: 8px 5px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
+
+        .btn-edit-ui {
+            background: #6b7280; 
+            color: #fff; 
+            padding: 4px 10px; 
+            font-size: 0.65rem; 
+            border-radius: 4px; 
+            border: none;
+            font-weight: bold; 
+            cursor: pointer; 
+            float: left; 
+            margin: 8px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        .btn-edit-ui.active {
+            background: #ef4444;
+            color: #fff;
+        }
+
         .btn-add { background: #3b82f6; color: white; margin-top: 0; }
         
         .btn-backup { background: #6b7280; color: white; font-size: 0.7rem; margin-top: 5px; }
@@ -160,7 +181,6 @@
         .input-group { display: flex; gap: 5px; margin-top: 5px; }
         input[type="text"] { flex: 1; background: #fff; border: 1px solid #3b82f6; padding: 6px; border-radius: 4px; font-size: 0.85rem; color: #000; }
 
-        /* Estilo para la explicación de la lógica (Fuera de la captura) */
         .logica-explicacion {
             margin-top: 20px;
             padding: 12px;
@@ -183,7 +203,6 @@
         .logica-explicacion ul { padding-left: 18px; margin: 8px 0; }
         .logica-explicacion li { margin-bottom: 4px; }
 
-        /* Modal personalizado mejorado */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000;
@@ -203,13 +222,11 @@
         .btn-modal-del { background: var(--rojo-delete); color: white; }
         .btn-modal-cancel { background: #333; color: #aaa; margin-top: 5px; }
         
-        /* Contenedor de edición rápida dentro del modal */
         #editNameContainer { display: none; flex-direction: column; gap: 10px; margin-bottom: 15px; }
         #editNameInput { width: 100%; padding: 12px; border-radius: 6px; border: 2px solid #3b82f6; font-size: 1rem; box-sizing: border-box; }
         .edit-actions { display: flex; gap: 5px; }
         .btn-save-name { background: #22c55e; color: #000; flex: 1; padding: 10px; border-radius: 6px; font-weight: bold; border: none; }
         
-        /* Contenedor de confirmación de borrado */
         #confirmDelContainer { display: none; flex-direction: column; gap: 10px; text-align: center; margin-bottom: 15px; }
         .btn-confirm-del { background: #ef4444; color: white; padding: 12px; border-radius: 6px; font-weight: bold; border: none; }
     </style>
@@ -219,6 +236,8 @@
 <div class="container">
     <div id="captureArea">
         <div class="table-container">
+            <!-- Botón de Modo Edición solicitado -->
+            <button class="btn-edit-ui" id="editToggle" onclick="toggleEditMode()">EDIT OFF</button>
             <button class="btn-undo-ui" onclick="undoLastAction()">↩ DESHACER</button>
             <table>
                 <thead>
@@ -274,14 +293,12 @@
     <div class="modal-content">
         <h4 id="modalPlayerName" class="modal-title">Opciones</h4>
         
-        <!-- Vista principal del modal -->
         <div id="modalMainActions">
             <button class="modal-btn btn-modal-edit" onclick="showEditSection()">✏️ EDITAR NOMBRE</button>
             <button class="modal-btn btn-modal-champ" onclick="modalAction('champion')">👑 MARCAR CAMPEÓN</button>
             <button class="modal-btn btn-modal-del" onclick="showDelSection()">🗑️ ELIMINAR</button>
         </div>
 
-        <!-- Sección Editar (Oculta por defecto) -->
         <div id="editNameContainer">
             <input type="text" id="editNameInput">
             <div class="edit-actions">
@@ -290,7 +307,6 @@
             </div>
         </div>
 
-        <!-- Sección Confirmar Borrado (Oculta por defecto) -->
         <div id="confirmDelContainer">
             <p style="color: #ef4444; font-weight: bold; font-size: 0.9rem;">¿ESTÁS SEGURO?</p>
             <button class="btn-confirm-del" onclick="modalAction('delete')">SÍ, ELIMINAR JUGADOR</button>
@@ -307,6 +323,7 @@
     let prevOrder = JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
     let activePlayerIdx = null;
     let pressTimer = null;
+    let isEditMode = false; // Estado del modo edición
 
     function vibrar(ms = 80) {
         if (navigator.vibrate) navigator.vibrate(ms);
@@ -316,6 +333,21 @@
 
     function sonar() {
         sonidoShare.play().catch(error => console.log("Audio block:", error));
+    }
+
+    // Función para alternar el modo edición
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+        const btn = document.getElementById('editToggle');
+        if (isEditMode) {
+            btn.innerText = "EDIT ON";
+            btn.classList.add('active');
+            vibrar(150);
+        } else {
+            btn.innerText = "EDIT OFF";
+            btn.classList.remove('active');
+            vibrar(50);
+        }
     }
 
     function saveUndoState() {
@@ -341,9 +373,10 @@
     document.getElementById('editTitle').value = savedTitle;
 
     function handleStart(idx) {
+        if (!isEditMode) return; // Protegido por modo edición
         pressTimer = setTimeout(() => {
             openPlayerModal(idx);
-        }, 5000);
+        }, 3000); // Reducido un poco el tiempo de presión para mejor UX
     }
 
     function handleEnd() {
@@ -440,7 +473,6 @@
             };
         });
 
-        // --- CÁLCULO DE PROBABILIDADES DE CAMPEÓN ---
         const rawProbs = data.map(d => {
             const r = Math.max(0, TOTAL_FECHAS - maxPJ); 
             const maxPossibleG = d.g + r;
@@ -500,6 +532,7 @@
     }
 
     function quickAdd(idx, field) {
+        if (!isEditMode) return; // Protegido por modo edición
         vibrar();
         saveUndoState();
         const currentVal = parseInt(stats[idx][field]) || 0;
@@ -601,6 +634,7 @@
     }
 
     function handleFoodChange(idx) {
+        if (!isEditMode) return; // Protegido por modo edición
         vibrar();
         saveUndoState();
         stats[idx].food = (parseInt(stats[idx].food) || 0) + 1;
@@ -676,6 +710,7 @@
     }
 
     function addNewPlayer() {
+        if (!isEditMode) return; // Protegido por modo edición
         vibrar();
         const name = document.getElementById('newPlayerName').value.trim();
         if (name) {
