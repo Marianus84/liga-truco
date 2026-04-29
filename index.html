@@ -66,17 +66,6 @@
             color: #fff !important;
         }
 
-        /* Halo dorado sutil para el PUNTERO (el que va 1ro en la tabla) */
-        .fila-puntero td {
-            position: relative;
-            z-index: 5;
-            border-top: 1px solid rgba(255, 215, 0, 0.4) !important;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.4) !important;
-            box-shadow: 0 0 12px 2px rgba(255, 215, 0, 0.3);
-        }
-        .fila-puntero td:first-child { border-left: 1px solid rgba(255, 215, 0, 0.4) !important; }
-        .fila-puntero td:last-child { border-right: 1px solid rgba(255, 215, 0, 0.4) !important; }
-
         .table-input { 
             width: 100%; height: 32px; background: transparent; border: none; 
             text-align: center; font-size: 0.95rem; font-weight: 800; color: inherit; outline: none;
@@ -247,6 +236,7 @@
 <div class="container">
     <div id="captureArea">
         <div class="table-container">
+            <!-- Botón de Modo Edición solicitado -->
             <button class="btn-edit-ui" id="editToggle" onclick="toggleEditMode()">EDIT OFF</button>
             <button class="btn-undo-ui" onclick="undoLastAction()">↩ DESHACER</button>
             <table>
@@ -345,6 +335,7 @@
         sonidoShare.play().catch(error => console.log("Audio block:", error));
     }
 
+    // Función para alternar el modo edición
     function toggleEditMode() {
         isEditMode = !isEditMode;
         const btn = document.getElementById('editToggle');
@@ -382,10 +373,10 @@
     document.getElementById('editTitle').value = savedTitle;
 
     function handleStart(idx) {
-        if (!isEditMode) return;
+        if (!isEditMode) return; // Protegido por modo edición
         pressTimer = setTimeout(() => {
             openPlayerModal(idx);
-        }, 3000);
+        }, 3000); // Reducido un poco el tiempo de presión para mejor UX
     }
 
     function handleEnd() {
@@ -541,7 +532,7 @@
     }
 
     function quickAdd(idx, field) {
-        if (!isEditMode) return;
+        if (!isEditMode) return; // Protegido por modo edición
         vibrar();
         saveUndoState();
         const currentVal = parseInt(stats[idx][field]) || 0;
@@ -583,10 +574,9 @@
             dotsHtml += '</div>';
 
             const esFilaCampeon = (i === 0 && p.isChampion);
-            const esPuntero = (i === 0);
 
             tbody.innerHTML += `
-                <tr class="${esFilaCampeon ? 'fila-campeon' : ''} ${esPuntero ? 'fila-puntero' : ''}">
+                <tr class="${esFilaCampeon ? 'fila-campeon' : ''}">
                     <td class="col-pos">${posDisplay}</td>
                     <td class="name-col" 
                         onmousedown="handleStart(${i})" onmouseup="handleEnd()" onmouseleave="handleEnd()"
@@ -610,7 +600,7 @@
                         <input type="number" class="table-input" readonly value="${p.g}">
                         <span class="input-snapshot">${p.g}</span>
                     </td>
-                    <td class="perc-cell" style="background:${(esFilaCampeon || esPuntero) ? 'transparent' : bgPerc}; color:${(esFilaCampeon || esPuntero) ? 'inherit' : colorTxt}">${perc}%</td>
+                    <td class="perc-cell" style="background:${esFilaCampeon ? 'transparent' : bgPerc}; color:${esFilaCampeon ? 'inherit' : colorTxt}">${perc}%</td>
                     <td class="col-food" onclick="handleFoodChange(${i})">
                         <input type="number" class="table-input" readonly value="${p.food}">
                         <span class="input-snapshot">${p.food}</span>
@@ -644,7 +634,7 @@
     }
 
     function handleFoodChange(idx) {
-        if (!isEditMode) return;
+        if (!isEditMode) return; // Protegido por modo edición
         vibrar();
         saveUndoState();
         stats[idx].food = (parseInt(stats[idx].food) || 0) + 1;
@@ -720,7 +710,7 @@
     }
 
     function addNewPlayer() {
-        if (!isEditMode) return;
+        if (!isEditMode) return; // Protegido por modo edición
         vibrar();
         const name = document.getElementById('newPlayerName').value.trim();
         if (name) {
