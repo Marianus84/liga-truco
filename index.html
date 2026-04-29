@@ -7,79 +7,135 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a472a">
+    <meta name="theme-color" content="#0d2b1a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         :root {
             --verde-mesa: #1a472a;
+            --verde-oscuro: #0d2416;
+            --madera: #3d2b1f;
+            --madera-clara: #5d432f;
+            --oro: #ffd700;
+            --copa: #ef4444;
+            --espada: #3b82f6;
+            --basto: #4ade80;
             --header-table: #000000;
             --azul-oscuro: #002060;
-            --celeste-claro: #d9e2f3;
-            --celeste-medio: #cfd9e8;
-            --rojo-delete: #ef4444;
+            --celeste-claro: #f0f4f8;
+            --rojo-delete: #b91c1c;
             --win-dot: #22c55e;
             --loss-dot: #ef4444;
             --dorado-campeon: #ffd700;
         }
 
         body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background: var(--verde-mesa); 
+            font-family: 'Segoe UI', Roboto, 'Georgia', serif; 
+            background: var(--verde-oscuro);
+            /* Patrón de paño */
+            background-image: radial-gradient(#2a613d 0.5px, transparent 0.5px);
+            background-size: 4px 4px;
             color: #f3f4f6; 
-            margin: 0; padding: 5px; 
+            margin: 0; padding: 10px; 
             -webkit-tap-highlight-color: transparent;
         }
 
-        .container { max-width: 100%; margin: auto; }
+        .container { max-width: 500px; margin: auto; }
         
         #captureArea {
             background: var(--verde-mesa);
-            padding: 0;
+            padding: 10px;
             display: block;
             width: 100%;
             box-sizing: border-box;
+            border: 8px solid var(--madera);
+            border-radius: 12px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        /* Adorno palos de baraja española: Espada, Copa, Basto, Oro */
+        #captureArea::before {
+            content: "⚔️ 🏆 🪵 🪙";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--madera);
+            padding: 0 15px;
+            font-size: 10px;
+            border-radius: 10px;
+            color: var(--oro);
+            letter-spacing: 5px;
         }
 
         .table-container { 
-            background: transparent; 
+            background: rgba(0,0,0,0.1); 
             width: 100%; 
             display: block; 
             overflow: hidden; 
-            border: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
         }
 
         table { width: 100%; border-collapse: collapse; color: #000; table-layout: fixed; border: none; }
         
-        th { background: var(--header-table); color: #ffffff; padding: 3px 1px; font-size: 0.6rem; border: 1px solid #444; }
-        #displayTitle { font-size: 0.6rem; font-weight: 800; margin: 0; display: block; }
+        th { 
+            background: var(--header-table); 
+            color: var(--oro); 
+            padding: 8px 1px; 
+            font-size: 0.65rem; 
+            border: 1px solid #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #displayTitle { font-size: 0.75rem; font-weight: 900; margin: 0; display: block; text-shadow: 1px 1px 0px #000; }
 
-        td { padding: 0; text-align: center; border: 1px solid #000000; font-size: 0.85rem; font-weight: 700; height: 32px; vertical-align: middle; transition: background 0.3s; }
+        td { 
+            padding: 0; 
+            text-align: center; 
+            border: 1px solid rgba(0,0,0,0.2); 
+            font-size: 0.85rem; 
+            font-weight: 700; 
+            height: 38px; 
+            vertical-align: middle; 
+            transition: background 0.3s; 
+        }
 
         .fila-campeon td {
-            background: var(--dorado-campeon) !important;
+            background: linear-gradient(to bottom, #ffd700, #b8860b) !important;
             color: #000 !important;
-            border-color: #b8860b !important;
+            border-color: #8a6d3b !important;
+            box-shadow: inset 0 0 10px rgba(255,255,255,0.5);
         }
         .fila-campeon .col-pos, .fila-campeon .col-g {
-            background: #b8860b !important;
+            background: #8a6d3b !important;
             color: #fff !important;
         }
 
         .table-input { 
-            width: 100%; height: 32px; background: transparent; border: none; 
-            text-align: center; font-size: 0.95rem; font-weight: 800; color: inherit; outline: none;
-            padding: 0; margin: 0; line-height: 32px;
+            width: 100%; height: 100%; background: transparent; border: none; 
+            text-align: center; font-size: 1.1rem; font-weight: 800; color: inherit; outline: none;
+            padding: 0; margin: 0;
             cursor: pointer;
         }
 
-        .input-snapshot { display: none; font-size: 0.95rem; font-weight: 800; line-height: 32px; text-align: center; }
+        .input-snapshot { font-size: 1.1rem; font-weight: 800; text-align: center; display: none; }
 
         .exporting .table-input, .exporting .btn-delete, .exporting .btn-undo-ui, .exporting .btn-edit-ui { display: none !important; }
         .exporting .input-snapshot { display: block !important; }
 
-        .col-pos { background: var(--azul-oscuro); color: white; width: 28px; font-size: 0.8rem; }
-        .name-col { text-align: left; padding: 0 5px; background: var(--celeste-claro); width: auto; font-size: 0.75rem; position: relative; user-select: none; -webkit-user-select: none; }
+        .col-pos { background: #222; color: var(--oro); width: 32px; font-size: 0.8rem; border-right: 2px solid var(--madera) !important; }
+        .name-col { 
+            text-align: left; 
+            padding: 0 8px; 
+            background: var(--celeste-claro); 
+            width: auto; 
+            font-size: 0.8rem; 
+            position: relative; 
+            user-select: none;
+            box-shadow: inset 2px 0 5px rgba(0,0,0,0.1);
+        }
         
         .name-wrapper { 
             display: flex; 
@@ -91,144 +147,158 @@
 
         .dots-container { 
             display: flex; 
-            gap: 1px; 
-            margin-left: 4px;
+            gap: 2px; 
+            margin-left: 6px;
             flex-shrink: 0; 
             flex-wrap: nowrap; 
             justify-content: flex-end;
         }
         
-        .dot { width: 4px; height: 4px; border-radius: 50%; display: inline-block; }
-        .dot-g { background-color: var(--win-dot); }
-        .dot-p { background-color: var(--loss-dot); }
+        /* Estilo Porotos/Semillas */
+        .dot { 
+            width: 6px; height: 6px; 
+            border-radius: 50% 40% 50% 40%; 
+            display: inline-block; 
+            transform: rotate(15deg);
+            box-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+        }
+        .dot-g { background: radial-gradient(circle at 30% 30%, #4ade80, #166534); }
+        .dot-p { background: radial-gradient(circle at 30% 30%, #f87171, #991b1b); }
 
-        .col-pj { background: var(--celeste-medio); width: 30px; }
-        .col-p { background: var(--celeste-medio); color: #dc2626; width: 32px; }
-        .col-g { background: var(--azul-oscuro); color: white; width: 32px; }
-        .col-food { background: var(--celeste-claro); width: 32px; }
-        .perc-cell { font-size: 0.85rem; color: #000; width: 42px; }
+        .col-pj { background: #e2e8f0; width: 34px; color: #444; }
+        .col-p { background: #fee2e2; color: #b91c1c; width: 36px; }
+        .col-g { background: var(--azul-oscuro); color: white; width: 36px; }
+        .col-food { background: #fef3c7; width: 36px; font-size: 1rem; }
+        .perc-cell { font-size: 0.85rem; color: #000; width: 48px; border-left: 2px solid var(--madera) !important; }
 
-        .racha { font-size: 0.8rem; margin-left: 3px; font-weight: bold; }
+        .racha { font-size: 0.9rem; margin-left: 5px; font-weight: bold; }
         .sube { color: #15803d; }
         .baja { color: #dc2626; }
 
         #resumenCompacto {
-            background: #111;
-            color: #fff;
-            padding: 8px;
+            background: #0a0a0a;
+            color: #ccc;
+            padding: 10px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            border-top: 1px solid #333;
+            gap: 12px;
+            border-top: 4px solid var(--madera);
         }
-        .resumen-section { font-size: 0.65rem; }
+        .resumen-section { font-size: 0.7rem; }
         .resumen-section h4 { 
-            margin: 0 0 4px 0; 
-            font-size: 0.6rem; 
+            margin: 0 0 6px 0; 
+            font-size: 0.65rem; 
             text-transform: uppercase; 
-            color: #888; 
-            border-bottom: 1px solid #222;
+            color: var(--oro); 
+            border-bottom: 1px solid #333;
+            padding-bottom: 2px;
         }
-        .resumen-full-width { grid-column: span 2; border-top: 1px solid #222; padding-top: 4px; margin-top: 2px; }
-        .resumen-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
-        .val-win { color: #22c55e; font-weight: bold; }
-        .val-loss { color: #ef4444; font-weight: bold; }
-        .val-prob { color: var(--dorado-campeon); font-weight: bold; }
+        .resumen-full-width { grid-column: span 2; border-top: 1px solid #222; padding-top: 8px; }
+        .resumen-item { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .val-win { color: #4ade80; font-weight: bold; }
+        .val-loss { color: #f87171; font-weight: bold; }
+        .val-prob { color: var(--oro); font-weight: bold; text-shadow: 0 0 5px rgba(255,215,0,0.3); }
 
-        .card { background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.2); }
-        .btn { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; }
-        .btn-update { background: #22c55e; color: #000; }
-        .btn-share { background: #25d366; color: white; }
+        /* Botonera */
+        .card { background: rgba(0, 0, 0, 0.6); padding: 15px; border-radius: 12px; margin-top: 15px; border: 2px solid var(--madera); }
+        .btn { 
+            width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: none; 
+            font-weight: 900; font-size: 0.9rem; cursor: pointer; text-transform: uppercase; 
+            box-shadow: 0 4px 0 rgba(0,0,0,0.4); 
+            transition: all 0.1s;
+        }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.4); }
+        
+        .btn-update { background: linear-gradient(#22c55e, #166534); color: white; }
+        .btn-share { background: linear-gradient(#25d366, #128c7e); color: white; }
         
         .btn-undo-ui { 
-            background: #facc15; 
-            color: #000; 
-            padding: 4px 10px; 
-            font-size: 0.65rem; 
+            background: var(--madera); 
+            color: var(--oro); 
+            padding: 6px 12px; 
+            font-size: 0.7rem; 
             border-radius: 4px; 
-            border: none;
+            border: 1px solid var(--oro);
             font-weight: bold; 
             cursor: pointer; 
             float: right; 
             margin: 8px 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .btn-edit-ui {
-            background: #6b7280; 
-            color: #fff; 
-            padding: 4px 10px; 
-            font-size: 0.65rem; 
+            background: #333; 
+            color: #eee; 
+            padding: 6px 12px; 
+            font-size: 0.7rem; 
             border-radius: 4px; 
-            border: none;
+            border: 1px solid #666;
             font-weight: bold; 
             cursor: pointer; 
             float: left; 
             margin: 8px 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            transition: all 0.2s;
         }
         .btn-edit-ui.active {
-            background: #ef4444;
-            color: #fff;
+            background: var(--rojo-delete);
+            border-color: #fff;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
 
-        .btn-add { background: #3b82f6; color: white; margin-top: 0; }
+        .btn-add { background: var(--espada); color: white; margin-top: 0; border-radius: 0 4px 4px 0; }
         
-        .btn-backup { background: #6b7280; color: white; font-size: 0.7rem; margin-top: 5px; }
-        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px; }
+        .btn-backup { background: #444; color: #ccc; font-size: 0.75rem; margin-top: 5px; box-shadow: none; }
+        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         
-        .input-group { display: flex; gap: 5px; margin-top: 5px; }
-        input[type="text"] { flex: 1; background: #fff; border: 1px solid #3b82f6; padding: 6px; border-radius: 4px; font-size: 0.85rem; color: #000; }
+        .input-group { display: flex; margin-top: 5px; }
+        input[type="text"] { 
+            flex: 1; background: #fff; border: 2px solid var(--madera); padding: 10px; 
+            border-radius: 4px 0 0 4px; font-size: 0.9rem; color: #000; font-weight: bold;
+        }
 
         .logica-explicacion {
-            margin-top: 20px;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            font-size: 0.75rem;
-            color: #ccc;
-            line-height: 1.4;
-            border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #aaa;
+            line-height: 1.5;
+            border-left: 4px solid var(--oro);
         }
         .logica-explicacion h3 { 
-            color: var(--dorado-campeon); 
-            font-size: 0.8rem; 
+            color: var(--oro); 
+            font-size: 0.9rem; 
             margin-top: 0; 
             text-transform: uppercase;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .logica-explicacion p { margin: 8px 0; }
-        .logica-explicacion ul { padding-left: 18px; margin: 8px 0; }
-        .logica-explicacion li { margin-bottom: 4px; }
+        .logica-explicacion h3::after { content: "🎴"; }
 
+        /* Modales */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000;
+            background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000;
+            backdrop-filter: blur(5px);
         }
         .modal-content {
-            background: #1a1a1a; padding: 20px; border-radius: 12px; width: 90%; max-width: 320px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6); border: 1px solid #333;
+            background: var(--verde-mesa); padding: 25px; border-radius: 15px; width: 85%; max-width: 320px;
+            border: 5px solid var(--madera); box-shadow: 0 0 30px rgba(0,0,0,1);
         }
-        .modal-title { margin-top: 0; color: #fff; font-size: 1.1rem; text-align: center; margin-bottom: 20px; font-weight: 800; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-title { color: var(--oro); font-size: 1.2rem; text-align: center; margin-bottom: 20px; font-weight: 900; text-transform: uppercase; }
         .modal-btn {
-            width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 8px; border: none;
-            font-weight: 900; cursor: pointer; font-size: 0.85rem; text-transform: uppercase;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 8px; border: none;
+            font-weight: 900; cursor: pointer; font-size: 0.9rem; text-transform: uppercase;
         }
-        .btn-modal-edit { background: #3b82f6; color: white; }
-        .btn-modal-champ { background: var(--dorado-campeon); color: #000; }
+        .btn-modal-edit { background: var(--espada); color: white; }
+        .btn-modal-champ { background: var(--oro); color: #000; }
         .btn-modal-del { background: var(--rojo-delete); color: white; }
-        .btn-modal-cancel { background: #333; color: #aaa; margin-top: 5px; }
-        
-        #editNameContainer { display: none; flex-direction: column; gap: 10px; margin-bottom: 15px; }
-        #editNameInput { width: 100%; padding: 12px; border-radius: 6px; border: 2px solid #3b82f6; font-size: 1rem; box-sizing: border-box; }
-        .edit-actions { display: flex; gap: 5px; }
-        .btn-save-name { background: #22c55e; color: #000; flex: 1; padding: 10px; border-radius: 6px; font-weight: bold; border: none; }
-        
-        #confirmDelContainer { display: none; flex-direction: column; gap: 10px; text-align: center; margin-bottom: 15px; }
-        .btn-confirm-del { background: #ef4444; color: white; padding: 12px; border-radius: 6px; font-weight: bold; border: none; }
+        .btn-modal-cancel { background: #222; color: #888; }
     </style>
 </head>
 <body>
@@ -236,19 +306,18 @@
 <div class="container">
     <div id="captureArea">
         <div class="table-container">
-            <!-- Botón de Modo Edición solicitado -->
             <button class="btn-edit-ui" id="editToggle" onclick="toggleEditMode()">EDIT OFF</button>
             <button class="btn-undo-ui" onclick="undoLastAction()">↩ DESHACER</button>
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 28px;">Pos</th>
+                        <th style="width: 32px;">Pos</th>
                         <th><span id="displayTitle">TORNEO VIERNES</span></th>
-                        <th style="width: 30px;">J</th>
-                        <th style="width: 32px;">P</th>
-                        <th style="width: 32px;">G</th>
-                        <th style="width: 42px;">%</th>
-                        <th style="width: 32px;">🍴🍺</th>
+                        <th style="width: 34px;">J</th>
+                        <th style="width: 36px;">P</th>
+                        <th style="width: 36px;">G</th>
+                        <th style="width: 48px;">%</th>
+                        <th style="width: 36px;">🍴</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -258,32 +327,29 @@
     </div>
 
     <div class="btn-main" style="padding: 0 5px;">
-        <button class="btn btn-update" onclick="saveTableData()">Actualizar Ranking</button>
-        <button class="btn btn-share" onclick="shareAsImage()">Compartir Tabla 📲</button>
+        <button class="btn btn-update" onclick="saveTableData()">Actualizar Posiciones 📊</button>
+        <button class="btn btn-share" onclick="shareAsImage()">Compartir en WhatsApp 📲</button>
 
         <div class="card">
             <div class="input-group">
-                <input type="text" id="newPlayerName" placeholder="Nombre...">
-                <button class="btn btn-add" style="width: auto;" onclick="addNewPlayer()">+</button>
+                <input type="text" id="newPlayerName" placeholder="Nombre del jugador...">
+                <button class="btn btn-add" style="width: 60px;" onclick="addNewPlayer()">AÑADIR</button>
             </div>
-            <input type="text" id="editTitle" style="width: 93%; margin-top: 8px;" placeholder="Título" oninput="updateTitle(this.value)">
+            <input type="text" id="editTitle" style="width: 100%; margin-top: 10px; border-radius: 4px; box-sizing: border-box;" placeholder="Título del Torneo" oninput="updateTitle(this.value)">
             
             <div class="actions-grid">
-                <button class="btn btn-backup" onclick="exportData()">💾 Guardar Backup</button>
-                <button class="btn btn-backup" onclick="importData()">📂 Cargar Backup</button>
+                <button class="btn btn-backup" onclick="exportData()">💾 Exportar</button>
+                <button class="btn btn-backup" onclick="importData()">📂 Importar</button>
             </div>
         </div>
 
         <div class="logica-explicacion">
-            <h3>Lógica de Probabilidades</h3>
-            <p>El cálculo de probabilidades para ser campeón se basa en una proyección estadística a un total de <strong>26 fechas</strong>:</p>
+            <h3>Lógica de Campeonato</h3>
+            <p>Basado en proyección a <strong>26 fechas</strong>:</p>
             <ul>
-                <li><strong>Disponibilidad:</strong> Las probabilidades solo se muestran una vez superada la mitad del torneo (fecha 14), para asegurar que los datos proyectados tengan relevancia estadística.</li>
-                <li><strong>Eliminación Matemática:</strong> Si un jugador, ganando todos los partidos restantes (26 menos los partidos del líder), no alcanza las victorias actuales del puntero, su probabilidad cae automáticamente a <strong>0%</strong>.</li>
-                <li><strong>Proyección de Victorias:</strong> Se estima el puntaje final sumando las victorias actuales a una proyección basada en el <em>Win Rate</em>. Se utiliza un <strong>suavizado de Laplace</strong> (regla de sucesión) para evitar que resultados aislados asignen 100% o 0% de efectividad futura.</li>
-                <li><strong>Factor de Asistencia:</strong> Se penaliza la falta de regularidad. Si un jugador ha faltado a muchas fechas respecto al promedio, su proyección se reduce proporcionalmente para evitar que rachas cortas inflen sus posibilidades.</li>
-                <li><strong>Partidas Compartidas:</strong> Se considera que los jugadores que comparten equipo o mesa no pueden sacarse ventaja entre sí en esos encuentros.</li>
-                <li><strong>Ponderación No Lineal:</strong> Se utiliza un factor de potencia (cubo) sobre el puntaje proyectado para acentuar la brecha entre los líderes reales y los que dependen de "milagros" matemáticos.</li>
+                <li><strong>Matemática:</strong> Se evalúa si aún hay chances de alcanzar al puntero.</li>
+                <li><strong>Proyección:</strong> Usa el <em>Win Rate</em> suavizado y factor de asistencia.</li>
+                <li><strong>Filtro:</strong> Probabilidades visibles desde la fecha 14.</li>
             </ul>
         </div>
     </div>
@@ -299,17 +365,17 @@
             <button class="modal-btn btn-modal-del" onclick="showDelSection()">🗑️ ELIMINAR</button>
         </div>
 
-        <div id="editNameContainer">
-            <input type="text" id="editNameInput">
-            <div class="edit-actions">
-                <button class="btn-save-name" onclick="modalAction('edit')">GUARDAR</button>
-                <button class="btn-modal-cancel" style="flex:1" onclick="resetModalViews()">ATRÁS</button>
+        <div id="editNameContainer" style="display:none; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="editNameInput" style="width:100%; padding:12px; border-radius:6px; border:2px solid var(--espada); box-sizing:border-box;">
+            <div style="display:flex; gap:5px;">
+                <button style="background:#22c55e; color:white; flex:1; padding:10px; border-radius:6px; font-weight:bold; border:none;" onclick="modalAction('edit')">GUARDAR</button>
+                <button class="btn-modal-cancel" style="flex:1; padding:10px; border-radius:6px; border:none;" onclick="resetModalViews()">ATRÁS</button>
             </div>
         </div>
 
-        <div id="confirmDelContainer">
-            <p style="color: #ef4444; font-weight: bold; font-size: 0.9rem;">¿ESTÁS SEGURO?</p>
-            <button class="btn-confirm-del" onclick="modalAction('delete')">SÍ, ELIMINAR JUGADOR</button>
+        <div id="confirmDelContainer" style="display:none; flex-direction: column; gap: 10px; text-align: center; margin-bottom: 15px;">
+            <p style="color: #fff; font-weight: bold;">¿Eliminar a este jugador?</p>
+            <button style="background:var(--rojo-delete); color:white; padding:12px; border-radius:6px; font-weight:bold; border:none;" onclick="modalAction('delete')">SÍ, BORRAR</button>
             <button class="modal-btn btn-modal-cancel" onclick="resetModalViews()">CANCELAR</button>
         </div>
 
@@ -323,7 +389,7 @@
     let prevOrder = JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
     let activePlayerIdx = null;
     let pressTimer = null;
-    let isEditMode = false; // Estado del modo edición
+    let isEditMode = false;
 
     function vibrar(ms = 80) {
         if (navigator.vibrate) navigator.vibrate(ms);
@@ -335,7 +401,6 @@
         sonidoShare.play().catch(error => console.log("Audio block:", error));
     }
 
-    // Función para alternar el modo edición
     function toggleEditMode() {
         isEditMode = !isEditMode;
         const btn = document.getElementById('editToggle');
@@ -373,10 +438,10 @@
     document.getElementById('editTitle').value = savedTitle;
 
     function handleStart(idx) {
-        if (!isEditMode) return; // Protegido por modo edición
+        if (!isEditMode) return;
         pressTimer = setTimeout(() => {
             openPlayerModal(idx);
-        }, 3000); // Reducido un poco el tiempo de presión para mejor UX
+        }, 800); 
     }
 
     function handleEnd() {
@@ -502,28 +567,28 @@
 
         const html = `
             <div class="resumen-section">
-                <h4>Mejores (%)</h4>
+                <h4>EFECTIVIDAD (%)</h4>
                 ${topPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${Math.round(p.perc)}%</span></div>`).join('')}
-                <h4 style="margin-top:6px">Peores (%)</h4>
+                <h4 style="margin-top:8px">ZONA BAJA (%)</h4>
                 ${botPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${Math.round(p.perc)}%</span></div>`).join('')}
             </div>
             <div class="resumen-section">
-                <h4>Mejores Rachas</h4>
+                <h4>RACHAS ACTUALES</h4>
                 ${topRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${p.racha > 0 ? '🔥' + p.racha : '-'}</span></div>`).join('')}
-                <h4 style="margin-top:6px">Peores Rachas</h4>
+                <h4 style="margin-top:8px">RACHAS NEGATIVAS</h4>
                 ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
             </div>
             <div class="resumen-section resumen-full-width">
-                <h4 style="text-align: center;">PROBABILIDADES DE SER CAMPEÓN (26 FECHAS)</h4>
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-height: 100px; overflow-y: hidden; padding-right: 0px;">
+                <h4 style="text-align: center; color: var(--oro)">PROYECCIÓN DE CAMPEÓN (26 FECHAS)</h4>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; padding: 5px;">
                 ${maxPJ > (TOTAL_FECHAS / 2) ? 
                     probs.map((p) => `
-                        <div style="text-align: center; min-width: 48px; flex: 1 0 auto; padding: 2px 2px; background: rgba(255,255,255,0.05); border-radius: 3px;">
-                            <div style="font-weight: 800; color: #fff; font-size: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${p.name}</div>
-                            <div class="val-prob" style="font-size: 0.7rem; color: ${p.chance > 0 ? 'var(--dorado-campeon)' : '#666'}">${p.chance}%</div>
+                        <div style="text-align: center; min-width: 55px; flex: 1 0 auto; padding: 4px; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px solid rgba(255,215,0,0.1)">
+                            <div style="font-weight: 800; color: #fff; font-size: 0.55rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px;">${p.name}</div>
+                            <div class="val-prob" style="font-size: 0.8rem; color: ${p.chance > 0 ? 'var(--oro)' : '#444'}">${p.chance}%</div>
                         </div>
                     `).join('') 
-                    : `<div style="text-align:center; width:100%; color:#666; font-size:0.6rem; padding: 5px 0;">Cálculos disponibles al superar la fecha 13 (mitad del torneo)</div>`
+                    : `<div style="text-align:center; width:100%; color:#666; font-size:0.7rem; padding: 5px 0;">Esperando datos de media temporada...</div>`
                 }
                 </div>
             </div>
@@ -532,7 +597,7 @@
     }
 
     function quickAdd(idx, field) {
-        if (!isEditMode) return; // Protegido por modo edición
+        if (!isEditMode) return;
         vibrar();
         saveUndoState();
         const currentVal = parseInt(stats[idx][field]) || 0;
@@ -553,10 +618,10 @@
             const colorTxt = (isBA || perc >= 75 || perc < 35) ? 'white' : 'black';
             
             let posDisplay = i + 1;
-            if (i === 0) posDisplay = '🏆';
+            if (i === 0) posDisplay = '🥇';
             else if (i === 1) posDisplay = '🥈';
             else if (i === 2) posDisplay = '🥉';
-            else if (i === stats.length - 1 && stats.length > 3) posDisplay = '💀';
+            else if (i === stats.length - 1 && stats.length > 3) posDisplay = '💩';
 
             let rachaIcon = '';
             const oldIndex = prevOrder.indexOf(p.name);
@@ -583,8 +648,8 @@
                         ontouchstart="handleStart(${i})" ontouchend="handleEnd()">
                         <div class="name-wrapper">
                             <div style="display:flex; align-items:center; overflow: hidden; flex: 1;">
-                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    ${p.isChampion ? '👑 ' : ''}${p.name}${isBA ? ' <small style="font-size: 0.5rem; opacity: 0.7;">(BA)</small>' : ''}
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 900;">
+                                    ${p.isChampion ? '🏆 ' : ''}${p.name}${isBA ? ' <small style="font-size: 0.5rem; opacity: 0.7;">(BA)</small>' : ''}
                                 </span>
                                 ${rachaIcon}
                             </div>
@@ -634,7 +699,7 @@
     }
 
     function handleFoodChange(idx) {
-        if (!isEditMode) return; // Protegido por modo edición
+        if (!isEditMode) return;
         vibrar();
         saveUndoState();
         stats[idx].food = (parseInt(stats[idx].food) || 0) + 1;
@@ -642,10 +707,10 @@
     }
 
     function getGradientColor(perc) {
-        if (perc >= 70) return "#548235"; 
-        if (perc >= 50) return "#ffc000"; 
-        if (perc >= 35) return "#ed7d31"; 
-        return "#ff0000"; 
+        if (perc >= 70) return "#166534"; 
+        if (perc >= 50) return "#ca8a04"; 
+        if (perc >= 35) return "#ea580c"; 
+        return "#991b1b"; 
     }
 
     function saveTableData() {
@@ -668,12 +733,12 @@
         const captureArea = document.getElementById('captureArea');
         document.body.classList.add('exporting');
         try {
-            const canvas = await html2canvas(captureArea, { backgroundColor: "#000000", scale: 3 });
+            const canvas = await html2canvas(captureArea, { backgroundColor: "#1a472a", scale: 3 });
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
             const file = new File([blob], 'liga_truco.png', { type: 'image/png' });
             document.body.classList.remove('exporting');
             if (navigator.share) {
-                await navigator.share({ files: [file], title: 'Tabla Truco', text: '' });
+                await navigator.share({ files: [file], title: 'Tabla Truco', text: '¡Así viene el torneo!' });
             }
         } catch (err) {
             document.body.classList.remove('exporting');
@@ -710,7 +775,7 @@
     }
 
     function addNewPlayer() {
-        if (!isEditMode) return; // Protegido por modo edición
+        if (!isEditMode) return;
         vibrar();
         const name = document.getElementById('newPlayerName').value.trim();
         if (name) {
