@@ -452,6 +452,30 @@
         return last === 'g' ? racha : -racha;
     }
 
+    // Lógica para detectar la fecha actual del torneo
+    function getCurrentTournamentFecha() {
+        const now = new Date();
+        const year = now.getFullYear();
+
+        const getFirstFriday = (y, m) => {
+            let d = new Date(y, m, 1);
+            while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
+            return d;
+        };
+
+        const startApertura = getFirstFriday(year, 0); // Enero
+        const startClausura = getFirstFriday(year, 6); // Julio
+
+        // Si hoy es mayor o igual al primer viernes de Julio, estamos en el Clausura
+        let seasonStart = (now >= startClausura) ? startClausura : startApertura;
+        
+        let diffMs = now - seasonStart;
+        let diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
+
+        // Limitar entre 1 y 26
+        return Math.max(1, Math.min(26, diffWeeks));
+    }
+
     function renderResumen() {
         if (stats.length === 0) {
              document.getElementById('resumenCompacto').innerHTML = '';
@@ -460,6 +484,7 @@
         const maxPJ = Math.max(...stats.map(p => p.g + p.p), 1);
         const currentLeaderG = Math.max(...stats.map(p => p.g), 0);
         const TOTAL_FECHAS = 26;
+        const fechaActualCalendario = getCurrentTournamentFecha();
         
         const data = stats.map(p => {
             const total = p.g + p.p;
@@ -513,7 +538,7 @@
                 ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
             </div>
             <div class="resumen-section resumen-full-width">
-                <h4 style="text-align: center;">PROBABILIDADES DE SER CAMPEÓN (26 FECHAS)</h4>
+                <h4 style="text-align: center;">PROBABILIDADES DE SER CAMPEÓN (FECHA ${fechaActualCalendario} DE ${TOTAL_FECHAS})</h4>
                 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-height: 100px; overflow-y: hidden; padding-right: 0px;">
                 ${maxPJ > (TOTAL_FECHAS / 2) ? 
                     probs.map((p) => `
