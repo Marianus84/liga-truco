@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es-AR">
 <head>
@@ -235,6 +236,7 @@
 <div class="container">
     <div id="captureArea">
         <div class="table-container">
+            <!-- Botón de Modo Edición -->
             <button class="btn-edit-ui" id="editToggle" onclick="toggleEditMode()">EDIT OFF</button>
             <button class="btn-undo-ui" onclick="undoLastAction()">↩ DESHACER</button>
             <table>
@@ -276,15 +278,17 @@
             <h3>Lógica de Probabilidades</h3>
             <p>El cálculo de probabilidades para ser campeón se basa en una proyección estadística a un total de <strong>26 fechas</strong>:</p>
             <ul>
-                <li><strong>Disponibilidad:</strong> Las probabilidades solo se muestran una vez superada la mitad del torneo (fecha 14).</li>
-                <li><strong>Eliminación Matemática:</strong> Si un jugador no alcanza al líder ganando todo, su probabilidad cae a <strong>0%</strong>.</li>
-                <li><strong>Win Rate:</strong> Se estima el puntaje final basado en efectividad histórica proyectada.</li>
+                <li><strong>Disponibilidad:</strong> Las probabilidades solo se muestran una vez superada la mitad del torneo (fecha 14), para asegurar que los datos proyectados tengan relevancia estadística.</li>
+                <li><strong>Eliminación Matemática:</strong> Si un jugador, ganando todos los partidos restantes (26 menos los partidos del líder), no alcanza las victorias actuales del puntero, su probabilidad cae automáticamente a <strong>0%</strong>.</li>
+                <li><strong>Proyección de Victorias:</strong> Se estima el puntaje final sumando las victorias actuales a una proyección basada en el <em>Win Rate</em>. Se utiliza un <strong>suavizado de Laplace</strong> (regla de sucesión) para evitar que resultados aislados asignen 100% o 0% de efectividad futura.</li>
+                <li><strong>Factor de Asistencia:</strong> Se penaliza la falta de regularidad. Si un jugador ha faltado a muchas fechas respecto al promedio, su proyección se reduce proporcionalmente para evitar que rachas cortas inflen sus posibilidades.</li>
+                <li><strong>Partidas Compartidas:</strong> Se considera que los jugadores que comparten equipo o mesa no pueden sacarse ventaja entre sí en esos encuentros.</li>
+                <li><strong>Ponderación No Lineal:</strong> Se utiliza un factor de potencia (cubo) sobre el puntaje proyectado para acentuar la brecha entre los líderes reales y los que dependen de "milagros" matemáticos.</li>
             </ul>
         </div>
     </div>
 </div>
 
-<!-- Modal de Jugador -->
 <div id="playerModal" class="modal-overlay">
     <div class="modal-content">
         <h4 id="modalPlayerName" class="modal-title">Opciones</h4>
@@ -512,15 +516,15 @@
 
         const html = `
             <div class="resumen-section">
-                <h4>Mejores / Peores (%)</h4>
+                <h4>Mejores (%)</h4>
                 ${topPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${Math.round(p.perc)}%</span></div>`).join('')}
-                <div style="border-top: 1px dashed #333; margin: 3px 0; opacity: 0.3;"></div>
+                <h4 style="margin-top:6px">Peores (%)</h4>
                 ${botPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${Math.round(p.perc)}%</span></div>`).join('')}
             </div>
             <div class="resumen-section">
-                <h4>Mejores / Peores Rachas</h4>
+                <h4>Mejores Rachas</h4>
                 ${topRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${p.racha > 0 ? '🔥' + p.racha : '-'}</span></div>`).join('')}
-                <div style="border-top: 1px dashed #333; margin: 3px 0; opacity: 0.3;"></div>
+                <h4 style="margin-top:6px">Peores Rachas</h4>
                 ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
             </div>
             <div class="resumen-section resumen-full-width">
@@ -565,22 +569,18 @@
             else if (i === 1) posDisplay = '🥈';
             else if (i === 2) posDisplay = '🥉';
             else if (i === stats.length - 1 && stats.length > 3) posDisplay = '💀';
-            
             let rachaIcon = '';
             const oldIndex = prevOrder.indexOf(p.name);
             if (oldIndex !== -1) {
                 if (i < oldIndex) rachaIcon = '<span class="racha sube">↑</span>';
                 else if (i > oldIndex) rachaIcon = '<span class="racha baja">↓</span>';
             }
-            
             const history = p.history || [];
             const lastResults = history.slice(-12); 
             let dotsHtml = '<div class="dots-container">';
             lastResults.forEach(res => { dotsHtml += `<span class="dot dot-${res}"></span>`; });
             dotsHtml += '</div>';
-            
             const esFilaCampeon = (i === 0 && p.isChampion);
-            
             tbody.innerHTML += `
                 <tr class="${esFilaCampeon ? 'fila-campeon' : ''}">
                     <td class="col-pos">${posDisplay}</td>
@@ -671,7 +671,7 @@
         const captureArea = document.getElementById('captureArea');
         document.body.classList.add('exporting');
         try {
-            const canvas = await html2canvas(captureArea, { backgroundColor: "#1a472a", scale: 3 });
+            const canvas = await html2canvas(captureArea, { backgroundColor: "#000000", scale: 3 });
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
             const file = new File([blob], 'liga_truco.png', { type: 'image/png' });
             document.body.classList.remove('exporting');
@@ -702,7 +702,7 @@
                 try {
                     stats = JSON.parse(readerEvent.target.result);
                     render();
-                } catch(e) { console.error("Error al cargar backup."); }
+                } catch(e) { alert("Error al cargar backup."); }
             }
         }
         input.click();
@@ -723,3 +723,5 @@
 </script>
 </body>
 </html>
+
+```
