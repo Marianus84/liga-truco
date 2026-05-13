@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es-AR">
 <head>
@@ -66,6 +65,12 @@
             color: #fff !important;
         }
 
+        /* Estilos para marcar equipo ganador/perdedor antes de registrar */
+        .selecting-win { background: #15803d !important; color: white !important; }
+        .selecting-loss { background: #b91c1c !important; color: white !important; }
+        .row-win { border-left: 4px solid #22c55e !important; }
+        .row-loss { border-left: 4px solid #ef4444 !important; }
+
         .table-input { 
             width: 100%; height: 32px; background: transparent; border: none; 
             text-align: center; font-size: 0.95rem; font-weight: 800; color: inherit; outline: none;
@@ -112,7 +117,7 @@
         .sube { color: #15803d; }
         .baja { color: #dc2626; }
 
-        #resumenCompacto {
+        #resumenCompacto, #pairingStatsArea {
             background: #111;
             color: #fff;
             padding: 8px;
@@ -121,6 +126,8 @@
             gap: 8px;
             border-top: 1px solid #333;
         }
+        #pairingStatsArea { margin-top: 10px; border: 1px solid #444; border-radius: 8px; display: block; }
+        
         .resumen-section { font-size: 0.65rem; }
         .resumen-section h4 { 
             margin: 0 0 4px 0; 
@@ -139,6 +146,7 @@
         .btn { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; }
         .btn-update { background: #22c55e; color: #000; }
         .btn-share { background: #25d366; color: white; }
+        .btn-share-stats { background: #3b82f6; color: white; margin-top: 5px; font-size: 0.75rem; }
         
         .btn-undo-ui { 
             background: #facc15; 
@@ -174,7 +182,6 @@
         }
 
         .btn-add { background: #3b82f6; color: white; margin-top: 0; }
-        
         .btn-backup { background: #6b7280; color: white; font-size: 0.7rem; margin-top: 5px; }
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px; }
         
@@ -191,18 +198,6 @@
             line-height: 1.4;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        .logica-explicacion h3 { 
-            color: var(--dorado-campeon); 
-            font-size: 0.8rem; 
-            margin-top: 0; 
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 5px;
-        }
-        .logica-explicacion p { margin: 8px 0; }
-        .logica-explicacion ul { padding-left: 18px; margin: 8px 0; }
-        .logica-explicacion li { margin-bottom: 4px; }
-
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000;
@@ -221,14 +216,6 @@
         .btn-modal-champ { background: var(--dorado-campeon); color: #000; }
         .btn-modal-del { background: var(--rojo-delete); color: white; }
         .btn-modal-cancel { background: #333; color: #aaa; margin-top: 5px; }
-        
-        #editNameContainer { display: none; flex-direction: column; gap: 10px; margin-bottom: 15px; }
-        #editNameInput { width: 100%; padding: 12px; border-radius: 6px; border: 2px solid #3b82f6; font-size: 1rem; box-sizing: border-box; }
-        .edit-actions { display: flex; gap: 5px; }
-        .btn-save-name { background: #22c55e; color: #000; flex: 1; padding: 10px; border-radius: 6px; font-weight: bold; border: none; }
-        
-        #confirmDelContainer { display: none; flex-direction: column; gap: 10px; text-align: center; margin-bottom: 15px; }
-        .btn-confirm-del { background: #ef4444; color: white; padding: 12px; border-radius: 6px; font-weight: bold; border: none; }
     </style>
 </head>
 <body>
@@ -236,7 +223,6 @@
 <div class="container">
     <div id="captureArea">
         <div class="table-container">
-            <!-- Botón de Modo Edición -->
             <button class="btn-edit-ui" id="editToggle" onclick="toggleEditMode()">EDIT OFF</button>
             <button class="btn-undo-ui" onclick="undoLastAction()">↩ DESHACER</button>
             <table>
@@ -257,8 +243,13 @@
         </div>
     </div>
 
+    <div id="pairingStatsCapture">
+        <div id="pairingStatsArea"></div>
+    </div>
+    <button class="btn btn-share-stats" onclick="sharePairingStats()">Compartir Estadísticas de Emparejamientos 📊</button>
+
     <div class="btn-main" style="padding: 0 5px;">
-        <button class="btn btn-update" onclick="saveTableData()">Actualizar Ranking</button>
+        <button class="btn btn-update" id="btnUpdateRanking" onclick="processMatchRegistration()">Actualizar Ranking</button>
         <button class="btn btn-share" onclick="shareAsImage()">Compartir Tabla 📲</button>
 
         <div class="card">
@@ -275,16 +266,11 @@
         </div>
 
         <div class="logica-explicacion">
-            <h3>Lógica de Probabilidades</h3>
-            <p>El cálculo de probabilidades para ser campeón se basa en una proyección estadística a un total de <strong>26 fechas</strong>:</p>
-            <ul>
-                <li><strong>Disponibilidad:</strong> Las probabilidades solo se muestran una vez superada la mitad del torneo (fecha 14), para asegurar que los datos proyectados tengan relevancia estadística.</li>
-                <li><strong>Eliminación Matemática:</strong> Si un jugador, ganando todos los partidos restantes (26 menos los partidos del líder), no alcanza las victorias actuales del puntero, su probabilidad cae automáticamente a <strong>0%</strong>.</li>
-                <li><strong>Proyección de Victorias:</strong> Se estima el puntaje final sumando las victorias actuales a una proyección basada en el <em>Win Rate</em>. Se utiliza un <strong>suavizado de Laplace</strong> (regla de sucesión) para evitar que resultados aislados asignen 100% o 0% de efectividad futura.</li>
-                <li><strong>Factor de Asistencia:</strong> Se penaliza la falta de regularidad. Si un jugador ha faltado a muchas fechas respecto al promedio, su proyección se reduce proporcionalmente para evitar que rachas cortas inflen sus posibilidades.</li>
-                <li><strong>Partidas Compartidas:</strong> Se considera que los jugadores que comparten equipo o mesa no pueden sacarse ventaja entre sí en esos encuentros.</li>
-                <li><strong>Ponderación No Lineal:</strong> Se utiliza un factor de potencia (cubo) sobre el puntaje proyectado para acentuar la brecha entre los líderes reales y los que dependen de "milagros" matemáticos.</li>
-            </ul>
+            <h3>Instrucciones de Registro</h3>
+            <p>1. Activa el modo <strong>EDIT ON</strong>.</p>
+            <p>2. Haz clic en la celda <strong>G</strong> para sumar al equipo ganador y en la celda <strong>P</strong> para el equipo perdedor.</p>
+            <p>3. Verás que las filas se resaltan. Cuando tengas los equipos armados, presiona el botón verde de arriba.</p>
+            <p>4. El sistema registrará los puntos y guardará quién jugó con quién para las estadísticas de abajo.</p>
         </div>
     </div>
 </div>
@@ -292,28 +278,20 @@
 <div id="playerModal" class="modal-overlay">
     <div class="modal-content">
         <h4 id="modalPlayerName" class="modal-title">Opciones</h4>
-        
         <div id="modalMainActions">
             <button class="modal-btn btn-modal-edit" onclick="showEditSection()">✏️ EDITAR NOMBRE</button>
             <button class="modal-btn btn-modal-champ" onclick="modalAction('champion')">👑 MARCAR CAMPEÓN</button>
             <button class="modal-btn btn-modal-del" onclick="showDelSection()">🗑️ ELIMINAR</button>
         </div>
-
-        <div id="editNameContainer">
-            <input type="text" id="editNameInput">
-            <div class="edit-actions">
-                <button class="btn-save-name" onclick="modalAction('edit')">GUARDAR</button>
-                <button class="btn-modal-cancel" style="flex:1" onclick="resetModalViews()">ATRÁS</button>
-            </div>
+        <div id="editNameContainer" style="display:none">
+            <input type="text" id="editNameInput" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button class="btn-modal-edit modal-btn" onclick="modalAction('edit')">GUARDAR</button>
         </div>
-
-        <div id="confirmDelContainer">
-            <p style="color: #ef4444; font-weight: bold; font-size: 0.9rem;">¿ESTÁS SEGURO?</p>
-            <button class="btn-confirm-del" onclick="modalAction('delete')">SÍ, ELIMINAR JUGADOR</button>
-            <button class="modal-btn btn-modal-cancel" onclick="resetModalViews()">CANCELAR</button>
+        <div id="confirmDelContainer" style="display:none">
+            <p style="color:red; text-align:center">¿Eliminar permanentemente?</p>
+            <button class="btn-modal-del modal-btn" onclick="modalAction('delete')">ELIMINAR</button>
         </div>
-
-        <button id="modalGlobalCancel" class="modal-btn btn-modal-cancel" onclick="closeModal()">CERRAR</button>
+        <button class="modal-btn btn-modal-cancel" onclick="closeModal()">CERRAR</button>
     </div>
 </div>
 
@@ -321,268 +299,171 @@
     let undoStack = [];
     let stats = JSON.parse(localStorage.getItem('torneo_final_stats')) || [];
     let prevOrder = JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
+    let pairings = JSON.parse(localStorage.getItem('torneo_pairings')) || {}; 
     let activePlayerIdx = null;
     let pressTimer = null;
     let isEditMode = false;
 
-    function vibrar(ms = 80) {
-        if (navigator.vibrate) navigator.vibrate(ms);
-    }
+    // Buffers para el registro de partidos
+    let draftingWinners = [];
+    let draftingLosers = [];
 
+    function vibrar(ms = 80) { if (navigator.vibrate) navigator.vibrate(ms); }
     const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-
-    function sonar() {
-        sonidoShare.play().catch(error => console.log("Audio block:", error));
-    }
+    function sonar() { sonidoShare.play().catch(() => {}); }
 
     function toggleEditMode() {
         isEditMode = !isEditMode;
         const btn = document.getElementById('editToggle');
-        if (isEditMode) {
-            btn.innerText = "EDIT ON";
-            btn.classList.add('active');
-            vibrar(150);
-        } else {
-            btn.innerText = "EDIT OFF";
-            btn.classList.remove('active');
-            vibrar(50);
+        btn.innerText = isEditMode ? "EDIT ON" : "EDIT OFF";
+        btn.classList.toggle('active', isEditMode);
+        if (!isEditMode) {
+            draftingWinners = [];
+            draftingLosers = [];
+            updateMainButton();
         }
+        render();
     }
 
     function saveUndoState() {
-        undoStack.push(JSON.stringify(stats));
+        undoStack.push(JSON.stringify({stats, pairings}));
         if (undoStack.length > 30) undoStack.shift();
     }
 
     function undoLastAction() {
-        vibrar();
         if (undoStack.length > 0) {
-            stats = JSON.parse(undoStack.pop());
+            let backup = JSON.parse(undoStack.pop());
+            stats = backup.stats;
+            pairings = backup.pairings;
             render();
         }
     }
 
-    function updateTitle(val) {
-        document.getElementById('displayTitle').innerText = val;
-        localStorage.setItem('torneo_titulo', val);
-    }
-
-    const savedTitle = localStorage.getItem('torneo_titulo') || "Apertura Truco 2026";
-    document.getElementById('displayTitle').innerText = savedTitle;
-    document.getElementById('editTitle').value = savedTitle;
-
-    function handleStart(idx) {
+    function toggleDraft(idx, type) {
         if (!isEditMode) return;
-        pressTimer = setTimeout(() => {
-            openPlayerModal(idx);
-        }, 3000);
-    }
-
-    function handleEnd() {
-        clearTimeout(pressTimer);
-    }
-
-    function openPlayerModal(idx) {
-        vibrar(200);
-        activePlayerIdx = idx;
-        document.getElementById('modalPlayerName').innerText = stats[idx].name;
-        resetModalViews();
-        document.getElementById('playerModal').style.display = 'flex';
-    }
-
-    function showEditSection() {
-        document.getElementById('modalMainActions').style.display = 'none';
-        document.getElementById('modalGlobalCancel').style.display = 'none';
-        document.getElementById('editNameContainer').style.display = 'flex';
-        document.getElementById('editNameInput').value = stats[activePlayerIdx].name;
-        document.getElementById('editNameInput').focus();
-    }
-
-    function showDelSection() {
-        document.getElementById('modalMainActions').style.display = 'none';
-        document.getElementById('modalGlobalCancel').style.display = 'none';
-        document.getElementById('confirmDelContainer').style.display = 'flex';
-    }
-
-    function resetModalViews() {
-        document.getElementById('modalMainActions').style.display = 'block';
-        document.getElementById('modalGlobalCancel').style.display = 'flex';
-        document.getElementById('editNameContainer').style.display = 'none';
-        document.getElementById('confirmDelContainer').style.display = 'none';
-    }
-
-    function closeModal() {
-        document.getElementById('playerModal').style.display = 'none';
-        activePlayerIdx = null;
-    }
-
-    function modalAction(type) {
-        const idx = activePlayerIdx;
-        if (idx === null) return;
-
-        if (type === 'edit') {
-            const newName = document.getElementById('editNameInput').value.trim();
-            if (newName && newName !== "") {
-                saveUndoState();
-                stats[idx].name = newName;
-                render();
-            }
-        } else if (type === 'champion') {
-            saveUndoState();
-            const wasChampion = stats[idx].isChampion;
-            stats.forEach(s => s.isChampion = false);
-            stats[idx].isChampion = !wasChampion;
-            render();
-        } else if (type === 'delete') {
-            saveUndoState();
-            stats.splice(idx, 1);
-            render();
-        }
-        closeModal();
-    }
-
-    function getRacha(history) {
-        if (!history || history.length === 0) return 0;
-        let racha = 0;
-        const last = history[history.length - 1];
-        for (let i = history.length - 1; i >= 0; i--) {
-            if (history[i] === last) racha++;
-            else break;
-        }
-        return last === 'g' ? racha : -racha;
-    }
-
-    function getCurrentTournamentFecha() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const getFirstFriday = (y, m) => {
-            let d = new Date(y, m, 1);
-            while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
-            return d;
-        };
-        const startApertura = getFirstFriday(year, 0);
-        const startClausura = getFirstFriday(year, 6);
-        let seasonStart = (now >= startClausura) ? startClausura : startApertura;
-        let diffMs = now - seasonStart;
-        let diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
-        return Math.max(1, Math.min(26, diffWeeks));
-    }
-
-    function renderResumen() {
-        if (stats.length === 0) {
-             document.getElementById('resumenCompacto').innerHTML = '';
-             return;
-        }
-        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 1);
-        const currentLeaderG = Math.max(...stats.map(p => p.g), 0);
-        const TOTAL_FECHAS = 26;
-        const fechaActualCalendario = getCurrentTournamentFecha();
-        const fechasFaltantes = Math.max(0, TOTAL_FECHAS - fechaActualCalendario);
+        vibrar(40);
         
-        const data = stats.map(p => {
-            const total = p.g + p.p;
-            return {
-                name: p.name,
-                pj: total,
-                g: p.g,
-                perc: total > 0 ? (p.g / total) * 100 : 0,
-                racha: getRacha(p.history)
-            };
-        });
+        // Limpiar del otro equipo si existe
+        draftingWinners = draftingWinners.filter(i => i !== idx);
+        draftingLosers = draftingLosers.filter(i => i !== idx);
 
-        const rawProbs = data.map(d => {
-            const r = Math.max(0, TOTAL_FECHAS - maxPJ); 
-            const maxPossibleG = d.g + r;
-            if (maxPossibleG < currentLeaderG || d.pj === 0) {
-                return { name: d.name, score: 0 };
+        if (type === 'g') {
+            if (!draftingWinners.includes(idx)) draftingWinners.push(idx);
+            else draftingWinners = draftingWinners.filter(i => i !== idx);
+        } else {
+            if (!draftingLosers.includes(idx)) draftingLosers.push(idx);
+            else draftingLosers = draftingLosers.filter(i => i !== idx);
+        }
+        
+        updateMainButton();
+        render();
+    }
+
+    function updateMainButton() {
+        const btn = document.getElementById('btnUpdateRanking');
+        if (draftingWinners.length > 0 || draftingLosers.length > 0) {
+            btn.innerText = `REGISTRAR (${draftingWinners.length} vs ${draftingLosers.length}) Y ACTUALIZAR`;
+            btn.style.background = "#22c55e";
+        } else {
+            btn.innerText = "Actualizar Ranking";
+            btn.style.background = "#22c55e";
+        }
+    }
+
+    function processMatchRegistration() {
+        vibrar(100);
+        if (draftingWinners.length === 0 && draftingLosers.length === 0) {
+            saveTableData(); // Solo ordena
+            return;
+        }
+
+        saveUndoState();
+
+        // 1. Registrar puntos
+        draftingWinners.forEach(idx => handleStatChange(idx, 'g', stats[idx].g + 1));
+        draftingLosers.forEach(idx => handleStatChange(idx, 'p', stats[idx].p + 1));
+
+        // 2. Registrar emparejamientos (compañeros de equipo)
+        registerPairingGroup(draftingWinners);
+        registerPairingGroup(draftingLosers);
+
+        // Limpiar
+        draftingWinners = [];
+        draftingLosers = [];
+        
+        localStorage.setItem('torneo_pairings', JSON.stringify(pairings));
+        saveTableData(); // Esto guarda stats y ordena
+        updateMainButton();
+    }
+
+    function registerPairingGroup(indices) {
+        if (indices.length < 2) return;
+        for (let i = 0; i < indices.length; i++) {
+            for (let j = i + 1; j < indices.length; j++) {
+                let p1 = stats[indices[i]].name;
+                let p2 = stats[indices[j]].name;
+                let key = [p1, p2].sort().join('|');
+                pairings[key] = (pairings[key] || 0) + 1;
             }
-            const smoothedWinRate = (d.g + 1) / (d.pj + 2);
-            const attendanceFactor = d.pj / maxPJ; 
-            const projectedScore = Math.pow(d.g + (r * smoothedWinRate * attendanceFactor), 3);
-            return { name: d.name, score: projectedScore };
+        }
+    }
+
+    function renderPairingStats() {
+        const area = document.getElementById('pairingStatsArea');
+        let pairsArray = Object.entries(pairings).map(([key, count]) => {
+            let names = key.split('|');
+            return { names, count };
         });
 
-        const totalScore = rawProbs.reduce((acc, curr) => acc + curr.score, 0) || 1;
-        const probs = rawProbs.map(p => ({
-            name: p.name,
-            chance: p.score > 0 ? Math.round((p.score / totalScore) * 100) : 0
-        })).sort((a,b) => b.chance - a.chance);
+        if (pairsArray.length === 0) {
+            area.innerHTML = '<div style="font-size:0.7rem; text-align:center; padding:10px; color:#666">No hay datos de emparejamientos aún</div>';
+            return;
+        }
 
-        const filteredForPerc = (maxPJ >= 7) ? data.filter(d => d.pj >= (maxPJ / 2)) : data;
-        const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
-        const botPerc = [...filteredForPerc].sort((a,b) => a.perc - b.perc).slice(0, 3);
-        const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
-        const botRacha = [...data].sort((a,b) => a.racha - b.racha).slice(0, 3);
+        const top5 = [...pairsArray].sort((a,b) => b.count - a.count).slice(0, 5);
+        const bot5 = [...pairsArray].sort((a,b) => a.count - b.count).slice(0, 5);
 
-        const html = `
-            <div class="resumen-section">
-                <h4>Mejores (%)</h4>
-                ${topPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${Math.round(p.perc)}%</span></div>`).join('')}
-                <h4 style="margin-top:6px">Peores (%)</h4>
-                ${botPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${Math.round(p.perc)}%</span></div>`).join('')}
+        area.innerHTML = `
+            <div style="padding:5px; text-align:center; border-bottom:1px solid #333; margin-bottom:8px;">
+                <h3 style="margin:0; font-size:0.75rem; color:var(--dorado-campeon)">AFINIDAD DE EQUIPOS</h3>
             </div>
-            <div class="resumen-section">
-                <h4>Mejores Rachas</h4>
-                ${topRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${p.racha > 0 ? '🔥' + p.racha : '-'}</span></div>`).join('')}
-                <h4 style="margin-top:6px">Peores Rachas</h4>
-                ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
-            </div>
-            <div class="resumen-section resumen-full-width">
-                <h4 style="text-align: center;">PROBABILIDADES DE SER CAMPEÓN (FALTANDO ${fechasFaltantes} FECHAS)</h4>
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-height: 100px; overflow-y: hidden; padding-right: 0px;">
-                ${maxPJ > (TOTAL_FECHAS / 2) ? 
-                    probs.map((p) => `
-                        <div style="text-align: center; min-width: 48px; flex: 1 0 auto; padding: 2px 2px; background: rgba(255,255,255,0.05); border-radius: 3px;">
-                            <div style="font-weight: 800; color: #fff; font-size: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${p.name}</div>
-                            <div class="val-prob" style="font-size: 0.7rem; color: ${p.chance > 0 ? 'var(--dorado-campeon)' : '#666'}">${p.chance}%</div>
-                        </div>
-                    `).join('') 
-                    : `<div style="text-align:center; width:100%; color:#666; font-size:0.6rem; padding: 5px 0;">Cálculos disponibles al superar la fecha 13 (mitad del torneo)</div>`
-                }
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div class="resumen-section">
+                    <h4>Más jugaron juntos 🔥</h4>
+                    ${top5.map(p => `<div class="resumen-item"><span>${p.names[0]} & ${p.names[1]}</span><span class="val-win">${p.count}</span></div>`).join('')}
+                </div>
+                <div class="resumen-section">
+                    <h4>Menos jugaron juntos 🧊</h4>
+                    ${bot5.map(p => `<div class="resumen-item"><span>${p.names[0]} & ${p.names[1]}</span><span class="val-loss">${p.count}</span></div>`).join('')}
                 </div>
             </div>
         `;
-        document.getElementById('resumenCompacto').innerHTML = html;
-    }
-
-    function quickAdd(idx, field) {
-        if (!isEditMode) return;
-        vibrar();
-        saveUndoState();
-        const currentVal = parseInt(stats[idx][field]) || 0;
-        handleStatChange(idx, field, currentVal + 1);
-        render();
     }
 
     function render() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
         const maxPJ = Math.max(...stats.map(p => p.g + p.p), 0);
+        
         stats.forEach((p, i) => {
             const total = p.g + p.p;
             const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
             const isBA = maxPJ >= 7 && total < (maxPJ / 2);
             const bgPerc = isBA ? '#888' : getGradientColor(perc);
             const colorTxt = (isBA || perc >= 75 || perc < 35) ? 'white' : 'black';
+            
             let posDisplay = i + 1;
             if (i === 0) posDisplay = '🏆';
             else if (i === 1) posDisplay = '🥈';
             else if (i === 2) posDisplay = '🥉';
             else if (i === stats.length - 1 && stats.length > 3) posDisplay = '💀';
-            let rachaIcon = '';
-            const oldIndex = prevOrder.indexOf(p.name);
-            if (oldIndex !== -1) {
-                if (i < oldIndex) rachaIcon = '<span class="racha sube">↑</span>';
-                else if (i > oldIndex) rachaIcon = '<span class="racha baja">↓</span>';
-            }
-            const history = p.history || [];
-            const lastResults = history.slice(-12); 
-            let dotsHtml = '<div class="dots-container">';
-            lastResults.forEach(res => { dotsHtml += `<span class="dot dot-${res}"></span>`; });
-            dotsHtml += '</div>';
-            const esFilaCampeon = (i === 0 && p.isChampion);
+
+            const inWin = draftingWinners.includes(i);
+            const inLoss = draftingLosers.includes(i);
+            const rowClass = (i === 0 && p.isChampion) ? 'fila-campeon' : '';
+
             tbody.innerHTML += `
-                <tr class="${esFilaCampeon ? 'fila-campeon' : ''}">
+                <tr class="${rowClass} ${inWin ? 'row-win' : ''} ${inLoss ? 'row-loss' : ''}">
                     <td class="col-pos">${posDisplay}</td>
                     <td class="name-col" 
                         onmousedown="handleStart(${i})" onmouseup="handleEnd()" onmouseleave="handleEnd()"
@@ -590,23 +471,22 @@
                         <div class="name-wrapper">
                             <div style="display:flex; align-items:center; overflow: hidden; flex: 1;">
                                 <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    ${p.isChampion ? '👑 ' : ''}${p.name}${isBA ? ' <small style="font-size: 0.6rem; opacity: 0.8;">(BA)</small>' : ''}
+                                    ${p.isChampion ? '👑 ' : ''}${p.name}
                                 </span>
-                                ${rachaIcon}
                             </div>
-                            ${dotsHtml}
+                            <div class="dots-container">${(p.history || []).slice(-12).map(res => `<span class="dot dot-${res}"></span>`).join('')}</div>
                         </div>
                     </td>
                     <td class="col-pj">${total}</td>
-                    <td class="col-p" onclick="quickAdd(${i}, 'p')">
+                    <td class="col-p ${inLoss ? 'selecting-loss' : ''}" onclick="toggleDraft(${i}, 'p')">
                         <input type="number" class="table-input" readonly value="${p.p}">
                         <span class="input-snapshot">${p.p}</span>
                     </td>
-                    <td class="col-g" onclick="quickAdd(${i}, 'g')">
+                    <td class="col-g ${inWin ? 'selecting-win' : ''}" onclick="toggleDraft(${i}, 'g')">
                         <input type="number" class="table-input" readonly value="${p.g}">
                         <span class="input-snapshot">${p.g}</span>
                     </td>
-                    <td class="perc-cell" style="background:${esFilaCampeon ? 'transparent' : bgPerc}; color:${esFilaCampeon ? 'inherit' : colorTxt}">${perc}%</td>
+                    <td class="perc-cell" style="background:${rowClass ? 'transparent' : bgPerc}; color:${rowClass ? 'inherit' : colorTxt}">${perc}%</td>
                     <td class="col-food" onclick="handleFoodChange(${i})">
                         <input type="number" class="table-input" readonly value="${p.food}">
                         <span class="input-snapshot">${p.food}</span>
@@ -616,6 +496,7 @@
         });
         localStorage.setItem('torneo_final_stats', JSON.stringify(stats));
         renderResumen();
+        renderPairingStats();
     }
 
     function handleStatChange(idx, field, newVal) {
@@ -636,23 +517,7 @@
         stats[idx][field] = newVal;
     }
 
-    function handleFoodChange(idx) {
-        if (!isEditMode) return;
-        vibrar();
-        saveUndoState();
-        stats[idx].food = (parseInt(stats[idx].food) || 0) + 1;
-        render();
-    }
-
-    function getGradientColor(perc) {
-        if (perc >= 70) return "#388E3C"; 
-        if (perc >= 50) return "#FBC02D"; 
-        if (perc >= 35) return "#F57C00"; 
-        return "#D32F2F"; 
-    }
-
     function saveTableData() {
-        vibrar();
         prevOrder = stats.map(s => s.name);
         localStorage.setItem('torneo_prev_order', JSON.stringify(prevOrder));
         stats.sort((a, b) => {
@@ -664,64 +529,121 @@
         render();
     }
 
-    async function shareAsImage() {
-        sonar();
-        vibrar();
+    async function sharePairingStats() {
+        sonar(); vibrar();
+        const area = document.getElementById('pairingStatsCapture');
+        try {
+            const canvas = await html2canvas(area, { backgroundColor: "#000000", scale: 3 });
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const file = new File([blob], 'estadisticas_truco.png', { type: 'image/png' });
+            if (navigator.share) { await navigator.share({ files: [file], title: 'Estadísticas Truco' }); }
+        } catch (err) { console.error(err); }
+    }
+
+    // Funciones de sistema y compatibilidad
+    function getGradientColor(perc) {
+        if (perc >= 70) return "#388E3C"; 
+        if (perc >= 50) return "#FBC02D"; 
+        if (perc >= 35) return "#F57C00"; 
+        return "#D32F2F"; 
+    }
+    function updateTitle(val) { document.getElementById('displayTitle').innerText = val; localStorage.setItem('torneo_titulo', val); }
+    function handleStart(idx) { if (!isEditMode) return; pressTimer = setTimeout(() => openPlayerModal(idx), 2000); }
+    function handleEnd() { clearTimeout(pressTimer); }
+    function openPlayerModal(idx) { vibrar(200); activePlayerIdx = idx; document.getElementById('modalPlayerName').innerText = stats[idx].name; document.getElementById('playerModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('playerModal').style.display = 'none'; }
+    function showEditSection() { document.getElementById('modalMainActions').style.display='none'; document.getElementById('editNameContainer').style.display='block'; }
+    function showDelSection() { document.getElementById('modalMainActions').style.display='none'; document.getElementById('confirmDelContainer').style.display='block'; }
+    function handleFoodChange(idx) { if (!isEditMode) return; saveUndoState(); stats[idx].food = (stats[idx].food || 0) + 1; render(); }
+    function addNewPlayer() { const name = document.getElementById('newPlayerName').value.trim(); if (name) { saveUndoState(); stats.push({ name, p: 0, g: 0, food: 0, history: [], isChampion: false }); document.getElementById('newPlayerName').value = ''; render(); } }
+
+    function modalAction(type) {
+        if (activePlayerIdx === null) return;
+        saveUndoState();
+        if (type === 'edit') stats[activePlayerIdx].name = document.getElementById('editNameInput').value;
+        else if (type === 'champion') stats[activePlayerIdx].isChampion = !stats[activePlayerIdx].isChampion;
+        else if (type === 'delete') stats.splice(activePlayerIdx, 1);
+        closeModal();
         render();
-        const captureArea = document.getElementById('captureArea');
+    }
+
+    async function shareAsImage() {
+        sonar(); vibrar();
+        const area = document.getElementById('captureArea');
         document.body.classList.add('exporting');
         try {
-            const canvas = await html2canvas(captureArea, { backgroundColor: "#000000", scale: 3 });
+            const canvas = await html2canvas(area, { backgroundColor: "#000000", scale: 3 });
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            const file = new File([blob], 'liga_truco.png', { type: 'image/png' });
+            const file = new File([blob], 'tabla_truco.png', { type: 'image/png' });
             document.body.classList.remove('exporting');
-            if (navigator.share) { await navigator.share({ files: [file], title: 'Tabla Truco', text: '' }); }
-        } catch (err) { document.body.classList.remove('exporting'); }
+            if (navigator.share) await navigator.share({ files: [file] });
+        } catch (e) { document.body.classList.remove('exporting'); }
     }
 
     function exportData() {
-        vibrar();
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stats));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "backup_truco_liga.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({stats, pairings}));
+        const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "backup_truco.json"); dl.click();
     }
 
     function importData() {
-        vibrar();
-        const input = document.createElement('input');
-        input.type = 'file';
+        const input = document.createElement('input'); input.type = 'file';
         input.onchange = e => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.readAsText(file,'UTF-8');
-            reader.onload = readerEvent => {
-                try {
-                    stats = JSON.parse(readerEvent.target.result);
-                    render();
-                } catch(e) { alert("Error al cargar backup."); }
-            }
-        }
+            const reader = new FileReader(); reader.readAsText(e.target.files[0]);
+            reader.onload = r => {
+                const data = JSON.parse(r.target.result);
+                stats = data.stats || data; // Soporte backup viejo
+                pairings = data.pairings || {};
+                render();
+            };
+        };
         input.click();
     }
 
-    function addNewPlayer() {
-        if (!isEditMode) return;
-        vibrar();
-        const name = document.getElementById('newPlayerName').value.trim();
-        if (name) {
-            saveUndoState();
-            stats.push({ name: name, p: 0, g: 0, food: 0, history: [], isChampion: false });
-            document.getElementById('newPlayerName').value = '';
-            render();
-        }
+    function getRacha(history) {
+        if (!history || history.length === 0) return 0;
+        let racha = 0; const last = history[history.length - 1];
+        for (let i = history.length - 1; i >= 0; i--) { if (history[i] === last) racha++; else break; }
+        return last === 'g' ? racha : -racha;
     }
+
+    function renderResumen() {
+        if (stats.length === 0) return;
+        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 1);
+        const currentLeaderG = Math.max(...stats.map(p => p.g), 0);
+        const TOTAL_FECHAS = 26;
+        const data = stats.map(p => { const t = p.g + p.p; return { name: p.name, pj: t, g: p.g, perc: t > 0 ? (p.g / t) * 100 : 0, racha: getRacha(p.history) }; });
+        const rawProbs = data.map(d => {
+            const r = Math.max(0, TOTAL_FECHAS - maxPJ);
+            if (d.g + r < currentLeaderG || d.pj === 0) return { name: d.name, score: 0 };
+            const swr = (d.g + 1) / (d.pj + 2);
+            const score = Math.pow(d.g + (r * swr * (d.pj / maxPJ)), 3);
+            return { name: d.name, score };
+        });
+        const totalS = rawProbs.reduce((a, c) => a + c.score, 0) || 1;
+        const probs = rawProbs.map(p => ({ name: p.name, chance: Math.round((p.score / totalS) * 100) })).sort((a,b)=>b.chance-a.chance);
+        
+        const topP = [...data].sort((a,b)=>b.perc-a.perc).slice(0,3);
+        const botP = [...data].sort((a,b)=>a.perc-b.perc).slice(0,3);
+
+        document.getElementById('resumenCompacto').innerHTML = `
+            <div class="resumen-section">
+                <h4>Mejores (%)</h4>
+                ${topP.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${Math.round(p.perc)}%</span></div>`).join('')}
+            </div>
+            <div class="resumen-section">
+                <h4>Peores (%)</h4>
+                ${botP.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${Math.round(p.perc)}%</span></div>`).join('')}
+            </div>
+            <div class="resumen-section resumen-full-width">
+                <h4 style="text-align:center">PROBABILIDADES DE SER CAMPEÓN</h4>
+                <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px;">
+                    ${maxPJ > 13 ? probs.map(p => `<div style="text-align:center; min-width:50px"><div style="font-size:0.5rem">${p.name}</div><div class="val-prob">${p.chance}%</div></div>`).join('') : '<div style="font-size:0.6rem; color:#666">Disponible desde fecha 14</div>'}
+                </div>
+            </div>
+        `;
+    }
+
     render();
 </script>
 </body>
 </html>
-
-```
