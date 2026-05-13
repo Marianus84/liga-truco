@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es-AR">
 <head>
@@ -179,7 +178,7 @@
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px; }
         
         .input-group { display: flex; gap: 5px; margin-top: 5px; }
-        input[type="text"] { flex: 1; background: #fff; border: 1px solid #3b82f6; padding: 6px; border-radius: 4px; font-size: 0.85rem; color: #000; }
+        input[type="text"], select { flex: 1; background: #fff; border: 1px solid #3b82f6; padding: 6px; border-radius: 4px; font-size: 0.85rem; color: #000; }
 
         .logica-explicacion {
             margin-top: 20px;
@@ -199,9 +198,6 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
             padding-bottom: 5px;
         }
-        .logica-explicacion p { margin: 8px 0; }
-        .logica-explicacion ul { padding-left: 18px; margin: 8px 0; }
-        .logica-explicacion li { margin-bottom: 4px; }
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -229,6 +225,16 @@
         
         #confirmDelContainer { display: none; flex-direction: column; gap: 10px; text-align: center; margin-bottom: 15px; }
         .btn-confirm-del { background: #ef4444; color: white; padding: 12px; border-radius: 6px; font-weight: bold; border: none; }
+
+        .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .team-box { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); }
+        .team-box h5 { margin: 0 0 8px 0; font-size: 0.7rem; text-align: center; color: #aaa; }
+        .team-box select { width: 100%; margin-bottom: 5px; font-size: 0.75rem; padding: 4px; }
+        .stats-parejas-container { margin-top: 15px; background: #000; padding: 10px; border-radius: 8px; }
+        .stats-parejas-title { color: var(--dorado-campeon); font-size: 0.8rem; font-weight: 800; text-align: center; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .pareja-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #222; font-size: 0.7rem; }
+        .pareja-names { color: #fff; font-weight: 600; }
+        .pareja-count { color: var(--dorado-campeon); font-weight: 800; }
     </style>
 </head>
 <body>
@@ -236,7 +242,6 @@
 <div class="container">
     <div id="captureArea">
         <div class="table-container">
-            <!-- Botón de Modo Edición -->
             <button class="btn-edit-ui" id="editToggle" onclick="toggleEditMode()">EDIT OFF</button>
             <button class="btn-undo-ui" onclick="undoLastAction()">↩ DESHACER</button>
             <table>
@@ -261,6 +266,36 @@
         <button class="btn btn-update" onclick="saveTableData()">Actualizar Ranking</button>
         <button class="btn btn-share" onclick="shareAsImage()">Compartir Tabla 📲</button>
 
+        <div class="card" id="matchRegistrationCard">
+            <h4 style="margin:0; font-size: 0.8rem; color: var(--dorado-campeon); text-align:center;">REGISTRAR ENCUENTRO POR EQUIPOS</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+                <div>
+                    <label style="font-size: 0.6rem; color: #888;">Tamaño Ganadores:</label>
+                    <select id="winTeamSize" onchange="updateMatchSelectionUI()">
+                        <option value="1">1 Jugador</option>
+                        <option value="2" selected>Pareja (2)</option>
+                        <option value="3">Trío (3)</option>
+                        <option value="4">Cuarteto (4)</option>
+                        <option value="5">Quinteto (5)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.6rem; color: #888;">Tamaño Perdedores:</label>
+                    <select id="lossTeamSize" onchange="updateMatchSelectionUI()">
+                        <option value="1">1 Jugador</option>
+                        <option value="2" selected>Pareja (2)</option>
+                        <option value="3">Trío (3)</option>
+                        <option value="4">Cuarteto (4)</option>
+                        <option value="5">Quinteto (5)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="team-grid" id="teamSelectionGrid"></div>
+            
+            <button class="btn btn-add" style="margin-top:10px; background: #22c55e; color: #000;" onclick="registerTeamMatch()">REGISTRAR RESULTADO</button>
+        </div>
+
         <div class="card">
             <div class="input-group">
                 <input type="text" id="newPlayerName" placeholder="Nombre...">
@@ -278,13 +313,16 @@
             <h3>Lógica de Probabilidades</h3>
             <p>El cálculo de probabilidades para ser campeón se basa en una proyección estadística a un total de <strong>26 fechas</strong>:</p>
             <ul>
-                <li><strong>Disponibilidad:</strong> Las probabilidades solo se muestran una vez superada la mitad del torneo (fecha 14), para asegurar que los datos proyectados tengan relevancia estadística.</li>
-                <li><strong>Eliminación Matemática:</strong> Si un jugador, ganando todos los partidos restantes (26 menos los partidos del líder), no alcanza las victorias actuales del puntero, su probabilidad cae automáticamente a <strong>0%</strong>.</li>
-                <li><strong>Proyección de Victorias:</strong> Se estima el puntaje final sumando las victorias actuales a una proyección basada en el <em>Win Rate</em>. Se utiliza un <strong>suavizado de Laplace</strong> (regla de sucesión) para evitar que resultados aislados asignen 100% o 0% de efectividad futura.</li>
-                <li><strong>Factor de Asistencia:</strong> Se penaliza la falta de regularidad. Si un jugador ha faltado a muchas fechas respecto al promedio, su proyección se reduce proporcionalmente para evitar que rachas cortas inflen sus posibilidades.</li>
-                <li><strong>Partidas Compartidas:</strong> Se considera que los jugadores que comparten equipo o mesa no pueden sacarse ventaja entre sí en esos encuentros.</li>
-                <li><strong>Ponderación No Lineal:</strong> Se utiliza un factor de potencia (cubo) sobre el puntaje proyectado para acentuar la brecha entre los líderes reales y los que dependen de "milagros" matemáticos.</li>
+                <li><strong>Disponibilidad:</strong> Las probabilidades solo se muestran una vez superada la mitad del torneo (fecha 14).</li>
+                <li><strong>Proyección de Victorias:</strong> Se utiliza un <strong>suavizado de Laplace</strong> para evitar proyecciones extremas.</li>
+                <li><strong>Factor de Asistencia:</strong> Se penaliza la falta de regularidad.</li>
             </ul>
+        </div>
+
+        <div id="statsParejasArea" class="stats-parejas-container">
+            <div class="stats-parejas-title">🏆 ESTADÍSTICAS DE PAREJAS 🏆</div>
+            <div id="partnershipList"></div>
+            <button class="btn" style="background: #3b82f6; color: white; font-size: 0.7rem; margin-top: 10px;" onclick="sharePartnershipStats()">Compartir Parejas 📲</button>
         </div>
     </div>
 </div>
@@ -292,13 +330,11 @@
 <div id="playerModal" class="modal-overlay">
     <div class="modal-content">
         <h4 id="modalPlayerName" class="modal-title">Opciones</h4>
-        
         <div id="modalMainActions">
             <button class="modal-btn btn-modal-edit" onclick="showEditSection()">✏️ EDITAR NOMBRE</button>
             <button class="modal-btn btn-modal-champ" onclick="modalAction('champion')">👑 MARCAR CAMPEÓN</button>
             <button class="modal-btn btn-modal-del" onclick="showDelSection()">🗑️ ELIMINAR</button>
         </div>
-
         <div id="editNameContainer">
             <input type="text" id="editNameInput">
             <div class="edit-actions">
@@ -306,13 +342,11 @@
                 <button class="btn-modal-cancel" style="flex:1" onclick="resetModalViews()">ATRÁS</button>
             </div>
         </div>
-
         <div id="confirmDelContainer">
             <p style="color: #ef4444; font-weight: bold; font-size: 0.9rem;">¿ESTÁS SEGURO?</p>
             <button class="btn-confirm-del" onclick="modalAction('delete')">SÍ, ELIMINAR JUGADOR</button>
             <button class="modal-btn btn-modal-cancel" onclick="resetModalViews()">CANCELAR</button>
         </div>
-
         <button id="modalGlobalCancel" class="modal-btn btn-modal-cancel" onclick="closeModal()">CERRAR</button>
     </div>
 </div>
@@ -321,43 +355,34 @@
     let undoStack = [];
     let stats = JSON.parse(localStorage.getItem('torneo_final_stats')) || [];
     let prevOrder = JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
+    let matchHistory = JSON.parse(localStorage.getItem('torneo_match_history')) || [];
     let activePlayerIdx = null;
     let pressTimer = null;
     let isEditMode = false;
 
-    function vibrar(ms = 80) {
-        if (navigator.vibrate) navigator.vibrate(ms);
-    }
-
+    function vibrar(ms = 80) { if (navigator.vibrate) navigator.vibrate(ms); }
     const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-
-    function sonar() {
-        sonidoShare.play().catch(error => console.log("Audio block:", error));
-    }
+    function sonar() { sonidoShare.play().catch(e => {}); }
 
     function toggleEditMode() {
         isEditMode = !isEditMode;
         const btn = document.getElementById('editToggle');
-        if (isEditMode) {
-            btn.innerText = "EDIT ON";
-            btn.classList.add('active');
-            vibrar(150);
-        } else {
-            btn.innerText = "EDIT OFF";
-            btn.classList.remove('active');
-            vibrar(50);
-        }
+        btn.innerText = isEditMode ? "EDIT ON" : "EDIT OFF";
+        btn.classList.toggle('active', isEditMode);
+        vibrar(isEditMode ? 150 : 50);
     }
 
     function saveUndoState() {
-        undoStack.push(JSON.stringify(stats));
+        undoStack.push(JSON.stringify({stats, matchHistory}));
         if (undoStack.length > 30) undoStack.shift();
     }
 
     function undoLastAction() {
         vibrar();
         if (undoStack.length > 0) {
-            stats = JSON.parse(undoStack.pop());
+            const state = JSON.parse(undoStack.pop());
+            stats = state.stats;
+            matchHistory = state.matchHistory;
             render();
         }
     }
@@ -371,20 +396,11 @@
     document.getElementById('displayTitle').innerText = savedTitle;
     document.getElementById('editTitle').value = savedTitle;
 
-    function handleStart(idx) {
-        if (!isEditMode) return;
-        pressTimer = setTimeout(() => {
-            openPlayerModal(idx);
-        }, 3000);
-    }
-
-    function handleEnd() {
-        clearTimeout(pressTimer);
-    }
+    function handleStart(idx) { if (!isEditMode) return; pressTimer = setTimeout(() => openPlayerModal(idx), 3000); }
+    function handleEnd() { clearTimeout(pressTimer); }
 
     function openPlayerModal(idx) {
-        vibrar(200);
-        activePlayerIdx = idx;
+        vibrar(200); activePlayerIdx = idx;
         document.getElementById('modalPlayerName').innerText = stats[idx].name;
         resetModalViews();
         document.getElementById('playerModal').style.display = 'flex';
@@ -395,7 +411,6 @@
         document.getElementById('modalGlobalCancel').style.display = 'none';
         document.getElementById('editNameContainer').style.display = 'flex';
         document.getElementById('editNameInput').value = stats[activePlayerIdx].name;
-        document.getElementById('editNameInput').focus();
     }
 
     function showDelSection() {
@@ -411,22 +426,14 @@
         document.getElementById('confirmDelContainer').style.display = 'none';
     }
 
-    function closeModal() {
-        document.getElementById('playerModal').style.display = 'none';
-        activePlayerIdx = null;
-    }
+    function closeModal() { document.getElementById('playerModal').style.display = 'none'; activePlayerIdx = null; }
 
     function modalAction(type) {
         const idx = activePlayerIdx;
         if (idx === null) return;
-
         if (type === 'edit') {
             const newName = document.getElementById('editNameInput').value.trim();
-            if (newName && newName !== "") {
-                saveUndoState();
-                stats[idx].name = newName;
-                render();
-            }
+            if (newName) { saveUndoState(); stats[idx].name = newName; render(); }
         } else if (type === 'champion') {
             saveUndoState();
             const wasChampion = stats[idx].isChampion;
@@ -434,11 +441,145 @@
             stats[idx].isChampion = !wasChampion;
             render();
         } else if (type === 'delete') {
-            saveUndoState();
-            stats.splice(idx, 1);
-            render();
+            saveUndoState(); stats.splice(idx, 1); render();
         }
         closeModal();
+    }
+
+    function updateMatchSelectionUI() {
+        const winSize = parseInt(document.getElementById('winTeamSize').value);
+        const lossSize = parseInt(document.getElementById('lossTeamSize').value);
+        const grid = document.getElementById('teamSelectionGrid');
+        
+        let html = `
+            <div class="team-box">
+                <h5 style="color: #22c55e;">GANADORES (A)</h5>
+                ${Array.from({length: winSize}, (_, i) => `
+                    <select class="win-select" onchange="syncSelects()">
+                        <option value="">- Elegir -</option>
+                        ${stats.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+                    </select>
+                `).join('')}
+            </div>
+            <div class="team-box">
+                <h5 style="color: #ef4444;">PERDEDORES (B)</h5>
+                ${Array.from({length: lossSize}, (_, i) => `
+                    <select class="loss-select" onchange="syncSelects()">
+                        <option value="">- Elegir -</option>
+                        ${stats.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+                    </select>
+                `).join('')}
+            </div>
+        `;
+        grid.innerHTML = html;
+        syncSelects();
+    }
+
+    function syncSelects() {
+        const selects = [...document.querySelectorAll('.win-select, .loss-select')];
+        const selectedNames = selects.map(s => s.value).filter(v => v !== "");
+
+        selects.forEach(s => {
+            const currentVal = s.value;
+            [...s.options].forEach(opt => {
+                if (opt.value === "") return;
+                // Deshabilitar si está seleccionado en OTRO select
+                opt.disabled = selectedNames.includes(opt.value) && opt.value !== currentVal;
+            });
+        });
+    }
+
+    function registerTeamMatch() {
+        vibrar();
+        const winners = [...document.querySelectorAll('.win-select')].map(s => s.value).filter(v => v);
+        const losers = [...document.querySelectorAll('.loss-select')].map(s => s.value).filter(v => v);
+        const winSize = parseInt(document.getElementById('winTeamSize').value);
+        const lossSize = parseInt(document.getElementById('lossTeamSize').value);
+
+        if (winners.length < winSize || losers.length < lossSize) {
+            alert("Completa todos los jugadores definidos para cada equipo.");
+            return;
+        }
+
+        saveUndoState();
+
+        // Actualizar estadísticas individuales
+        winners.forEach(name => {
+            const idx = stats.findIndex(p => p.name === name);
+            if (idx !== -1) handleStatChange(idx, 'g', stats[idx].g + 1);
+        });
+        losers.forEach(name => {
+            const idx = stats.findIndex(p => p.name === name);
+            if (idx !== -1) handleStatChange(idx, 'p', stats[idx].p + 1);
+        });
+
+        // Guardar en el historial de encuentros para las parejas
+        matchHistory.push({
+            winners,
+            losers,
+            date: new Date().getTime()
+        });
+
+        localStorage.setItem('torneo_match_history', JSON.stringify(matchHistory));
+        render();
+        updateMatchSelectionUI(); // Reset
+    }
+
+    function renderPartnershipStats() {
+        const counts = {};
+
+        matchHistory.forEach(match => {
+            // Contamos parejas tanto de ganadores como de perdedores
+            [match.winners, match.losers].forEach(team => {
+                if (team.length < 2) return;
+                for (let i = 0; i < team.length; i++) {
+                    for (let j = i + 1; j < team.length; j++) {
+                        const pair = [team[i], team[j]].sort().join(' & ');
+                        counts[pair] = (counts[pair] || 0) + 1;
+                    }
+                }
+            });
+        });
+
+        const sortedPairs = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        const top3 = sortedPairs.slice(0, 3);
+        const bot3 = sortedPairs.filter(p => p[1] > 0).reverse().slice(0, 3);
+
+        const listDiv = document.getElementById('partnershipList');
+        if (sortedPairs.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center; color:#666; font-size:0.7rem;">Aún no hay datos de parejas.</p>';
+            return;
+        }
+
+        let html = '<div style="margin-bottom:10px;">';
+        html += '<div style="font-size:0.6rem; color:#888; text-transform:uppercase; margin-bottom:5px;">Las que más jugaron:</div>';
+        top3.forEach(([name, count]) => {
+            html += `<div class="pareja-item"><span class="pareja-names">${name}</span><span class="pareja-count">${count} j.</span></div>`;
+        });
+        html += '</div><div>';
+        html += '<div style="font-size:0.6rem; color:#888; text-transform:uppercase; margin-bottom:5px;">Las que menos jugaron:</div>';
+        bot3.forEach(([name, count]) => {
+            html += `<div class="pareja-item"><span class="pareja-names">${name}</span><span class="pareja-count">${count} j.</span></div>`;
+        });
+        html += '</div>';
+
+        listDiv.innerHTML = html;
+    }
+
+    async function sharePartnershipStats() {
+        sonar(); vibrar();
+        const area = document.getElementById('statsParejasArea');
+        // Ocultar temporalmente el botón de compartir del área
+        const btnShare = area.querySelector('button');
+        btnShare.style.display = 'none';
+
+        try {
+            const canvas = await html2canvas(area, { backgroundColor: "#000000", scale: 3 });
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const file = new File([blob], 'parejas_truco.png', { type: 'image/png' });
+            if (navigator.share) { await navigator.share({ files: [file], title: 'Estadísticas Parejas', text: '' }); }
+        } catch (err) {}
+        btnShare.style.display = 'block';
     }
 
     function getRacha(history) {
@@ -453,64 +594,47 @@
     }
 
     function getCurrentTournamentFecha() {
-        const now = new Date();
-        const year = now.getFullYear();
+        const now = new Date(); const year = now.getFullYear();
         const getFirstFriday = (y, m) => {
             let d = new Date(y, m, 1);
             while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
             return d;
         };
-        const startApertura = getFirstFriday(year, 0);
-        const startClausura = getFirstFriday(year, 6);
+        const startApertura = getFirstFriday(year, 0); const startClausura = getFirstFriday(year, 6);
         let seasonStart = (now >= startClausura) ? startClausura : startApertura;
-        let diffMs = now - seasonStart;
-        let diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
+        let diffWeeks = Math.floor((now - seasonStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
         return Math.max(1, Math.min(26, diffWeeks));
     }
 
     function renderResumen() {
-        if (stats.length === 0) {
-             document.getElementById('resumenCompacto').innerHTML = '';
-             return;
-        }
+        if (stats.length === 0) { document.getElementById('resumenCompacto').innerHTML = ''; return; }
         const maxPJ = Math.max(...stats.map(p => p.g + p.p), 1);
         const currentLeaderG = Math.max(...stats.map(p => p.g), 0);
         const TOTAL_FECHAS = 26;
         const fechaActualCalendario = getCurrentTournamentFecha();
         const fechasFaltantes = Math.max(0, TOTAL_FECHAS - fechaActualCalendario);
         
-        const data = stats.map(p => {
-            const total = p.g + p.p;
-            return {
-                name: p.name,
-                pj: total,
-                g: p.g,
-                perc: total > 0 ? (p.g / total) * 100 : 0,
-                racha: getRacha(p.history)
-            };
-        });
+        const data = stats.map(p => ({
+            name: p.name, pj: p.g + p.p, g: p.g,
+            perc: (p.g + p.p) > 0 ? (p.g / (p.g + p.p)) * 100 : 0,
+            racha: getRacha(p.history)
+        }));
 
         const rawProbs = data.map(d => {
-            const r = Math.max(0, TOTAL_FECHAS - maxPJ); 
-            const maxPossibleG = d.g + r;
-            if (maxPossibleG < currentLeaderG || d.pj === 0) {
-                return { name: d.name, score: 0 };
-            }
+            const r = Math.max(0, TOTAL_FECHAS - maxPJ);
+            if ((d.g + r) < currentLeaderG || d.pj === 0) return { name: d.name, score: 0 };
             const smoothedWinRate = (d.g + 1) / (d.pj + 2);
-            const attendanceFactor = d.pj / maxPJ; 
-            const projectedScore = Math.pow(d.g + (r * smoothedWinRate * attendanceFactor), 3);
+            const projectedScore = Math.pow(d.g + (r * smoothedWinRate * (d.pj/maxPJ)), 3);
             return { name: d.name, score: projectedScore };
         });
 
         const totalScore = rawProbs.reduce((acc, curr) => acc + curr.score, 0) || 1;
         const probs = rawProbs.map(p => ({
-            name: p.name,
-            chance: p.score > 0 ? Math.round((p.score / totalScore) * 100) : 0
+            name: p.name, chance: p.score > 0 ? Math.round((p.score / totalScore) * 100) : 0
         })).sort((a,b) => b.chance - a.chance);
 
-        const filteredForPerc = (maxPJ >= 7) ? data.filter(d => d.pj >= (maxPJ / 2)) : data;
-        const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
-        const botPerc = [...filteredForPerc].sort((a,b) => a.perc - b.perc).slice(0, 3);
+        const topPerc = [...data].sort((a,b) => b.perc - a.perc).slice(0, 3);
+        const botPerc = [...data].sort((a,b) => a.perc - b.perc).slice(0, 3);
         const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
         const botRacha = [...data].sort((a,b) => a.racha - b.racha).slice(0, 3);
 
@@ -528,17 +652,14 @@
                 ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
             </div>
             <div class="resumen-section resumen-full-width">
-                <h4 style="text-align: center;">PROBABILIDADES DE SER CAMPEÓN (FALTANDO ${fechasFaltantes} FECHAS)</h4>
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-height: 100px; overflow-y: hidden; padding-right: 0px;">
-                ${maxPJ > (TOTAL_FECHAS / 2) ? 
-                    probs.map((p) => `
-                        <div style="text-align: center; min-width: 48px; flex: 1 0 auto; padding: 2px 2px; background: rgba(255,255,255,0.05); border-radius: 3px;">
-                            <div style="font-weight: 800; color: #fff; font-size: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${p.name}</div>
-                            <div class="val-prob" style="font-size: 0.7rem; color: ${p.chance > 0 ? 'var(--dorado-campeon)' : '#666'}">${p.chance}%</div>
-                        </div>
-                    `).join('') 
-                    : `<div style="text-align:center; width:100%; color:#666; font-size:0.6rem; padding: 5px 0;">Cálculos disponibles al superar la fecha 13 (mitad del torneo)</div>`
-                }
+                <h4 style="text-align: center;">PROBABILIDADES DE SER CAMPEÓN</h4>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">
+                ${maxPJ > 13 ? probs.map(p => `
+                    <div style="text-align: center; min-width: 48px; padding: 2px; background: rgba(255,255,255,0.05);">
+                        <div style="font-weight: 800; color: #fff; font-size: 0.5rem; max-width: 60px; overflow: hidden;">${p.name}</div>
+                        <div class="val-prob" style="font-size: 0.7rem;">${p.chance}%</div>
+                    </div>
+                `).join('') : '<div style="font-size:0.6rem; color:#666;">Cálculos disponibles al superar fecha 13.</div>'}
                 </div>
             </div>
         `;
@@ -546,11 +667,8 @@
     }
 
     function quickAdd(idx, field) {
-        if (!isEditMode) return;
-        vibrar();
-        saveUndoState();
-        const currentVal = parseInt(stats[idx][field]) || 0;
-        handleStatChange(idx, field, currentVal + 1);
+        if (!isEditMode) return; vibrar(); saveUndoState();
+        handleStatChange(idx, field, (parseInt(stats[idx][field]) || 0) + 1);
         render();
     }
 
@@ -558,170 +676,119 @@
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
         const maxPJ = Math.max(...stats.map(p => p.g + p.p), 0);
+        
         stats.forEach((p, i) => {
             const total = p.g + p.p;
             const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
             const isBA = maxPJ >= 7 && total < (maxPJ / 2);
             const bgPerc = isBA ? '#888' : getGradientColor(perc);
             const colorTxt = (isBA || perc >= 75 || perc < 35) ? 'white' : 'black';
-            let posDisplay = i + 1;
-            if (i === 0) posDisplay = '🏆';
-            else if (i === 1) posDisplay = '🥈';
-            else if (i === 2) posDisplay = '🥉';
-            else if (i === stats.length - 1 && stats.length > 3) posDisplay = '💀';
+            let posDisplay = (i === 0) ? '🏆' : (i === 1) ? '🥈' : (i === 2) ? '🥉' : i + 1;
+            
             let rachaIcon = '';
             const oldIndex = prevOrder.indexOf(p.name);
             if (oldIndex !== -1) {
                 if (i < oldIndex) rachaIcon = '<span class="racha sube">↑</span>';
                 else if (i > oldIndex) rachaIcon = '<span class="racha baja">↓</span>';
             }
-            const history = p.history || [];
-            const lastResults = history.slice(-12); 
-            let dotsHtml = '<div class="dots-container">';
-            lastResults.forEach(res => { dotsHtml += `<span class="dot dot-${res}"></span>`; });
-            dotsHtml += '</div>';
-            const esFilaCampeon = (i === 0 && p.isChampion);
+
+            const lastResults = (p.history || []).slice(-12);
+            let dotsHtml = '<div class="dots-container">' + lastResults.map(res => `<span class="dot dot-${res}"></span>`).join('') + '</div>';
+            
             tbody.innerHTML += `
-                <tr class="${esFilaCampeon ? 'fila-campeon' : ''}">
+                <tr class="${(i === 0 && p.isChampion) ? 'fila-campeon' : ''}">
                     <td class="col-pos">${posDisplay}</td>
-                    <td class="name-col" 
-                        onmousedown="handleStart(${i})" onmouseup="handleEnd()" onmouseleave="handleEnd()"
-                        ontouchstart="handleStart(${i})" ontouchend="handleEnd()">
+                    <td class="name-col" onmousedown="handleStart(${i})" onmouseup="handleEnd()" ontouchstart="handleStart(${i})" ontouchend="handleEnd()">
                         <div class="name-wrapper">
                             <div style="display:flex; align-items:center; overflow: hidden; flex: 1;">
-                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    ${p.isChampion ? '👑 ' : ''}${p.name}${isBA ? ' <small style="font-size: 0.6rem; opacity: 0.8;">(BA)</small>' : ''}
-                                </span>
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</span>
                                 ${rachaIcon}
                             </div>
                             ${dotsHtml}
                         </div>
                     </td>
                     <td class="col-pj">${total}</td>
-                    <td class="col-p" onclick="quickAdd(${i}, 'p')">
-                        <input type="number" class="table-input" readonly value="${p.p}">
-                        <span class="input-snapshot">${p.p}</span>
-                    </td>
-                    <td class="col-g" onclick="quickAdd(${i}, 'g')">
-                        <input type="number" class="table-input" readonly value="${p.g}">
-                        <span class="input-snapshot">${p.g}</span>
-                    </td>
-                    <td class="perc-cell" style="background:${esFilaCampeon ? 'transparent' : bgPerc}; color:${esFilaCampeon ? 'inherit' : colorTxt}">${perc}%</td>
-                    <td class="col-food" onclick="handleFoodChange(${i})">
-                        <input type="number" class="table-input" readonly value="${p.food}">
-                        <span class="input-snapshot">${p.food}</span>
-                    </td>
+                    <td class="col-p" onclick="quickAdd(${i}, 'p')"><input type="number" class="table-input" readonly value="${p.p}"><span class="input-snapshot">${p.p}</span></td>
+                    <td class="col-g" onclick="quickAdd(${i}, 'g')"><input type="number" class="table-input" readonly value="${p.g}"><span class="input-snapshot">${p.g}</span></td>
+                    <td class="perc-cell" style="background:${bgPerc}; color:${colorTxt}">${perc}%</td>
+                    <td class="col-food" onclick="handleFoodChange(${i})"><input type="number" class="table-input" readonly value="${p.food}"><span class="input-snapshot">${p.food}</span></td>
                 </tr>
             `;
         });
         localStorage.setItem('torneo_final_stats', JSON.stringify(stats));
         renderResumen();
+        renderPartnershipStats();
+        updateMatchSelectionUI();
     }
 
     function handleStatChange(idx, field, newVal) {
         newVal = parseInt(newVal) || 0;
         const oldVal = stats[idx][field];
         if (!stats[idx].history) stats[idx].history = [];
-        if (newVal > oldVal) {
-            for(let k = 0; k < (newVal - oldVal); k++) { stats[idx].history.push(field); }
-        } else if (newVal < oldVal) {
+        if (newVal > oldVal) for(let k = 0; k < (newVal - oldVal); k++) stats[idx].history.push(field);
+        else if (newVal < oldVal) {
             for(let k = 0; k < (oldVal - newVal); k++) {
                 const lastIdx = [...stats[idx].history].reverse().findIndex(x => x === field);
-                if (lastIdx !== -1) {
-                    const realIdx = stats[idx].history.length - 1 - lastIdx;
-                    stats[idx].history.splice(realIdx, 1);
-                }
+                if (lastIdx !== -1) stats[idx].history.splice(stats[idx].history.length - 1 - lastIdx, 1);
             }
         }
         stats[idx][field] = newVal;
     }
 
-    function handleFoodChange(idx) {
-        if (!isEditMode) return;
-        vibrar();
-        saveUndoState();
-        stats[idx].food = (parseInt(stats[idx].food) || 0) + 1;
-        render();
-    }
-
-    function getGradientColor(perc) {
-        if (perc >= 70) return "#388E3C"; 
-        if (perc >= 50) return "#FBC02D"; 
-        if (perc >= 35) return "#F57C00"; 
-        return "#D32F2F"; 
-    }
+    function handleFoodChange(idx) { if (!isEditMode) return; vibrar(); saveUndoState(); stats[idx].food = (parseInt(stats[idx].food) || 0) + 1; render(); }
+    function getGradientColor(perc) { if (perc >= 70) return "#388E3C"; if (perc >= 50) return "#FBC02D"; if (perc >= 35) return "#F57C00"; return "#D32F2F"; }
 
     function saveTableData() {
-        vibrar();
-        prevOrder = stats.map(s => s.name);
+        vibrar(); prevOrder = stats.map(s => s.name);
         localStorage.setItem('torneo_prev_order', JSON.stringify(prevOrder));
-        stats.sort((a, b) => {
-            if (b.g !== a.g) return b.g - a.g;
-            let perA = a.g / (a.g + a.p || 1);
-            let perB = b.g / (b.g + b.p || 1);
-            return perB - perA;
-        });
+        stats.sort((a, b) => b.g !== a.g ? b.g - a.g : (b.g/(b.g+b.p||1)) - (a.g/(a.g+a.p||1)));
         render();
     }
 
     async function shareAsImage() {
-        sonar();
-        vibrar();
-        render();
-        const captureArea = document.getElementById('captureArea');
+        sonar(); vibrar(); render();
+        const area = document.getElementById('captureArea');
         document.body.classList.add('exporting');
         try {
-            const canvas = await html2canvas(captureArea, { backgroundColor: "#000000", scale: 3 });
+            const canvas = await html2canvas(area, { backgroundColor: "#000000", scale: 3 });
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
             const file = new File([blob], 'liga_truco.png', { type: 'image/png' });
             document.body.classList.remove('exporting');
-            if (navigator.share) { await navigator.share({ files: [file], title: 'Tabla Truco', text: '' }); }
+            if (navigator.share) { await navigator.share({ files: [file], title: 'Tabla Truco' }); }
         } catch (err) { document.body.classList.remove('exporting'); }
     }
 
     function exportData() {
-        vibrar();
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stats));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "backup_truco_liga.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
+        vibrar(); const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({stats, matchHistory}));
+        const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "backup_truco.json"); dl.click();
     }
 
     function importData() {
-        vibrar();
-        const input = document.createElement('input');
-        input.type = 'file';
+        vibrar(); const input = document.createElement('input'); input.type = 'file';
         input.onchange = e => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.readAsText(file,'UTF-8');
-            reader.onload = readerEvent => {
+            const reader = new FileReader(); reader.readAsText(e.target.files[0]);
+            reader.onload = ev => {
                 try {
-                    stats = JSON.parse(readerEvent.target.result);
+                    const data = JSON.parse(ev.target.result);
+                    if (data.stats) { stats = data.stats; matchHistory = data.matchHistory || []; }
+                    else { stats = data; } // Fallback versiones viejas
                     render();
-                } catch(e) { alert("Error al cargar backup."); }
+                } catch(e) { alert("Error al cargar."); }
             }
-        }
-        input.click();
+        }; input.click();
     }
 
     function addNewPlayer() {
-        if (!isEditMode) return;
-        vibrar();
+        if (!isEditMode) return; vibrar();
         const name = document.getElementById('newPlayerName').value.trim();
         if (name) {
             saveUndoState();
             stats.push({ name: name, p: 0, g: 0, food: 0, history: [], isChampion: false });
-            document.getElementById('newPlayerName').value = '';
-            render();
+            document.getElementById('newPlayerName').value = ''; render();
         }
     }
+
     render();
 </script>
 </body>
 </html>
-
-```
