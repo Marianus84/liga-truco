@@ -562,7 +562,7 @@
     function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = ev => { const d = JSON.parse(ev.target.result); stats = d.stats || d; partnerships = d.partnerships || {}; render(); }; r.readAsText(e.target.files[0]); }; i.click(); }
     function addNewPlayer() { const n = document.getElementById('newPlayerName').value.trim(); if (n) { saveUndoState(); stats.push({ name: n, p: 0, g: 0, food: 0, history: [], isChampion: false }); document.getElementById('newPlayerName').value = ''; saveTableData(); } }
 
-    const savedTitle = localStorage.getItem('torneo_titulo') || "APERTURA 2026";
+    const savedTitle = localStorage.getItem('torneo_titulo') || "Apertura Truco 2026";
     document.getElementById('displayTitle').innerText = savedTitle;
     document.getElementById('editTitle').value = savedTitle;
     render();
