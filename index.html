@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es-AR">
 <head>
@@ -419,7 +420,14 @@
         const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
         const botRacha = [...data].sort((a,b) => a.racha - b.racha).slice(0, 3);
 
-        const duoEntries = Object.entries(partnerships).map(([duo, count]) => ({ duo, count })).sort((a,b) => b.count - a.count);
+        const baPlayers = new Set(stats.filter(p => maxPJ >= 7 && (p.g + p.p) < (maxPJ / 2)).map(p => p.name));
+        const duoEntries = Object.entries(partnerships)
+            .map(([duo, count]) => ({ duo, count }))
+            .filter(({ duo }) => {
+                const [p1, p2] = duo.split(' | ');
+                return !baPlayers.has(p1) && !baPlayers.has(p2);
+            })
+            .sort((a,b) => b.count - a.count);
         const topDuos = duoEntries.slice(0, 5);
         const botDuos = duoEntries.filter(d => d.count > 0).reverse().slice(0, 5);
 
@@ -569,3 +577,5 @@
 </script>
 </body>
 </html>
+
+```
