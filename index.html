@@ -117,39 +117,27 @@
         .sube { color: #15803d; }
         .baja { color: #dc2626; }
 
-        /* ESTILOS NUEVOS PARA RESUMEN (ESTILO CAPTURA) */
         #resumenCompacto {
-            background: #09090b;
-            padding: 12px;
+            background: #111;
+            color: #fff;
+            padding: 8px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 8px;
+            border-top: 1px solid #333;
         }
-        .stat-card {
-            background: #121214;
-            border: 1px solid #27272a;
-            border-radius: 12px;
-            padding: 14px;
+        .resumen-section { font-size: 0.65rem; }
+        .resumen-section h4 { 
+            margin: 0 0 4px 0; 
+            font-size: 0.6rem; 
+            text-transform: uppercase; 
+            color: #888; 
+            border-bottom: 1px solid #222;
         }
-        .stat-card-full { grid-column: span 2; }
-        .stat-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 12px; font-size: 0.65rem; font-weight: 700;
-            color: #71717a; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .stat-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 7px 0; font-size: 0.8rem; color: #e4e4e7; font-weight: 500;
-        }
-        .stat-row-pairs {
-            padding: 10px 0; border-bottom: 1px solid #27272a;
-        }
-        .stat-row-pairs:last-child { border-bottom: none; padding-bottom: 0; }
-        .val-best { color: #22c55e; font-weight: bold; }
-        .val-worst { color: #ef4444; font-weight: bold; }
-        .val-fire { color: #f97316; font-weight: bold; }
-        .val-skull { color: #d4d4d8; font-weight: bold; }
-        .val-pair { color: #3b82f6; font-weight: bold; }
+        .resumen-full-width { grid-column: span 2; border-top: 1px solid #222; padding-top: 4px; margin-top: 2px; }
+        .resumen-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .val-win { color: #22c55e; font-weight: bold; }
+        .val-loss { color: #ef4444; font-weight: bold; }
         .val-prob { color: var(--dorado-campeon); font-weight: bold; }
 
         .card { background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.2); }
@@ -449,34 +437,25 @@
         const botDuos = duoEntries.filter(d => d.count > 0).reverse().slice(0, 5);
 
         const html = `
-            <div class="stat-card">
-                <div class="stat-header"><span>Mejores (%)</span><span style="color:#22c55e; font-size: 0.85rem;">↗</span></div>
-                ${topPerc.map(p => `<div class="stat-row"><span>${p.name}</span><span class="val-best">${Math.round(p.perc)}%</span></div>`).join('')}
+            <div class="resumen-section">
+                <h4>Mejores (%)</h4>
+                ${topPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${Math.round(p.perc)}%</span></div>`).join('')}
+                <h4 style="margin-top:6px">Peores (%)</h4>
+                ${botPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${Math.round(p.perc)}%</span></div>`).join('')}
+                <h4 style="margin-top:6px">Parejas más frecuentes</h4>
+                ${topDuos.length > 0 ? topDuos.map(d => `<div class="resumen-item"><span>${d.duo}</span><span class="val-win">${d.count}</span></div>`).join('') : '<div>-</div>'}
             </div>
-            <div class="stat-card">
-                <div class="stat-header"><span>Mejores Rachas</span><span style="color:#f97316; font-size: 0.85rem;">🔥</span></div>
-                ${topRacha.map(p => `<div class="stat-row"><span>${p.name}</span><span class="val-fire">${p.racha > 0 ? '🔥 ' + p.racha : '-'}</span></div>`).join('')}
+            <div class="resumen-section">
+                <h4>Mejores Rachas</h4>
+                ${topRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${p.racha > 0 ? '🔥' + p.racha : '-'}</span></div>`).join('')}
+                <h4 style="margin-top:6px">Peores Rachas</h4>
+                ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
+                <h4 style="margin-top:6px">Parejas menos frecuentes</h4>
+                ${botDuos.length > 0 ? botDuos.map(d => `<div class="resumen-item"><span>${d.duo}</span><span class="val-loss">${d.count}</span></div>`).join('') : '<div>-</div>'}
             </div>
-            <div class="stat-card">
-                <div class="stat-header"><span>Peores (%)</span><span style="color:#ef4444; font-size: 0.85rem;">↘</span></div>
-                ${botPerc.map(p => `<div class="stat-row"><span>${p.name}</span><span class="val-worst">${Math.round(p.perc)}%</span></div>`).join('')}
-            </div>
-            <div class="stat-card">
-                <div class="stat-header"><span>Peores Rachas</span><span style="color:#a1a1aa; font-size: 0.85rem;">💀</span></div>
-                ${botRacha.map(p => `<div class="stat-row"><span>${p.name}</span><span class="val-skull">${p.racha < 0 ? '💀 ' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
-            </div>
-            <div class="stat-card stat-card-full">
-                <div class="stat-header"><span>Parejas más frecuentes</span><span style="color:#8b949e; font-size: 0.85rem;">👥</span></div>
-                ${topDuos.length > 0 ? topDuos.map(d => `<div class="stat-row stat-row-pairs"><span>${d.duo.replace(' | ', ' <span style="color:#555">|</span> ')}</span><span class="val-pair">${d.count}</span></div>`).join('') : '<div class="stat-row">-</div>'}
-            </div>
-            ${botDuos.length > 0 ? `
-            <div class="stat-card stat-card-full">
-                <div class="stat-header"><span>Parejas menos frecuentes</span><span style="color:#8b949e; font-size: 0.85rem;">👥</span></div>
-                ${botDuos.map(d => `<div class="stat-row stat-row-pairs"><span>${d.duo.replace(' | ', ' <span style="color:#555">|</span> ')}</span><span class="val-worst">${d.count}</span></div>`).join('')}
-            </div>` : ''}
-            <div class="stat-card stat-card-full">
-                <div class="stat-header" style="justify-content: center;"><span>PROBABILIDADES CAMPEÓN (FALTAN ${fechasFaltantes} FECHAS)</span></div>
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 4px;">
+            <div class="resumen-section resumen-full-width">
+                <h4 style="text-align: center;">PROBABILIDADES CAMPEÓN (FALTAN ${fechasFaltantes} FECHAS)</h4>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">
                 ${maxPJ > 13 ? data.map(d => {
                     const r = Math.max(0, TOTAL_FECHAS - maxPJ);
                     // Lógica de eliminación estricta:
@@ -495,9 +474,9 @@
                         return acc + Math.pow(s.g+(r*((s.g+1)/(s.pj+2))*(s.pj/maxPJ)), 3);
                     }, 0);
                     const perc = Math.round((p.score / (totalS||1))*100);
-                    return `<div style="text-align: center; min-width: 48px; flex: 1; padding: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid #27272a;">
+                    return `<div style="text-align: center; min-width: 48px; flex: 1; padding: 2px; background: rgba(255,255,255,0.05); border-radius: 3px;">
                         <div style="font-weight: 800; font-size: 0.5rem; color: ${perc > 0 ? '#fff' : '#666'}">${p.name}</div>
-                        <div class="val-prob" style="font-size: 0.75rem; margin-top:2px; color: ${perc > 0 ? 'var(--dorado-campeon)' : '#666'}">${perc}%</div>
+                        <div class="val-prob" style="font-size: 0.7rem; color: ${perc > 0 ? 'var(--dorado-campeon)' : '#666'}">${perc}%</div>
                     </div>`;
                 }).join('') : '<div style="font-size:0.6rem; color:#666; width:100%; text-align:center">Disponible en Fecha 13</div>'}
                 </div>
