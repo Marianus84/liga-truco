@@ -459,7 +459,7 @@
             <div class="resumen-section resumen-full-width">
                 <h4 style="text-align: center;">PROBABILIDADES CAMPEÓN (FALTAN ${fechasFaltantes} FECHAS)</h4>
                 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">
-                ${maxPJ > 13 ? data.map(d => {
+                ${maxPJ > 13 ? filteredForPerc.map(d => {
                     const r = Math.max(0, TOTAL_FECHAS - maxPJ);
                     // Lógica de eliminación estricta:
                     const maxPossibleWins = d.g + r;
@@ -471,7 +471,7 @@
                     const chance = Math.pow(d.g + (r * smoothedWinRate * attendanceFactor), 3);
                     return { name: d.name, score: chance };
                 }).sort((a,b)=>b.score-a.score).map(p => {
-                    const totalS = data.reduce((acc,s)=>{
+                    const totalS = filteredForPerc.reduce((acc,s)=>{
                         const r = Math.max(0, TOTAL_FECHAS - maxPJ);
                         if ((s.g + r) < currentLeaderG) return acc;
                         return acc + Math.pow(s.g+(r*((s.g+1)/(s.pj+2))*(s.pj/maxPJ)), 3);
