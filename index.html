@@ -197,6 +197,7 @@
             font-weight: 900; cursor: pointer; font-size: 0.85rem; text-transform: uppercase;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
+        
         .btn-modal-cancel { background: #333; color: #aaa; margin-top: 5px; }
         .team-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid #444; margin-bottom: 10px; }
         .team-box h5 { margin: 0 0 8px 0; font-size: 0.7rem; text-transform: uppercase; color: #aaa; }
@@ -422,8 +423,10 @@
         const filteredForPerc = (maxPJ >= 7) ? data.filter(d => d.pj >= (maxPJ / 2)) : data;
         const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
         const botPerc = [...filteredForPerc].sort((a,b) => a.perc - b.perc).slice(0, 3);
-        const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
-        const botRacha = [...data].sort((a,b) => a.racha - b.racha).slice(0, 3);
+        
+        // Se cambió `data` a `filteredForPerc` para ocultar los jugadores con BA en las estadísticas de rachas.
+        const topRacha = [...filteredForPerc].sort((a,b) => b.racha - a.racha).slice(0, 3);
+        const botRacha = [...filteredForPerc].sort((a,b) => a.racha - b.racha).slice(0, 3);
 
         const baPlayers = new Set(stats.filter(p => maxPJ >= 7 && (p.g + p.p) < (maxPJ / 2)).map(p => p.name));
         const duoEntries = Object.entries(partnerships)
