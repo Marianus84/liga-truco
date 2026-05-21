@@ -1,709 +1,579 @@
+
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-AR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apertura Truco 2026 - Control de Posiciones</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tabla Campeonato de Truco</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a472a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0c0a09;
+        :root {
+            --verde-mesa: #1a472a;
+            --header-table: #000000;
+            --azul-oscuro: #002060;
+            --blanco-marfil: #FFFFFF;
+            --rojo-delete: #ef4444;
+            --win-dot: #22c55e;
+            --loss-dot: #ef4444;
+            --dorado-campeon: #ffd700;
         }
-        /* Ocultar barra de scroll pero mantener funcionalidad */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: var(--verde-mesa); 
+            color: #f3f4f6; 
+            margin: 0; padding: 5px; 
+            -webkit-tap-highlight-color: transparent;
         }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+
+        .container { max-width: 100%; margin: auto; }
+        
+        #captureArea {
+            background: var(--verde-mesa);
+            padding: 0;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
         }
+
+        .table-container { 
+            background: transparent; 
+            width: 100%; 
+            display: block; 
+            overflow: hidden; 
+            border: none;
+        }
+
+        table { width: 100%; border-collapse: collapse; color: #000; table-layout: fixed; border: none; }
+        
+        th { background: var(--header-table); color: #ffffff; padding: 3px 1px; font-size: 0.6rem; border: 1px solid #444; }
+        #displayTitle { font-size: 0.6rem; font-weight: 800; margin: 0; display: block; }
+
+        td { padding: 0; text-align: center; border: 1px solid #000000; font-size: 0.85rem; font-weight: 700; height: 32px; vertical-align: middle; transition: background 0.3s; }
+
+        .fila-campeon td {
+            background: var(--dorado-campeon) !important;
+            color: #000 !important;
+            border-color: #b8860b !important;
+        }
+        .fila-campeon .col-pos, .fila-campeon .col-g {
+            background: #b8860b !important;
+            color: #fff !important;
+        }
+
+        .table-input { 
+            width: 100%; height: 32px; background: transparent; border: none; 
+            text-align: center; font-size: 0.95rem; font-weight: 800; color: inherit; outline: none;
+            padding: 0; margin: 0; line-height: 32px;
+            cursor: pointer;
+        }
+
+        .input-snapshot { display: none; font-size: 0.95rem; font-weight: 800; line-height: 32px; text-align: center; }
+
+        .exporting .table-input, .exporting .btn-delete, .exporting .btn-undo-ui, .exporting .btn-edit-ui, .exporting .btn-record-match { display: none !important; }
+        .exporting .input-snapshot { display: block !important; }
+
+        .col-pos { background: var(--azul-oscuro); color: white; width: 28px; font-size: 0.8rem; }
+        .name-col { text-align: left; padding: 0 5px; background: var(--blanco-marfil); width: auto; font-size: 0.75rem; position: relative; user-select: none; -webkit-user-select: none; }
+        
+        .name-wrapper { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%;
+            height: 100%;
+        }
+
+        .dots-container { 
+            display: flex; 
+            gap: 1px; 
+            margin-left: 4px;
+            flex-shrink: 0; 
+            flex-wrap: nowrap; 
+            justify-content: flex-end;
+        }
+        
+        .dot { width: 4px; height: 4px; border-radius: 50%; display: inline-block; }
+        .dot-g { background-color: var(--win-dot); }
+        .dot-p { background-color: var(--loss-dot); }
+
+        .col-pj { background: var(--blanco-marfil); width: 30px; }
+        .col-p { background: var(--blanco-marfil); color: #dc2626; width: 32px; }
+        .col-g { background: var(--azul-oscuro); color: white; width: 32px; }
+        .col-food { background: var(--blanco-marfil); width: 32px; }
+        .perc-cell { font-size: 0.85rem; color: #000; width: 42px; }
+
+        .racha { font-size: 0.8rem; margin-left: 3px; font-weight: bold; }
+        .sube { color: #15803d; }
+        .baja { color: #dc2626; }
+
+        #resumenCompacto {
+            background: #111;
+            color: #fff;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            border-top: 1px solid #333;
+        }
+        .resumen-section { font-size: 0.65rem; }
+        .resumen-section h4 { 
+            margin: 0 0 4px 0; 
+            font-size: 0.6rem; 
+            text-transform: uppercase; 
+            color: #888; 
+            border-bottom: 1px solid #222;
+        }
+        .resumen-full-width { grid-column: span 2; border-top: 1px solid #222; padding-top: 4px; margin-top: 2px; }
+        .resumen-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .val-win { color: #22c55e; font-weight: bold; }
+        .val-loss { color: #ef4444; font-weight: bold; }
+        .val-prob { color: var(--dorado-campeon); font-weight: bold; }
+
+        .card { background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.2); }
+        .btn { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; }
+        .btn-update { background: #22c55e; color: #000; }
+        .btn-share { background: #25d366; color: white; }
+        .btn-record-match { background: #a855f7; color: white; }
+        
+        .btn-undo-ui { 
+            background: #facc15; 
+            color: #000; 
+            padding: 4px 10px; 
+            font-size: 0.65rem; 
+            border-radius: 4px; 
+            border: none;
+            font-weight: bold; 
+            cursor: pointer; 
+            float: right; 
+            margin: 8px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .btn-edit-ui {
+            background: #6b7280; 
+            color: #fff; 
+            padding: 4px 10px; 
+            font-size: 0.65rem; 
+            border-radius: 4px; 
+            border: none;
+            font-weight: bold; 
+            cursor: pointer; 
+            float: left; 
+            margin: 8px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        .btn-edit-ui.active { background: #ef4444; color: #fff; }
+
+        .btn-add { background: #3b82f6; color: white; margin-top: 0; }
+        .btn-backup { background: #6b7280; color: white; font-size: 0.7rem; margin-top: 5px; }
+        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px; }
+        
+        .input-group { display: flex; gap: 5px; margin-top: 5px; }
+        input[type="text"] { flex: 1; background: #fff; border: 1px solid #3b82f6; padding: 6px; border-radius: 4px; font-size: 0.85rem; color: #000; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: #1a1a1a; padding: 20px; border-radius: 12px; width: 90%; max-width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6); border: 1px solid #333; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-title { margin-top: 0; color: #fff; font-size: 1.1rem; text-align: center; margin-bottom: 20px; font-weight: 800; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-btn {
+            width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 8px; border: none;
+            font-weight: 900; cursor: pointer; font-size: 0.85rem; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-modal-cancel { background: #333; color: #aaa; margin-top: 5px; }
+        .team-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid #444; margin-bottom: 10px; }
+        .team-box h5 { margin: 0 0 8px 0; font-size: 0.7rem; text-transform: uppercase; color: #aaa; }
+        .player-select-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #222; margin-bottom: 4px; border-radius: 4px; font-size: 0.8rem; }
+        .player-select-item.disabled { opacity: 0.2; pointer-events: none; background: #111; }
     </style>
 </head>
-<body class="text-zinc-100 min-h-screen flex justify-center items-start md:py-8 px-2">
+<body>
 
-    <!-- Contenedor Principal estilo Móvil / App de alta fidelidad -->
-    <div class="w-full max-w-md bg-stone-950 rounded-[40px] border-8 border-zinc-800 shadow-2xl overflow-hidden flex flex-col relative my-auto">
+<div class="container">
+    <div id="captureArea">
+        <div class="table-container">
+            <button class="btn-edit-ui" id="editToggle" onclick="toggleEditMode()">EDIT OFF</button>
+            <button class="btn-undo-ui" onclick="undoLastAction()">↩ DESHACER</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 32px;">Pos</th>
+                        <th><span id="displayTitle">APERTURA 2026</span></th>
+                        <th style="width: 32px;">J</th>
+                        <th style="width: 32px;">P</th>
+                        <th style="width: 35px;">G</th>
+                        <th style="width: 30px;">%</th>
+                        <th style="width: 20px;">🏠</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+            <div id="resumenCompacto"></div>
+        </div>
+    </div>
+
+    <div class="btn-main" style="padding: 0 5px;">
+        <button class="btn btn-record-match" onclick="openMatchModal()">⚔️ Registrar Partida</button>
+        <button class="btn btn-share" onclick="shareAsImage()">Compartir Tabla 📲</button>
+
+        <div class="card">
+            <div class="input-group">
+                <input type="text" id="newPlayerName" placeholder="Nombre...">
+                <button class="btn btn-add" style="width: auto;" onclick="addNewPlayer()">+</button>
+            </div>
+            <input type="text" id="editTitle" style="width: 93%; margin-top: 8px;" placeholder="Título" oninput="updateTitle(this.value)">
+            
+            <div class="actions-grid">
+                <button class="btn btn-backup" onclick="exportData()">💾 Guardar Backup</button>
+                <button class="btn btn-backup" onclick="importData()">📂 Cargar Backup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Jugador -->
+<div id="playerModal" class="modal-overlay">
+    <div class="modal-content">
+        <h4 id="modalPlayerName" class="modal-title">Opciones</h4>
+        <div id="modalMainActions">
+            <button class="modal-btn btn-update" style="background:#3b82f6;color:white" onclick="showEditSection()">✏️ EDITAR NOMBRE</button>
+            <button class="modal-btn btn-update" style="background:var(--dorado-campeon);color:black" onclick="modalAction('champion')">👑 MARCAR CAMPEÓN</button>
+            <button class="modal-btn btn-update" style="background:var(--rojo-delete);color:white" onclick="showDelSection()">🗑️ ELIMINAR</button>
+        </div>
+        <div id="editNameContainer" style="display:none">
+            <input type="text" id="editNameInput" style="width:100%;padding:10px;margin-bottom:10px;border-radius:4px;border:1px solid #333;background:#000;color:#fff;">
+            <div style="display:flex; gap:5px;">
+                <button class="btn-update" style="flex:1;padding:10px;border:none;border-radius:4px;background:#22c55e" onclick="modalAction('edit')">GUARDAR</button>
+                <button class="btn-modal-cancel" style="flex:1" onclick="resetModalViews()">ATRÁS</button>
+            </div>
+        </div>
+        <div id="confirmDelContainer" style="display:none">
+            <p style="color:#ef4444; font-weight:bold; text-align:center">¿ELIMINAR JUGADOR?</p>
+            <button class="modal-btn btn-update" style="background:#ef4444;color:white" onclick="modalAction('delete')">SÍ, ELIMINAR</button>
+            <button class="btn-modal-cancel" onclick="resetModalViews()">CANCELAR</button>
+        </div>
+        <button class="modal-btn btn-modal-cancel" onclick="closeModal()">CERRAR</button>
+    </div>
+</div>
+
+<!-- Modal Nueva Partida -->
+<div id="matchModal" class="modal-overlay">
+    <div class="modal-content">
+        <h4 class="modal-title">REGISTRAR PARTIDA</h4>
+        <div class="team-box">
+            <h5>🏆 EQUIPO GANADOR</h5>
+            <div id="winnersList"></div>
+        </div>
+        <div class="team-box">
+            <h5>💀 EQUIPO PERDEDOR</h5>
+            <div id="losersList"></div>
+        </div>
+        <button class="modal-btn btn-update" onclick="submitMatch()">CONFIRMAR RESULTADO</button>
+        <button class="modal-btn btn-modal-cancel" onclick="closeMatchModal()">CANCELAR</button>
+    </div>
+</div>
+
+<script>
+    let undoStack = [];
+    let stats = JSON.parse(localStorage.getItem('torneo_final_stats')) || [];
+    let partnerships = JSON.parse(localStorage.getItem('torneo_partnerships')) || {};
+    let prevOrder = JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
+    let activePlayerIdx = null;
+    let pressTimer = null;
+    let isEditMode = false;
+
+    function vibrar(ms = 80) { if (navigator.vibrate) navigator.vibrate(ms); }
+    const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+    function sonar() { sonidoShare.play().catch(e => {}); }
+
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+        const btn = document.getElementById('editToggle');
+        btn.innerText = isEditMode ? "EDIT ON" : "EDIT OFF";
+        btn.classList.toggle('active', isEditMode);
+        vibrar(isEditMode ? 150 : 50);
+    }
+
+    function saveUndoState() {
+        undoStack.push(JSON.stringify({stats, partnerships}));
+        if (undoStack.length > 30) undoStack.shift();
+    }
+
+    function undoLastAction() {
+        if (undoStack.length > 0) {
+            const last = JSON.parse(undoStack.pop());
+            stats = last.stats;
+            partnerships = last.partnerships;
+            render();
+        }
+    }
+
+    function openMatchModal() {
+        if (stats.length < 2) return;
+        const wList = document.getElementById('winnersList');
+        const lList = document.getElementById('losersList');
+        wList.innerHTML = ''; lList.innerHTML = '';
         
-        <!-- Barra de Estado Simulada (Para inmersión de App) -->
-        <div class="bg-black text-xs text-zinc-400 px-6 pt-3 pb-2 flex justify-between items-center font-medium select-none">
-            <span id="live-clock">17:44</span>
-            <div class="flex items-center gap-1.5">
-                <i data-lucide="bluetooth" class="w-3.5 h-3.5 text-zinc-400"></i>
-                <span class="text-[10px] font-bold">VoLTE</span>
-                <div class="flex items-center gap-0.5">
-                    <span class="text-[9px] font-extrabold leading-none">5G</span>
-                    <div class="flex gap-0.5 items-end h-2.5">
-                        <div class="w-0.5 h-1 bg-zinc-400 rounded-full"></div>
-                        <div class="w-0.5 h-1.5 bg-zinc-400 rounded-full"></div>
-                        <div class="w-0.5 h-2 bg-zinc-400 rounded-full"></div>
-                        <div class="w-0.5 h-2.5 bg-zinc-400 rounded-full"></div>
-                    </div>
-                </div>
-                <!-- Batería -->
-                <div class="border border-zinc-500 rounded px-0.5 py-px flex items-center h-3.5 w-6 relative">
-                    <div class="bg-emerald-500 h-full w-4/5 rounded-2xs"></div>
-                    <span class="absolute inset-0 flex items-center justify-center text-[8px] text-white font-bold">85</span>
-                </div>
-            </div>
-        </div>
+        stats.forEach((p, i) => {
+            const createItem = (type) => {
+                const div = document.createElement('div');
+                div.className = 'player-select-item';
+                div.id = `container-${type}-${i}`;
+                div.innerHTML = `
+                    <input type="checkbox" id="chk-${type}-${i}" data-idx="${i}" data-type="${type}" onchange="syncCheckboxes(this)">
+                    <span>${p.name}</span>
+                `;
+                return div;
+            };
+            wList.appendChild(createItem('win'));
+            lList.appendChild(createItem('loss'));
+        });
+        document.getElementById('matchModal').style.display = 'flex';
+    }
 
-        <!-- Selector de Diseño (Comparador) -->
-        <div class="bg-zinc-900 border-b border-zinc-800 p-2.5 flex justify-between items-center gap-2">
-            <span class="text-xs font-semibold text-zinc-400 tracking-wider">MODO VISUAL:</span>
-            <div class="flex bg-zinc-950 p-1 rounded-full border border-zinc-800">
-                <button onclick="setDesignMode('original')" id="btn-design-original" class="px-3 py-1 rounded-full text-xs font-medium transition-all text-zinc-400">
-                    Original
-                </button>
-                <button onclick="setDesignMode('opcionC')" id="btn-design-opcionC" class="px-3 py-1 rounded-full text-xs font-bold transition-all bg-emerald-600 text-white shadow-md">
-                    Opción C ✨
-                </button>
-            </div>
-        </div>
+    function syncCheckboxes(el) {
+        const idx = el.dataset.idx;
+        const type = el.dataset.type;
+        const otherType = type === 'win' ? 'loss' : 'win';
+        const otherContainer = document.getElementById(`container-${otherType}-${idx}`);
+        const otherCheckbox = document.getElementById(`chk-${otherType}-${idx}`);
+        
+        if (el.checked) {
+            otherContainer.classList.add('disabled');
+            otherCheckbox.checked = false;
+        } else {
+            otherContainer.classList.remove('disabled');
+        }
+    }
 
-        <!-- Botones de Acción de Cabecera -->
-        <div class="flex justify-between items-center px-4 py-3 bg-zinc-950">
-            <button id="btn-toggle-edit" onclick="toggleEditMode()" class="bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-zinc-300 px-4 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all border border-zinc-700">
-                EDIT OFF
-            </button>
-            
-            <button id="btn-deshacer" onclick="undoAction()" class="bg-yellow-500 hover:bg-yellow-400 active:scale-95 text-zinc-950 px-4 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase flex items-center gap-1 transition-all shadow-md">
-                <i data-lucide="corner-up-left" class="w-3.5 h-3.5 stroke-[3]"></i>
-                Deshacer
-            </button>
-        </div>
+    function closeMatchModal() { document.getElementById('matchModal').style.display = 'none'; }
 
-        <!-- Contenedor Principal con Scroll -->
-        <div class="overflow-y-auto max-h-[75vh] no-scrollbar px-3 pb-24">
-            
-            <!-- Tabla de Posiciones -->
-            <div class="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800/80 shadow-md">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-black text-[10px] font-bold text-zinc-400 uppercase tracking-wider text-center border-b border-zinc-800">
-                            <th class="py-2.5 px-2 text-left w-10">Pos</th>
-                            <th class="py-2.5 px-2 text-left">Apertura Truco 2026</th>
-                            
-                            <!-- Cabecera J (Jugados) -->
-                            <th id="th-j" class="py-2.5 px-1 w-10 transition-all text-center">J</th>
-                            
-                            <!-- Cabecera P (Perdidos) -->
-                            <th id="th-p" class="py-2.5 px-1 w-10 transition-all text-center">P</th>
-                            
-                            <!-- Cabecera G (Ganados) -->
-                            <th id="th-g" class="py-2.5 px-1 w-11 transition-all text-center">G</th>
-                            
-                            <!-- Cabecera % (Porcentaje) -->
-                            <th id="th-pct" class="py-2.5 px-1 w-12 transition-all text-center">%</th>
-                            
-                            <th class="py-2.5 px-1 w-8 text-center"><i data-lucide="home" class="w-3.5 h-3.5 mx-auto text-zinc-400"></i></th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-body">
-                        <!-- Las filas se renderizan dinámicamente con JS -->
-                    </tbody>
-                </table>
-            </div>
+    function submitMatch() {
+        const wins = Array.from(document.querySelectorAll('input[data-type="win"]:checked')).map(el => parseInt(el.dataset.idx));
+        const loss = Array.from(document.querySelectorAll('input[data-type="loss"]:checked')).map(el => parseInt(el.dataset.idx));
+        if (wins.length === 0 || loss.length === 0) return;
+        
+        saveUndoState();
+        vibrar(100);
 
-            <!-- SECCIONES DE ESTADÍSTICAS -->
-            <div class="grid grid-cols-2 gap-3 mt-4">
-                
-                <!-- MEJORES (%) -->
-                <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/50">
-                    <h3 class="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest mb-2 flex justify-between items-center">
-                        <span>Mejores (%)</span>
-                        <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-500"></i>
-                    </h3>
-                    <div id="stats-mejores-pct" class="space-y-1.5 text-xs">
-                        <!-- JS Dynamic -->
-                    </div>
-                </div>
+        wins.forEach(idx => handleStatChange(idx, 'g', stats[idx].g + 1));
+        loss.forEach(idx => handleStatChange(idx, 'p', stats[idx].p + 1));
 
-                <!-- MEJORES RACHAS -->
-                <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/50">
-                    <h3 class="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest mb-2 flex justify-between items-center">
-                        <span>Mejores Rachas</span>
-                        <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-500 animate-pulse"></i>
-                    </h3>
-                    <div id="stats-mejores-rachas" class="space-y-1.5 text-xs">
-                        <!-- JS Dynamic -->
-                    </div>
-                </div>
-
-                <!-- PEORES (%) -->
-                <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/50">
-                    <h3 class="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest mb-2 flex justify-between items-center">
-                        <span>Peores (%)</span>
-                        <i data-lucide="trending-down" class="w-3.5 h-3.5 text-rose-500"></i>
-                    </h3>
-                    <div id="stats-peores-pct" class="space-y-1.5 text-xs">
-                        <!-- JS Dynamic -->
-                    </div>
-                </div>
-
-                <!-- PEORES RACHAS -->
-                <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/50">
-                    <h3 class="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest mb-2 flex justify-between items-center">
-                        <span>Peores Rachas</span>
-                        <i data-lucide="skull" class="w-3.5 h-3.5 text-zinc-400"></i>
-                    </h3>
-                    <div id="stats-peores-rachas" class="space-y-1.5 text-xs">
-                        <!-- JS Dynamic -->
-                    </div>
-                </div>
-
-                <!-- PAREJAS MÁS FRECUENTES -->
-                <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/50 col-span-2">
-                    <h3 class="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest mb-2 flex justify-between items-center">
-                        <span>Parejas más frecuentes 🦟</span>
-                        <i data-lucide="users" class="w-3.5 h-3.5 text-indigo-400"></i>
-                    </h3>
-                    <div id="stats-parejas-mas" class="grid grid-cols-1 gap-1 text-xs">
-                        <!-- JS Dynamic -->
-                    </div>
-                </div>
-
-                <!-- PAREJAS MENOS FRECUENTES -->
-                <div class="bg-zinc-900/60 p-3 rounded-xl border border-zinc-800/50 col-span-2">
-                    <h3 class="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest mb-2 flex justify-between items-center">
-                        <span>Parejas menos frecuentes</span>
-                        <i data-lucide="user-minus" class="w-3.5 h-3.5 text-zinc-500"></i>
-                    </h3>
-                    <div id="stats-parejas-menos" class="grid grid-cols-1 gap-1 text-xs">
-                        <!-- JS Dynamic -->
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- PROBABILIDADES CAMPEÓN -->
-            <div class="mt-4 bg-zinc-900/40 p-3 rounded-xl border border-zinc-800/50">
-                <h3 class="text-[10px] font-extrabold text-zinc-500 uppercase tracking-widest mb-3 text-center">
-                    PROBABILIDADES CAMPEÓN (FALTAN 6 FECHAS)
-                </h3>
-                <div id="champion-probabilities-grid" class="grid grid-cols-3 gap-2">
-                    <!-- JS Dynamic cards -->
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Botón de Registro de Partida Flotante -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-stone-950 via-stone-950/95 to-transparent flex justify-center">
-            <button onclick="openRegisterModal()" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-violet-950/40 flex items-center justify-center gap-2 active:scale-[0.98] transition-all text-sm tracking-wide uppercase border border-violet-500/30">
-                <i data-lucide="swords" class="w-5 h-5"></i>
-                Registrar Partida
-            </button>
-        </div>
-
-    </div>
-
-    <!-- MODAL DE REGISTRO DE PARTIDA -->
-    <div id="register-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 hidden backdrop-blur-xs">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            
-            <div class="bg-violet-950/40 px-5 py-4 border-b border-zinc-800 flex justify-between items-center">
-                <h3 class="font-bold text-base text-zinc-100 flex items-center gap-2">
-                    <i data-lucide="trophy" class="w-5 h-5 text-yellow-500"></i>
-                    Nueva Partida
-                </h3>
-                <button onclick="closeRegisterModal()" class="text-zinc-400 hover:text-zinc-100 p-1 rounded-full hover:bg-zinc-800 transition-all">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="p-5 space-y-4">
-                
-                <!-- GANADOR -->
-                <div>
-                    <label class="block text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1.5">Ganador(a)</label>
-                    <select id="modal-winner" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-emerald-500">
-                        <!-- JS loaded options -->
-                    </select>
-                </div>
-
-                <!-- PERDEDOR -->
-                <div>
-                    <label class="block text-xs font-bold text-rose-400 uppercase tracking-wider mb-1.5">Perdedor(a)</label>
-                    <select id="modal-loser" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-rose-500">
-                        <!-- JS loaded options -->
-                    </select>
-                </div>
-
-                <!-- ¿Localía? -->
-                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
-                    <div class="flex flex-col">
-                        <span class="text-xs font-bold text-zinc-300">¿Victoria en Casa?</span>
-                        <span class="text-[10px] text-zinc-500">Suma localía al ganador</span>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="modal-home" class="sr-only peer">
-                        <div class="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
-                    </label>
-                </div>
-
-            </div>
-
-            <!-- Botones Modal -->
-            <div class="bg-zinc-950 px-5 py-4 border-t border-zinc-800/80 flex gap-3">
-                <button onclick="closeRegisterModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 py-2.5 rounded-xl text-xs font-bold text-zinc-300 tracking-wider uppercase transition-all">
-                    Cancelar
-                </button>
-                <button onclick="saveMatch()" class="flex-1 bg-violet-600 hover:bg-violet-500 py-2.5 rounded-xl text-xs font-bold text-white tracking-wider uppercase transition-all shadow-md">
-                    Guardar
-                </button>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- SCRIPT DE CONTROL E INTERACTIVIDAD -->
-    <script>
-        // CONFIGURACIÓN DE BASE DE DATOS LOCAL
-        let players = [
-            { id: 1, name: "Darío", j: 20, p: 7, g: 13, pct: 65, home: 2, streak: ['G','G','G','G','G','P','G','G','P','P','P','G','G','P','P','G','G','G','P','P'] },
-            { id: 2, name: "Omar", j: 20, p: 7, g: 13, pct: 65, home: 3, streak: ['P','P','P','P','P','G','G','P','P','P','G','G','G','G','G','G','G','G','G','G'] },
-            { id: 3, name: "Ricardo", j: 20, p: 9, g: 11, pct: 55, home: 3, streak: ['G','G','G','G','G','P','G','G','P','P','G','G','P','P','G','G','P','P','G','P'] },
-            { id: 4, name: "Mariano", j: 18, p: 8, g: 10, pct: 56, home: 3, streak: ['G','G','G','P','G','G','P','G','P','G','P','G','G','P','P','G','G','G'] },
-            { id: 5, name: "Fabricio", j: 12, p: 5, g: 7, pct: 58, home: 0, streak: ['P','P','P','P','G','G','P','G','G','G','G','G'] },
-            { id: 6, name: "Tonga", j: 17, p: 10, g: 7, pct: 41, home: 0, streak: ['G','G','P','P','P','P','G','G','P','P','G','G','P','P','P','P','P'] },
-            { id: 7, name: "Carlitos", j: 19, p: 13, g: 6, pct: 32, home: 3, streak: ['P','P','P','P','P','P','P','P','P','G','P','P','P','G','G','G','G','P','G'] },
-            { id: 8, name: "Altamira", j: 10, p: 5, g: 5, pct: 50, home: 2, streak: ['P','P','P','P','G','P','G','G','G','G'] },
-            { id: 9, name: "Pablo", j: 18, p: 13, g: 5, pct: 28, home: 3, streak: ['P','P','P','P','G','P','P','G','P','G','P','G','P','P','P','P','P','P'] },
-            { id: 10, name: "Raúl (BA)", j: 4, p: 1, g: 3, pct: 75, home: 0, streak: ['G','P','G','G'] },
-            { id: 11, name: "Guillermo (BA)", j: 7, p: 5, g: 2, pct: 29, home: 0, streak: ['P','P','G','P','P','P','G'] }
-        ];
-
-        // Base de datos de enfrentamientos para calcular las Parejas más/menos frecuentes de forma dinámica
-        let matchupsHistory = [
-            { w: "Fabricio", l: "Ricardo", home: false },
-            { w: "Ricardo", l: "Tonga", home: false },
-            { w: "Carlitos", l: "Ricardo", home: true },
-            { w: "Fabricio", l: "Tonga", home: false },
-            { w: "Carlitos", l: "Fabricio", home: true },
-            { w: "Mariano", l: "Pablo", home: true },
-            { w: "Omar", l: "Pablo", home: true },
-            { w: "Mariano", l: "Omar", home: true },
-            { w: "Darío", l: "Pablo", home: false },
-            { w: "Darío", l: "Mariano", home: false }
-        ];
-
-        // Historial para Deshacer
-        let historyStack = [];
-
-        // Estado de la interfaz
-        let currentDesignMode = 'opcionC'; // 'original' o 'opcionC'
-        let editModeActive = false;
-
-        // Al iniciar
-        window.onload = function() {
-            lucide.createIcons();
-            updateClock();
-            setInterval(updateClock, 60000);
-            renderAll();
+        const recordPair = (idxA, idxB) => {
+            const names = [stats[idxA].name, stats[idxB].name].sort();
+            const key = names.join(' | ');
+            partnerships[key] = (partnerships[key] || 0) + 1;
         };
 
-        function updateClock() {
-            const now = new Date();
-            const hrs = String(now.getHours()).padStart(2, '0');
-            const mins = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('live-clock').innerText = `${hrs}:${mins}`;
-        }
+        for(let i=0; i<wins.length; i++) for(let j=i+1; j<wins.length; j++) recordPair(wins[i], wins[j]);
+        for(let i=0; i<loss.length; i++) for(let j=i+1; j<loss.length; j++) recordPair(loss[i], loss[j]);
 
-        // CONTROL DE MODOS DE DISEÑO
-        function setDesignMode(mode) {
-            currentDesignMode = mode;
-            
-            const btnOriginal = document.getElementById('btn-design-original');
-            const btnOpcionC = document.getElementById('btn-design-opcionC');
+        closeMatchModal();
+        saveTableData();
+    }
 
-            if (mode === 'original') {
-                btnOriginal.className = "px-3 py-1 rounded-full text-xs font-bold transition-all bg-zinc-700 text-white shadow-md";
-                btnOpcionC.className = "px-3 py-1 rounded-full text-xs font-medium transition-all text-zinc-400 hover:text-zinc-200";
-            } else {
-                btnOriginal.className = "px-3 py-1 rounded-full text-xs font-medium transition-all text-zinc-400 hover:text-zinc-200";
-                btnOpcionC.className = "px-3 py-1 rounded-full text-xs font-bold transition-all bg-emerald-600 text-white shadow-md";
-            }
-            renderLeaderboard();
-        }
+    function getCurrentTournamentFecha() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const getFirstFriday = (y, m) => {
+            let d = new Date(y, m, 1);
+            while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
+            return d;
+        };
+        const startApertura = getFirstFriday(year, 0);
+        const startClausura = getFirstFriday(year, 6);
+        let seasonStart = (now >= startClausura) ? startClausura : startApertura;
+        let diffMs = now - seasonStart;
+        let diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
+        return Math.max(1, Math.min(26, diffWeeks));
+    }
 
-        function toggleEditMode() {
-            editModeActive = !editModeActive;
-            const btn = document.getElementById('btn-toggle-edit');
-            if (editModeActive) {
-                btn.innerText = "EDIT ON";
-                btn.className = "bg-amber-600 hover:bg-amber-500 active:scale-95 text-white px-4 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all border border-amber-500 shadow-lg animate-pulse";
-            } else {
-                btn.innerText = "EDIT OFF";
-                btn.className = "bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-zinc-300 px-4 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all border border-zinc-700";
-                // Guardar los cambios hechos en inputs
-                saveInputsToData();
-            }
-            renderLeaderboard();
-        }
+    function renderResumen() {
+        if (stats.length === 0) return;
+        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 1);
+        const currentLeaderG = Math.max(...stats.map(p => p.g), 0);
+        const TOTAL_FECHAS = 26;
+        const fechaActual = getCurrentTournamentFecha();
+        const fechasFaltantes = Math.max(0, TOTAL_FECHAS - fechaActual);
+        
+        const data = stats.map(p => ({
+            name: p.name, pj: p.g + p.p, g: p.g,
+            perc: (p.g + p.p) > 0 ? (p.g / (p.g + p.p)) * 100 : 0,
+            racha: getRacha(p.history)
+        }));
 
-        function saveInputsToData() {
-            players.forEach(p => {
-                const nameInp = document.getElementById(`inp-name-${p.id}`);
-                const jInp = document.getElementById(`inp-j-${p.id}`);
-                const pInp = document.getElementById(`inp-p-${p.id}`);
-                const gInp = document.getElementById(`inp-g-${p.id}`);
-                const homeInp = document.getElementById(`inp-home-${p.id}`);
+        const filteredForPerc = (maxPJ >= 7) ? data.filter(d => d.pj >= (maxPJ / 2)) : data;
+        const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
+        const botPerc = [...filteredForPerc].sort((a,b) => a.perc - b.perc).slice(0, 3);
+        const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
+        const botRacha = [...data].sort((a,b) => a.racha - b.racha).slice(0, 3);
 
-                if (nameInp) p.name = nameInp.value;
-                if (jInp) p.j = Math.max(0, parseInt(jInp.value) || 0);
-                if (pInp) p.p = Math.max(0, parseInt(pInp.value) || 0);
-                if (gInp) p.g = Math.max(0, parseInt(gInp.value) || 0);
-                if (homeInp) p.home = Math.max(0, parseInt(homeInp.value) || 0);
+        const baPlayers = new Set(stats.filter(p => maxPJ >= 7 && (p.g + p.p) < (maxPJ / 2)).map(p => p.name));
+        const duoEntries = Object.entries(partnerships)
+            .map(([duo, count]) => ({ duo, count }))
+            .filter(({ duo }) => {
+                const [p1, p2] = duo.split(' | ');
+                return !baPlayers.has(p1) && !baPlayers.has(p2);
+            })
+            .sort((a,b) => b.count - a.count);
+        const topDuos = duoEntries.slice(0, 5);
+        const botDuos = duoEntries.filter(d => d.count > 0).reverse().slice(0, 5);
 
-                // Forzar recalculado de porcentaje y consistencia
-                if (p.j !== (p.g + p.p)) {
-                    p.j = p.g + p.p;
-                }
-                p.pct = p.j > 0 ? Math.round((p.g / p.j) * 100) : 0;
-            });
-            saveStateToHistory();
-            renderAll();
-        }
-
-        // RESPALDAR ESTADO PARA DESHACER
-        function saveStateToHistory() {
-            const snapshot = {
-                players: JSON.parse(JSON.stringify(players)),
-                matchupsHistory: JSON.parse(JSON.stringify(matchupsHistory))
-            };
-            historyStack.push(snapshot);
-            if (historyStack.length > 20) {
-                historyStack.shift();
-            }
-        }
-
-        function undoAction() {
-            if (historyStack.length === 0) {
-                // Notificación visual de error
-                const btn = document.getElementById('btn-deshacer');
-                btn.classList.add('bg-rose-600');
-                setTimeout(() => btn.classList.remove('bg-rose-600'), 400);
-                return;
-            }
-            const previousState = historyStack.pop();
-            players = previousState.players;
-            matchupsHistory = previousState.matchupsHistory;
-            renderAll();
-        }
-
-        // RENDERIZADO GLOBAL
-        function renderAll() {
-            // Ordenar por Ganados, luego por % de victorias, luego menos partidos
-            players.sort((a, b) => {
-                if (b.g !== a.g) return b.g - a.g;
-                if (b.pct !== a.pct) return b.pct - a.pct;
-                return a.j - b.j;
-            });
-
-            renderLeaderboard();
-            renderStats();
-            renderProbabilities();
-        }
-
-        // DIBUJAR TABLA DE POSICIONES
-        function renderLeaderboard() {
-            const tbody = document.getElementById('leaderboard-body');
-            tbody.innerHTML = '';
-
-            // Clases para Opción C vs Original
-            const jHeader = document.getElementById('th-j');
-            const pHeader = document.getElementById('th-p');
-            const gHeader = document.getElementById('th-g');
-            const pctHeader = document.getElementById('th-pct');
-
-            if (currentDesignMode === 'opcionC') {
-                jHeader.className = "py-2.5 px-1 w-9 text-[10px] font-medium text-zinc-500 text-center transition-all";
-                pHeader.className = "py-2.5 px-1 w-9 text-[10px] font-medium text-zinc-500 text-center transition-all";
-                gHeader.className = "py-2.5 px-1.5 w-12 text-[11px] font-black text-blue-400 text-center transition-all";
-                pctHeader.className = "py-2.5 px-1.5 w-14 text-[11px] font-black text-amber-400 text-center transition-all";
-            } else {
-                jHeader.className = "py-2.5 px-1 w-10 text-[10px] font-bold text-zinc-400 text-center transition-all";
-                pHeader.className = "py-2.5 px-1 w-10 text-[10px] font-bold text-zinc-400 text-center transition-all";
-                gHeader.className = "py-2.5 px-1 w-11 text-[10px] font-bold text-zinc-400 text-center transition-all";
-                pctHeader.className = "py-2.5 px-1 w-12 text-[10px] font-bold text-zinc-400 text-center transition-all";
-            }
-
-            players.forEach((p, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-zinc-800/60 hover:bg-zinc-800/30 transition-all text-xs font-medium text-center align-middle";
-
-                // Icono de medallas
-                let rankIcon = `<span class="text-zinc-500 font-bold">${idx + 1}</span>`;
-                if (idx === 0) rankIcon = `🏆`;
-                else if (idx === 1) rankIcon = `🥈`;
-                else if (idx === 2) rankIcon = `🥉`;
-                else if (p.pct < 30) rankIcon = `💀`;
-
-                // Colores para el porcentaje %
-                let pctBg = "bg-zinc-800 text-zinc-400";
-                if (p.pct >= 65) pctBg = "bg-emerald-950/80 text-emerald-400 border border-emerald-800/50";
-                else if (p.pct >= 50) pctBg = "bg-amber-950/80 text-amber-400 border border-amber-800/40";
-                else if (p.pct < 40) pctBg = "bg-rose-950/80 text-rose-400 border border-rose-800/40";
-
-                // Puntos (G) Color
-                const gBg = "bg-blue-950/80 text-blue-200 border border-blue-900/50";
-
-                // Generar los puntitos de racha (últimos 10 resultados para no sobrecargar)
-                const visibleStreak = p.streak.slice(-10);
-                const streakDots = visibleStreak.map(res => {
-                    const color = res === 'G' ? 'bg-emerald-500' : 'bg-rose-500';
-                    return `<span class="w-1.5 h-1.5 rounded-full ${color} inline-block mx-0.5"></span>`;
-                }).join('');
-
-                // Modos de diseño condicionales
-                let colJClass = "text-zinc-200 py-3 text-center";
-                let colPClass = "text-rose-500 py-3 text-center";
-                let colGClass = "py-3 text-center font-bold";
-                let colPctClass = "py-1.5 text-center font-extrabold";
-
-                if (currentDesignMode === 'opcionC') {
-                    colJClass = "text-zinc-500 font-light text-[11px] py-3 text-center opacity-75";
-                    colPClass = "text-rose-900/80 font-light text-[11px] py-3 text-center opacity-75";
-                    colGClass = `py-3 text-center font-black ${gBg} rounded-md scale-95 shadow-sm`;
-                    colPctClass = `py-1.5 text-center font-black ${pctBg} rounded-md scale-95 shadow-sm`;
-                }
-
-                if (editModeActive) {
-                    // Render editable inputs
-                    tr.innerHTML = `
-                        <td class="py-2 px-1 text-center font-bold text-zinc-500">${rankIcon}</td>
-                        <td class="py-2 px-2 text-left">
-                            <input type="text" id="inp-name-${p.id}" value="${p.name}" class="bg-zinc-950 border border-zinc-700 rounded px-1.5 py-1 text-xs text-white w-full font-bold">
-                        </td>
-                        <td class="py-2 px-1"><input type="number" id="inp-j-${p.id}" value="${p.j}" class="bg-zinc-950 border border-zinc-700 rounded w-8 text-center py-1 text-xs text-zinc-300"></td>
-                        <td class="py-2 px-1"><input type="number" id="inp-p-${p.id}" value="${p.p}" class="bg-zinc-950 border border-zinc-700 rounded w-8 text-center py-1 text-xs text-rose-500"></td>
-                        <td class="py-2 px-1"><input type="number" id="inp-g-${p.id}" value="${p.g}" class="bg-zinc-950 border border-zinc-700 rounded w-8 text-center py-1 text-xs text-blue-400 font-bold"></td>
-                        <td class="py-2 px-1 text-zinc-400 text-[11px]">${p.pct}%</td>
-                        <td class="py-2 px-1"><input type="number" id="inp-home-${p.id}" value="${p.home}" class="bg-zinc-950 border border-zinc-700 rounded w-8 text-center py-1 text-xs text-zinc-400"></td>
-                    `;
-                } else {
-                    // Render vista normal de fila
-                    tr.innerHTML = `
-                        <td class="py-3 px-2 text-center text-sm">${rankIcon}</td>
-                        <td class="py-3 px-2 text-left font-bold text-zinc-100">
-                            <div class="flex flex-col">
-                                <span>${p.name}</span>
-                                <div class="flex items-center mt-1 overflow-x-hidden w-24 no-scrollbar">
-                                    ${streakDots}
-                                </div>
-                            </div>
-                        </td>
-                        <td class="${colJClass}">${p.j}</td>
-                        <td class="${colPClass}">${p.p}</td>
-                        <td class="${colGClass}">${p.g}</td>
-                        <td class="px-1"><div class="${colPctClass}">${p.pct}%</div></td>
-                        <td class="py-3 px-1 text-zinc-400">${p.home}</td>
-                    `;
-                }
-
-                tbody.appendChild(tr);
-            });
-        }
-
-        // CÁLCULO Y RENDER DE ESTADÍSTICAS SECUNDARIAS
-        function renderStats() {
-            // 1. Mejores y peores (%)
-            const pctSorted = [...players].sort((a,b) => b.pct - a.pct);
-            
-            const divMejoresPct = document.getElementById('stats-mejores-pct');
-            divMejoresPct.innerHTML = pctSorted.slice(0, 3).map(p => `
-                <div class="flex justify-between items-center bg-zinc-900/30 p-1 rounded">
-                    <span class="font-medium text-zinc-300 truncate max-w-[80px]">${p.name}</span>
-                    <span class="font-bold text-emerald-400">${p.pct}%</span>
-                </div>
-            `).join('');
-
-            const divPeoresPct = document.getElementById('stats-peores-pct');
-            divPeoresPct.innerHTML = pctSorted.slice(-3).reverse().map(p => `
-                <div class="flex justify-between items-center bg-zinc-900/30 p-1 rounded">
-                    <span class="font-medium text-zinc-400 truncate max-w-[80px]">${p.name}</span>
-                    <span class="font-bold text-rose-500">${p.pct}%</span>
-                </div>
-            `).join('');
-
-            // 2. Rachas Actuales
-            // Calcular racha actual mirando el final de la lista de streaks de cada uno
-            let streakData = players.map(p => {
-                let currentType = p.streak[p.streak.length - 1];
-                let count = 0;
-                if (currentType) {
-                    for (let i = p.streak.length - 1; i >= 0; i--) {
-                        if (p.streak[i] === currentType) {
-                            count++;
-                        } else {
-                            break;
-                        }
+        const html = `
+            <div class="resumen-section">
+                <h4>Mejores (%)</h4>
+                ${topPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${Math.round(p.perc)}%</span></div>`).join('')}
+                <h4 style="margin-top:6px">Peores (%)</h4>
+                ${botPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${Math.round(p.perc)}%</span></div>`).join('')}
+                <h4 style="margin-top:6px">Parejas más frecuentes</h4>
+                ${topDuos.length > 0 ? topDuos.map(d => `<div class="resumen-item"><span>${d.duo}</span><span class="val-win">${d.count}</span></div>`).join('') : '<div>-</div>'}
+            </div>
+            <div class="resumen-section">
+                <h4>Mejores Rachas</h4>
+                ${topRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${p.racha > 0 ? '🔥' + p.racha : '-'}</span></div>`).join('')}
+                <h4 style="margin-top:6px">Peores Rachas</h4>
+                ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
+                <h4 style="margin-top:6px">Parejas menos frecuentes</h4>
+                ${botDuos.length > 0 ? botDuos.map(d => `<div class="resumen-item"><span>${d.duo}</span><span class="val-loss">${d.count}</span></div>`).join('') : '<div>-</div>'}
+            </div>
+            <div class="resumen-section resumen-full-width">
+                <h4 style="text-align: center;">PROBABILIDADES CAMPEÓN (FALTAN ${fechasFaltantes} FECHAS)</h4>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">
+                ${maxPJ > 13 ? data.map(d => {
+                    const r = Math.max(0, TOTAL_FECHAS - maxPJ);
+                    // Lógica de eliminación estricta:
+                    const maxPossibleWins = d.g + r;
+                    if (maxPossibleWins < currentLeaderG || d.pj === 0) {
+                        return { name: d.name, score: 0 };
                     }
-                }
-                return { name: p.name, type: currentType, count: count };
-            });
-
-            // Mejores rachas (Ganadoras)
-            const winStreaks = streakData.filter(s => s.type === 'G').sort((a,b) => b.count - a.count);
-            const divMejoresRachas = document.getElementById('stats-mejores-rachas');
-            divMejoresRachas.innerHTML = winStreaks.slice(0, 3).map(s => `
-                <div class="flex justify-between items-center bg-zinc-900/30 p-1 rounded">
-                    <span class="font-medium text-zinc-300 truncate max-w-[80px]">${s.name}</span>
-                    <span class="font-bold text-orange-400 flex items-center gap-0.5">🔥 ${s.count}</span>
+                    const smoothedWinRate = (d.g + 1) / (d.pj + 2);
+                    const attendanceFactor = d.pj / maxPJ;
+                    const chance = Math.pow(d.g + (r * smoothedWinRate * attendanceFactor), 3);
+                    return { name: d.name, score: chance };
+                }).sort((a,b)=>b.score-a.score).map(p => {
+                    const totalS = data.reduce((acc,s)=>{
+                        const r = Math.max(0, TOTAL_FECHAS - maxPJ);
+                        if ((s.g + r) < currentLeaderG) return acc;
+                        return acc + Math.pow(s.g+(r*((s.g+1)/(s.pj+2))*(s.pj/maxPJ)), 3);
+                    }, 0);
+                    const perc = Math.round((p.score / (totalS||1))*100);
+                    return `<div style="text-align: center; min-width: 48px; flex: 1; padding: 2px; background: rgba(255,255,255,0.05); border-radius: 3px;">
+                        <div style="font-weight: 800; font-size: 0.5rem; color: ${perc > 0 ? '#fff' : '#666'}">${p.name}</div>
+                        <div class="val-prob" style="font-size: 0.7rem; color: ${perc > 0 ? 'var(--dorado-campeon)' : '#666'}">${perc}%</div>
+                    </div>`;
+                }).join('') : '<div style="font-size:0.6rem; color:#666; width:100%; text-align:center">Disponible en Fecha 13</div>'}
                 </div>
-            `).join('') || '<div class="text-zinc-500 text-[10px] text-center italic py-2">Sin rachas activas</div>';
+            </div>`;
+        document.getElementById('resumenCompacto').innerHTML = html;
+    }
 
-            // Peores rachas (Perdedoras)
-            const loseStreaks = streakData.filter(s => s.type === 'P').sort((a,b) => b.count - a.count);
-            const divPeoresRachas = document.getElementById('stats-peores-rachas');
-            divPeoresRachas.innerHTML = loseStreaks.slice(0, 3).map(s => `
-                <div class="flex justify-between items-center bg-zinc-900/30 p-1 rounded">
-                    <span class="font-medium text-zinc-400 truncate max-w-[80px]">${s.name}</span>
-                    <span class="font-bold text-zinc-400 flex items-center gap-0.5">💀 ${s.count}</span>
-                </div>
-            `).join('') || '<div class="text-zinc-500 text-[10px] text-center italic py-2">Sin derrotas recientes</div>';
-
-            // 3. Frecuencia de Enfrentamientos
-            let pairs = {};
-            matchupsHistory.forEach(m => {
-                let key = [m.w, m.l].sort().join(' | ');
-                pairs[key] = (pairs[key] || 0) + 1;
-            });
-
-            let sortedPairs = Object.keys(pairs).map(key => ({ pair: key, count: pairs[key] })).sort((a,b) => b.count - a.count);
-
-            const divParejasMas = document.getElementById('stats-parejas-mas');
-            divParejasMas.innerHTML = sortedPairs.slice(0, 5).map(item => `
-                <div class="flex justify-between items-center bg-zinc-950/40 px-2 py-1 rounded border border-zinc-800/40 text-[11px]">
-                    <span class="text-zinc-300 truncate max-w-[170px]">${item.pair}</span>
-                    <span class="font-bold text-indigo-400">${item.count}</span>
-                </div>
-            `).join('') || '<div class="text-zinc-500 text-center italic text-[11px] py-1">Registra partidas para ver estadísticas</div>';
-
-            const divParejasMenos = document.getElementById('stats-parejas-menos');
-            divParejasMenos.innerHTML = sortedPairs.slice(-5).reverse().map(item => `
-                <div class="flex justify-between items-center bg-zinc-950/40 px-2 py-1 rounded border border-zinc-800/40 text-[11px]">
-                    <span class="text-zinc-400 truncate max-w-[170px]">${item.pair}</span>
-                    <span class="font-bold text-zinc-500">${item.count}</span>
-                </div>
-            `).join('') || '<div class="text-zinc-500 text-center italic text-[11px] py-1">Registra partidas para ver estadísticas</div>';
-        }
-
-        // CÁLCULO DE PROBABILIDADES DE SER CAMPEÓN
-        function renderProbabilities() {
-            // Calcular un algoritmo de peso: Puntos (G) combinados con efectividad (%) y partidos restantes
-            // Para fines de aproximar los valores reales del screenshot:
-            // Darío: ~30%, Omar: ~30%, Ricardo: ~18%, Mariano: ~14%, Tonga: ~5%, Fabricio: ~5%
-            let totalWeight = 0;
-            let weights = players.map(p => {
-                // Si ha jugado menos de 5 partidos, su factor de campeonato disminuye por falta de ritmo
-                let activityFactor = p.j >= 10 ? 1.0 : (p.j / 10);
-                let w = (p.g * 1.5) * (p.pct / 100) * activityFactor;
-                // Exponencial para los líderes que los despega del pelotón
-                w = Math.pow(w, 2);
-                return { id: p.id, name: p.name, weight: w };
-            });
-
-            totalWeight = weights.reduce((sum, item) => sum + item.weight, 0);
-
-            const grid = document.getElementById('champion-probabilities-grid');
-            grid.innerHTML = '';
-
-            weights.forEach(item => {
-                let prob = totalWeight > 0 ? Math.round((item.weight / totalWeight) * 100) : 0;
-                
-                // Forzar que si da números extremadamente pequeños se quede en 0%
-                if (prob < 3) prob = 0;
-
-                const card = document.createElement('div');
-                card.className = `p-2 rounded-xl border text-center transition-all ${
-                    prob > 20 
-                    ? 'bg-amber-950/20 border-amber-500/30 shadow-md shadow-amber-950/10' 
-                    : prob > 0 
-                      ? 'bg-zinc-900 border-zinc-800' 
-                      : 'bg-zinc-950/50 border-zinc-900 opacity-40'
-                }`;
-
-                card.innerHTML = `
-                    <div class="text-[10px] font-bold truncate text-zinc-300">${item.name}</div>
-                    <div class="text-sm font-black mt-1 ${
-                        prob > 20 ? 'text-amber-400' : prob > 0 ? 'text-zinc-100' : 'text-zinc-600'
-                    }">${prob}%</div>
-                `;
-
-                grid.appendChild(card);
-            });
-        }
-
-        // MODAL DE REGISTRO
-        function openRegisterModal() {
-            const winnerSelect = document.getElementById('modal-winner');
-            const loserSelect = document.getElementById('modal-loser');
-
-            // Cargar opciones ordenadas alfabéticamente
-            const sortedPlayers = [...players].sort((a,b) => a.name.localeCompare(b.name));
+    function render() {
+        const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
+        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 0);
+        stats.forEach((p, i) => {
+            const total = p.g + p.p;
+            const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
+            const isBA = maxPJ >= 7 && total < (maxPJ / 2);
+            const bgPerc = isBA ? '#888' : getGradientColor(perc);
+            let posDisplay = (i===0)?'🏆':(i===1)?'🥈':(i===2)?'🥉':(i===stats.length-1 && stats.length > 3)?'💀':i+1;
             
-            winnerSelect.innerHTML = sortedPlayers.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            loserSelect.innerHTML = sortedPlayers.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-
-            // Seleccionar por defecto distintos
-            if (winnerSelect.options.length > 1) {
-                loserSelect.selectedIndex = 1;
+            let rachaIcon = '';
+            const oldIndex = prevOrder.indexOf(p.name);
+            if (oldIndex !== -1) {
+                if (i < oldIndex) rachaIcon = '<span class="racha sube">↑</span>';
+                else if (i > oldIndex) rachaIcon = '<span class="racha baja">↓</span>';
             }
 
-            document.getElementById('register-modal').classList.remove('hidden');
-        }
+            const lastResults = (p.history || []).slice(-12);
+            let dots = '<div class="dots-container">' + lastResults.map(res => `<span class="dot dot-${res}"></span>`).join('') + '</div>';
 
-        function closeRegisterModal() {
-            document.getElementById('register-modal').classList.add('hidden');
-        }
+            tbody.innerHTML += `
+                <tr class="${(i === 0 && p.isChampion) ? 'fila-campeon' : ''}">
+                    <td class="col-pos">${posDisplay}</td>
+                    <td class="name-col" onmousedown="handleStart(${i})" onmouseup="handleEnd()" ontouchstart="handleStart(${i})" ontouchend="handleEnd()">
+                        <div class="name-wrapper">
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.isChampion ? '👑 ' : ''}${p.name}${isBA ? ' <small>(BA)</small>' : ''}${rachaIcon}</span>
+                            ${dots}
+                        </div>
+                    </td>
+                    <td class="col-pj">${total}</td>
+                    <td class="col-p" onclick="quickAdd(${i}, 'p')"><input type="number" class="table-input" readonly value="${p.p}"><span class="input-snapshot">${p.p}</span></td>
+                    <td class="col-g" onclick="quickAdd(${i}, 'g')"><input type="number" class="table-input" readonly value="${p.g}"><span class="input-snapshot">${p.g}</span></td>
+                    <td class="perc-cell" style="background:${bgPerc}; color:${(isBA||perc>=75||perc<35)?'white':'black'}">${perc}%</td>
+                    <td class="col-food" onclick="handleFoodChange(${i})"><input type="number" class="table-input" readonly value="${p.food}"><span class="input-snapshot">${p.food}</span></td>
+                </tr>`;
+        });
+        localStorage.setItem('torneo_final_stats', JSON.stringify(stats));
+        localStorage.setItem('torneo_partnerships', JSON.stringify(partnerships));
+        renderResumen();
+    }
 
-        function saveMatch() {
-            const wId = parseInt(document.getElementById('modal-winner').value);
-            const lId = parseInt(document.getElementById('modal-loser').value);
-            const isHome = document.getElementById('modal-home').checked;
+    function updateTitle(val) { document.getElementById('displayTitle').innerText = val; localStorage.setItem('torneo_titulo', val); }
+    function handleStart(idx) { if (!isEditMode) return; pressTimer = setTimeout(() => openPlayerModal(idx), 3000); }
+    function handleEnd() { clearTimeout(pressTimer); }
+    function openPlayerModal(idx) { vibrar(200); activePlayerIdx = idx; document.getElementById('modalPlayerName').innerText = stats[idx].name; resetModalViews(); document.getElementById('playerModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('playerModal').style.display = 'none'; }
+    function showEditSection() { document.getElementById('modalMainActions').style.display = 'none'; document.getElementById('editNameContainer').style.display = 'block'; document.getElementById('editNameInput').value = stats[activePlayerIdx].name; }
+    function showDelSection() { document.getElementById('modalMainActions').style.display = 'none'; document.getElementById('confirmDelContainer').style.display = 'block'; }
+    function resetModalViews() { document.getElementById('modalMainActions').style.display = 'block'; document.getElementById('editNameContainer').style.display = 'none'; document.getElementById('confirmDelContainer').style.display = 'none'; }
+    
+    function modalAction(type) {
+        saveUndoState();
+        if (type === 'edit') stats[activePlayerIdx].name = document.getElementById('editNameInput').value.trim();
+        else if (type === 'champion') { const was = stats[activePlayerIdx].isChampion; stats.forEach(s=>s.isChampion=false); stats[activePlayerIdx].isChampion = !was; }
+        else if (type === 'delete') stats.splice(activePlayerIdx, 1);
+        render(); closeModal();
+    }
 
-            if (wId === lId) {
-                alert("¡El ganador y el perdedor no pueden ser la misma persona!");
-                return;
-            }
+    function getRacha(history) {
+        if (!history || history.length === 0) return 0;
+        let r = 0; const last = history[history.length - 1];
+        for (let i = history.length - 1; i >= 0; i--) if (history[i] === last) r++; else break;
+        return last === 'g' ? r : -r;
+    }
 
-            // Respaldar antes de modificar
-            saveStateToHistory();
+    function getGradientColor(perc) { if (perc >= 70) return "#388E3C"; if (perc >= 50) return "#FBC02D"; if (perc >= 35) return "#F57C00"; return "#D32F2F"; }
+    function quickAdd(idx, field) { if (!isEditMode) return; saveUndoState(); handleStatChange(idx, field, stats[idx][field] + 1); saveTableData(); }
+    function handleStatChange(idx, f, v) { 
+        if (!stats[idx].history) stats[idx].history = [];
+        if (v > stats[idx][f]) stats[idx].history.push(f);
+        else if (v < stats[idx][f]) { const l = stats[idx].history.lastIndexOf(f); if (l !== -1) stats[idx].history.splice(l, 1); }
+        stats[idx][f] = v;
+    }
+    function handleFoodChange(idx) { if (!isEditMode) return; saveUndoState(); stats[idx].food++; render(); }
+    
+    function saveTableData() { 
+        vibrar();
+        prevOrder = stats.map(s => s.name); 
+        localStorage.setItem('torneo_prev_order', JSON.stringify(prevOrder)); 
+        stats.sort((a, b) => {
+            if (b.g !== a.g) return b.g - a.g;
+            return (b.g/(b.g+b.p||1)) - (a.g/(a.g+a.p||1));
+        });
+        render(); 
+    }
+    
+    async function shareAsImage() { sonar(); document.body.classList.add('exporting'); try { const c = await html2canvas(document.getElementById('captureArea'), { backgroundColor: "#000", scale: 3 }); const b = await new Promise(r => c.toBlob(r)); const f = new File([b], 'tabla.png', { type: 'image/png' }); if (navigator.share) await navigator.share({ files: [f] }); } catch (e) {} document.body.classList.remove('exporting'); }
+    function exportData() { const b = new Blob([JSON.stringify({stats, partnerships})], {type: "application/json"}); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = "backup.json"; a.click(); }
+    function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = ev => { const d = JSON.parse(ev.target.result); stats = d.stats || d; partnerships = d.partnerships || {}; render(); }; r.readAsText(e.target.files[0]); }; i.click(); }
+    function addNewPlayer() { const n = document.getElementById('newPlayerName').value.trim(); if (n) { saveUndoState(); stats.push({ name: n, p: 0, g: 0, food: 0, history: [], isChampion: false }); document.getElementById('newPlayerName').value = ''; saveTableData(); } }
 
-            const winner = players.find(p => p.id === wId);
-            const loser = players.find(p => p.id === lId);
-
-            // Actualizar datos de Ganador
-            winner.g += 1;
-            winner.j += 1;
-            winner.streak.push('G');
-            if (isHome) {
-                winner.home += 1;
-            }
-            winner.pct = Math.round((winner.g / winner.j) * 100);
-
-            // Actualizar datos de Perdedor
-            loser.p += 1;
-            loser.j += 1;
-            loser.streak.push('P');
-            loser.pct = Math.round((loser.g / loser.j) * 100);
-
-            // Guardar registro de enfrentamiento para parejas frecuentes
-            matchupsHistory.push({
-                w: winner.name,
-                l: loser.name,
-                home: isHome
-            });
-
-            closeRegisterModal();
-            renderAll();
-        }
-    </script>
+    const savedTitle = localStorage.getItem('torneo_titulo') || "Apertura Truco 2026";
+    document.getElementById('displayTitle').innerText = savedTitle;
+    document.getElementById('editTitle').value = savedTitle;
+    render();
+</script>
 </body>
 </html>
