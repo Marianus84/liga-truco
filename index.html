@@ -545,7 +545,7 @@
             let badges = '';
             if (total > 0) {
                 // Tronco: Único peor porcentaje y además menor al 30% (0.3)
-                if (exactPerc === worstPerc && worstPercCount === 1 && exactPerc =< 0.3) badges += ' 🪵'; 
+                if (exactPerc === worstPerc && worstPercCount === 1 && exactPerc < 0.3) badges += ' 🪵'; 
                 // Ancla: Única peor racha y además debe ser de al menos 3 derrotas seguidas (<= -3)
                 if (racha === worstRacha && worstRachaCount === 1 && worstRacha <= -3) badges += ' ⚓'; 
             }
