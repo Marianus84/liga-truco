@@ -544,8 +544,10 @@
             // --- INSIGNIAS DE TRONCO Y ANCLA ---
             let badges = '';
             if (total > 0) {
-                if (exactPerc === worstPerc && worstPercCount === 1) badges += ' 🪵'; // Peor porcentaje (solo si es único)
-                if (racha === worstRacha && worstRacha <= 0 && worstRachaCount === 1) badges += ' ⚓'; // Peor racha (solo si es única y negativa/0)
+                // Tronco: Único peor porcentaje y además menor al 30% (0.3)
+                if (exactPerc === worstPerc && worstPercCount === 1 && exactPerc < 0.3) badges += ' 🪵'; 
+                // Ancla: Única peor racha y además debe ser de al menos 3 derrotas seguidas (<= -3)
+                if (racha === worstRacha && worstRachaCount === 1 && worstRacha <= -3) badges += ' ⚓'; 
             }
 
             const lastResults = (p.history || []).slice(-12);
