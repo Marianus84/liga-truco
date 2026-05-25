@@ -101,7 +101,6 @@
         .dot-g { background-color: var(--win-dot); }
         .dot-p { background-color: var(--loss-dot); }
 
-        /* OPCIÓN C: Mimetización de J y P, Protagonismo de G y % mimetizado */
         .col-pj { background: var(--blanco-marfil); width: 24px; color: #000; font-weight: 600; font-size: 0.75rem; }
         .col-p { background: var(--blanco-marfil); width: 24px; }
         .col-p .table-input, .col-p .input-snapshot { color: #dc2626; font-weight: 600; font-size: 0.75rem; }
@@ -424,7 +423,6 @@
         const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
         const botPerc = [...filteredForPerc].sort((a,b) => a.perc - b.perc).slice(0, 3);
         
-        // Se cambió `data` a `filteredForPerc` para ocultar los jugadores con BA en las estadísticas de rachas.
         const topRacha = [...filteredForPerc].sort((a,b) => b.racha - a.racha).slice(0, 3);
         const botRacha = [...filteredForPerc].sort((a,b) => a.racha - b.racha).slice(0, 3);
 
@@ -461,7 +459,6 @@
                 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">
                 ${maxPJ > 13 ? filteredForPerc.map(d => {
                     const r = Math.max(0, TOTAL_FECHAS - maxPJ);
-                    // Lógica de eliminación estricta:
                     const maxPossibleWins = d.g + r;
                     if (maxPossibleWins < currentLeaderG || d.pj === 0) {
                         return { name: d.name, score: 0 };
@@ -537,11 +534,65 @@
     function showDelSection() { document.getElementById('modalMainActions').style.display = 'none'; document.getElementById('confirmDelContainer').style.display = 'block'; }
     function resetModalViews() { document.getElementById('modalMainActions').style.display = 'block'; document.getElementById('editNameContainer').style.display = 'none'; document.getElementById('confirmDelContainer').style.display = 'none'; }
     
+    // --- ACTUALIZACIÓN DE LA LÓGICA DEL MODAL PARA EDICIONES / ELIMINACIONES ---
     function modalAction(type) {
         saveUndoState();
-        if (type === 'edit') stats[activePlayerIdx].name = document.getElementById('editNameInput').value.trim();
-        else if (type === 'champion') { const was = stats[activePlayerIdx].isChampion; stats.forEach(s=>s.isChampion=false); stats[activePlayerIdx].isChampion = !was; }
-        else if (type === 'delete') stats.splice(activePlayerIdx, 1);
+        if (type === 'edit') {
+            const oldName = stats[activePlayerIdx].name;
+            const newName = document.getElementById('editNameInput').value.trim();
+            
+            if (newName && newName !== oldName) {
+                stats[activePlayerIdx].name = newName;
+                
+                // Actualizar las flechitas (prevOrder)
+                const prevIdx = prevOrder.indexOf(oldName);
+                if (prevIdx !== -1) {
+                    prevOrder[prevIdx] = newName;
+                    localStorage.setItem('torneo_prev_order', JSON.stringify(prevOrder));
+                }
+
+                // Actualizar las parejas
+                const newPartnerships = {};
+                for (const key in partnerships) {
+                    const count = partnerships[key];
+                    let playersInKey = key.split(' | ');
+                    
+                    if (playersInKey.includes(oldName)) {
+                        // Cambiamos el nombre viejo por el nuevo
+                        playersInKey = playersInKey.map(p => p === oldName ? newName : p);
+                        // Ordenamos alfabéticamente otra vez para mantener el estándar
+                        playersInKey.sort();
+                        const newKey = playersInKey.join(' | ');
+                        newPartnerships[newKey] = (newPartnerships[newKey] || 0) + count;
+                    } else {
+                        newPartnerships[key] = (newPartnerships[key] || 0) + count;
+                    }
+                }
+                partnerships = newPartnerships;
+            }
+        }
+        else if (type === 'champion') { 
+            const was = stats[activePlayerIdx].isChampion; 
+            stats.forEach(s=>s.isChampion=false); 
+            stats[activePlayerIdx].isChampion = !was; 
+        }
+        else if (type === 'delete') {
+            const deletedName = stats[activePlayerIdx].name;
+            stats.splice(activePlayerIdx, 1);
+            
+            // Eliminar de las flechas (prevOrder)
+            const prevIdx = prevOrder.indexOf(deletedName);
+            if (prevIdx !== -1) prevOrder.splice(prevIdx, 1);
+            localStorage.setItem('torneo_prev_order', JSON.stringify(prevOrder));
+            
+            // Eliminar de las parejas
+            for (const key in partnerships) {
+                if (key.includes(deletedName)) {
+                    delete partnerships[key];
+                }
+            }
+        }
+        
         render(); closeModal();
     }
 
