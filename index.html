@@ -97,7 +97,7 @@
             justify-content: flex-end;
         }
         
-        .dot { width: 4px; height: 4px; border-radius: 50%; display: inline-block; }
+        .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-flex; justify-content: center; align-items: center; font-size: 9px; font-weight: bold; color: white; }
         .dot-g { background-color: var(--win-dot); }
         .dot-p { background-color: var(--loss-dot); }
 
@@ -551,7 +551,7 @@
             }
 
             const lastResults = (p.history || []).slice(-12);
-            let dots = '<div class="dots-container">' + lastResults.map(res => `<span class="dot dot-${res}"></span>`).join('') + '</div>';
+            let dots = '<div class="dots-container">' + lastResults.map(res => `<span class="dot dot-${res}">${res === 'g' ? 'G' : 'P'}</span>`).join('') + '</div>';
 
             tbody.innerHTML += `
                 <tr class="${(i === 0 && p.isChampion) ? 'fila-campeon' : ''}">
