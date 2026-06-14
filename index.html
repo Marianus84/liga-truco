@@ -441,7 +441,7 @@
             <div class="resumen-section">
                 <h4>Mejores (%)</h4>
                 ${topPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${Math.round(p.perc)}%</span></div>`).join('')}
-                <h4 style="margin-top:6px">Peores (%)</h4>
+                <h4 style="margin-top:6px">Peores (%) 🪵 </h4>
                 ${botPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${Math.round(p.perc)}%</span></div>`).join('')}
                 <h4 style="margin-top:6px">Parejas más frecuentes</h4>
                 ${topDuos.length > 0 ? topDuos.map(d => `<div class="resumen-item"><span>${d.duo}</span><span class="val-win">${d.count}</span></div>`).join('') : '<div>-</div>'}
@@ -449,7 +449,7 @@
             <div class="resumen-section">
                 <h4>Mejores Rachas</h4>
                 ${topRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${p.racha > 0 ? '🔥' + p.racha : '-'}</span></div>`).join('')}
-                <h4 style="margin-top:6px">Peores Rachas</h4>
+                <h4 style="margin-top:6px">Peores Rachas ⚓ </h4>
                 ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
                 <h4 style="margin-top:6px">Parejas menos frecuentes</h4>
                 ${botDuos.length > 0 ? botDuos.map(d => `<div class="resumen-item"><span>${d.duo}</span><span class="val-loss">${d.count}</span></div>`).join('') : '<div>-</div>'}
