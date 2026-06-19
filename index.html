@@ -395,7 +395,6 @@
         const getFirstFriday = (y, m) => {
             let d = new Date(y, m, 1);
             while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
-d.setHours(23,59,59,999);
             return d;
         };
         const startApertura = getFirstFriday(year, 0);
