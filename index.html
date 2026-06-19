@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es-AR">
 <head>
@@ -79,7 +78,7 @@
         .exporting .input-snapshot { display: block !important; }
 
         .col-pos { background: var(--azul-oscuro); color: white; width: 28px; font-size: 0.8rem; }
-        .name-col { text-align: left; padding: 0 5px; background: var(--blanco-marfil); width: auto; font-size: 0.75rem; position: relative; user-select: none; -webkit-user-select: none; }
+        .name-col { text-align: left; padding: 0 5px; background: var(--blanco-marfil); width: auto; font-size: 0.95rem; font-weight: 800; position: relative; user-select: none; -webkit-user-select: none; }
         
         .name-wrapper { 
             display: flex; 
@@ -105,6 +104,7 @@
         .col-pj { background: var(--blanco-marfil); width: 30px; }
         .col-p { background: var(--blanco-marfil); color: #dc2626; width: 32px; }
         .col-g { background: var(--azul-oscuro); color: white; width: 32px; }
+        .col-g .table-input, .col-g .input-snapshot { font-size: 1.3rem; font-weight: 900; }
         .col-food { background: var(--blanco-marfil); width: 32px; }
         .perc-cell { font-size: 0.85rem; color: #000; width: 42px; }
 
@@ -408,24 +408,29 @@
         const fechaActual = getCurrentTournamentFecha();
         const fechasFaltantes = Math.max(0, TOTAL_FECHAS - fechaActual);
         
-        const data = stats.map(p => ({
-            name: p.name, pj: p.g + p.p, g: p.g,
-            perc: (p.g + p.p) > 0 ? (p.g / (p.g + p.p)) * 100 : 0,
-            racha: getRacha(p.history)
-        }));
+        const data = stats.map(p => {
+            const total = p.g + p.p;
+            return {
+                name: p.name, pj: total, g: p.g,
+                perc: total > 0 ? (p.g / total) * 100 : 0,
+                racha: getRacha(p.history),
+                isBA: (maxPJ >= 7 && total < (maxPJ / 2))
+            };
+        });
 
-        const filteredForPerc = (maxPJ >= 7) ? data.filter(d => d.pj >= (maxPJ / 2)) : data;
-        const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
-        const botPerc = [...filteredForPerc].sort((a,b) => a.perc - b.perc).slice(0, 3);
-        const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
-        const botRacha = [...data].sort((a,b) => a.racha - b.racha).slice(0, 3);
+        const validData = data.filter(d => !d.isBA);
 
-        const baPlayers = new Set(stats.filter(p => maxPJ >= 7 && (p.g + p.p) < (maxPJ / 2)).map(p => p.name));
+        const topPerc = [...validData].sort((a,b) => b.perc - a.perc).slice(0, 3);
+        const botPerc = [...validData].sort((a,b) => a.perc - b.perc).slice(0, 3);
+        const topRacha = [...validData].sort((a,b) => b.racha - a.racha).slice(0, 3);
+        const botRacha = [...validData].sort((a,b) => a.racha - b.racha).slice(0, 3);
+
+        const validNames = new Set(validData.map(d => d.name));
         const duoEntries = Object.entries(partnerships)
             .map(([duo, count]) => ({ duo, count }))
             .filter(({ duo }) => {
                 const [p1, p2] = duo.split(' | ');
-                return !baPlayers.has(p1) && !baPlayers.has(p2);
+                return validNames.has(p1) && validNames.has(p2);
             })
             .sort((a,b) => b.count - a.count);
         const topDuos = duoEntries.slice(0, 5);
@@ -451,9 +456,8 @@
             <div class="resumen-section resumen-full-width">
                 <h4 style="text-align: center;">PROBABILIDADES CAMPEÓN (FALTAN ${fechasFaltantes} FECHAS)</h4>
                 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">
-                ${maxPJ > 13 ? data.map(d => {
+                ${maxPJ > 13 ? validData.map(d => {
                     const r = Math.max(0, TOTAL_FECHAS - maxPJ);
-                    // Lógica de eliminación estricta:
                     const maxPossibleWins = d.g + r;
                     if (maxPossibleWins < currentLeaderG || d.pj === 0) {
                         return { name: d.name, score: 0 };
@@ -463,7 +467,7 @@
                     const chance = Math.pow(d.g + (r * smoothedWinRate * attendanceFactor), 3);
                     return { name: d.name, score: chance };
                 }).sort((a,b)=>b.score-a.score).map(p => {
-                    const totalS = data.reduce((acc,s)=>{
+                    const totalS = validData.reduce((acc,s)=>{
                         const r = Math.max(0, TOTAL_FECHAS - maxPJ);
                         if ((s.g + r) < currentLeaderG) return acc;
                         return acc + Math.pow(s.g+(r*((s.g+1)/(s.pj+2))*(s.pj/maxPJ)), 3);
@@ -496,7 +500,11 @@
                 else if (i > oldIndex) rachaIcon = '<span class="racha baja">↓</span>';
             }
 
-            const lastResults = (p.history || []).slice(-12);
+            const racha = getRacha(p.history);
+            const anchor = racha <= -4 ? ' ⚓' : '';
+            const trunk = (total > 0 && perc < 30) ? ' 🪵' : '';
+
+            const lastResults = (p.history || []).slice(-30);
             let dots = '<div class="dots-container">' + lastResults.map(res => `<span class="dot dot-${res}"></span>`).join('') + '</div>';
 
             tbody.innerHTML += `
@@ -504,7 +512,7 @@
                     <td class="col-pos">${posDisplay}</td>
                     <td class="name-col" onmousedown="handleStart(${i})" onmouseup="handleEnd()" ontouchstart="handleStart(${i})" ontouchend="handleEnd()">
                         <div class="name-wrapper">
-                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.isChampion ? '👑 ' : ''}${p.name}${isBA ? ' <small>(BA)</small>' : ''}${rachaIcon}</span>
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.isChampion ? '👑 ' : ''}${p.name}${anchor}${trunk}${isBA ? ' <small>(BA)</small>' : ''}${rachaIcon}</span>
                             ${dots}
                         </div>
                     </td>
@@ -577,4 +585,3 @@
 </script>
 </body>
 </html>
-
