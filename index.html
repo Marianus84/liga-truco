@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es-AR">
 <head>
@@ -78,7 +79,7 @@
         .exporting .input-snapshot { display: block !important; }
 
         .col-pos { background: var(--azul-oscuro); color: white; width: 28px; font-size: 0.8rem; }
-        .name-col { text-align: left; padding: 0 5px; background: var(--blanco-marfil); width: auto; font-size: 0.85rem; position: relative; user-select: none; -webkit-user-select: none; }
+        .name-col { text-align: left; padding: 0 5px; background: var(--blanco-marfil); width: auto; font-size: 0.75rem; position: relative; user-select: none; -webkit-user-select: none; }
         
         .name-wrapper { 
             display: flex; 
@@ -97,20 +98,15 @@
             justify-content: flex-end;
         }
         
-        .dot { width: 6px; height: 6px; border-radius: 3px; display: inline-flex; justify-content: center; align-items: center; font-size: 5px; font-weight: bold; color: white; }
+        .dot { width: 4px; height: 4px; border-radius: 50%; display: inline-block; }
         .dot-g { background-color: var(--win-dot); }
         .dot-p { background-color: var(--loss-dot); }
 
-        .col-pj { background: var(--blanco-marfil); width: 24px; color: #000; font-weight: 600; font-size: 0.75rem; }
-        .col-p { background: var(--blanco-marfil); width: 24px; }
-        .col-p .table-input, .col-p .input-snapshot { color: #dc2626; font-weight: 600; font-size: 0.75rem; }
-        
-        .col-g { background: #001233; color: white; width: 38px; }
-        .col-g .table-input, .col-g .input-snapshot { font-weight: 900; font-size: 1.1rem; color: #ffffff; }
-        
-        .col-food { background: var(--blanco-marfil); width: 24px; }
-        .col-food .table-input, .col-food .input-snapshot { color: #000; font-weight: 600; font-size: 0.75rem; }
-        .perc-cell { font-size: 0.65rem; font-weight: 500; width: 24px; }
+        .col-pj { background: var(--blanco-marfil); width: 30px; }
+        .col-p { background: var(--blanco-marfil); color: #dc2626; width: 32px; }
+        .col-g { background: var(--azul-oscuro); color: white; width: 32px; }
+        .col-food { background: var(--blanco-marfil); width: 32px; }
+        .perc-cell { font-size: 0.85rem; color: #000; width: 42px; }
 
         .racha { font-size: 0.8rem; margin-left: 3px; font-weight: bold; }
         .sube { color: #15803d; }
@@ -196,7 +192,6 @@
             font-weight: 900; cursor: pointer; font-size: 0.85rem; text-transform: uppercase;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        
         .btn-modal-cancel { background: #333; color: #aaa; margin-top: 5px; }
         .team-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid #444; margin-bottom: 10px; }
         .team-box h5 { margin: 0 0 8px 0; font-size: 0.7rem; text-transform: uppercase; color: #aaa; }
@@ -216,11 +211,11 @@
                     <tr>
                         <th style="width: 32px;">Pos</th>
                         <th><span id="displayTitle">APERTURA 2026</span></th>
-                        <th style="width: 24px; color: #ffffff; font-weight: 600;">J</th>
-                        <th style="width: 24px; color: #dc2626; font-weight: 600;">P</th>
-                        <th style="width: 38px; background: #001233; color: #ffffff; font-weight: 900; font-size: 0.7rem;">G</th>
-                        <th style="width: 24px; font-weight: 600; font-size: 0.65rem;">%</th>
-                        <th style="width: 24px;">🏠</th>
+                        <th style="width: 32px;">J</th>
+                        <th style="width: 32px;">P</th>
+                        <th style="width: 35px;">G</th>
+                        <th style="width: 30px;">%</th>
+                        <th style="width: 20px;">🏠</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -248,6 +243,7 @@
     </div>
 </div>
 
+<!-- Modal Jugador -->
 <div id="playerModal" class="modal-overlay">
     <div class="modal-content">
         <h4 id="modalPlayerName" class="modal-title">Opciones</h4>
@@ -272,6 +268,7 @@
     </div>
 </div>
 
+<!-- Modal Nueva Partida -->
 <div id="matchModal" class="modal-overlay">
     <div class="modal-content">
         <h4 class="modal-title">REGISTRAR PARTIDA</h4>
@@ -296,10 +293,6 @@
     let activePlayerIdx = null;
     let pressTimer = null;
     let isEditMode = false;
-    let appTitle = localStorage.getItem('torneo_title') || "APERTURA 2026";
-
-    document.getElementById('displayTitle').innerText = appTitle;
-    document.getElementById('editTitle').value = appTitle;
 
     function vibrar(ms = 80) { if (navigator.vibrate) navigator.vibrate(ms); }
     const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
@@ -311,7 +304,6 @@
         btn.innerText = isEditMode ? "EDIT ON" : "EDIT OFF";
         btn.classList.toggle('active', isEditMode);
         vibrar(isEditMode ? 150 : 50);
-        render(); // Renderizamos para aplicar clases de edit
     }
 
     function saveUndoState() {
@@ -324,16 +316,12 @@
             const last = JSON.parse(undoStack.pop());
             stats = last.stats;
             partnerships = last.partnerships;
-            saveTableData();
             render();
         }
     }
 
     function openMatchModal() {
-        if (stats.length < 2) {
-            alert("Agregá al menos 2 jugadores.");
-            return;
-        }
+        if (stats.length < 2) return;
         const wList = document.getElementById('winnersList');
         const lList = document.getElementById('losersList');
         wList.innerHTML = ''; lList.innerHTML = '';
@@ -380,8 +368,8 @@
         saveUndoState();
         vibrar(100);
 
-        wins.forEach(idx => handleStatChange(idx, 'g', stats[idx].g + 1, 'win'));
-        loss.forEach(idx => handleStatChange(idx, 'p', stats[idx].p + 1, 'loss'));
+        wins.forEach(idx => handleStatChange(idx, 'g', stats[idx].g + 1));
+        loss.forEach(idx => handleStatChange(idx, 'p', stats[idx].p + 1));
 
         const recordPair = (idxA, idxB) => {
             const names = [stats[idxA].name, stats[idxB].name].sort();
@@ -394,7 +382,6 @@
 
         closeMatchModal();
         saveTableData();
-        render();
     }
 
     function getCurrentTournamentFecha() {
@@ -403,7 +390,6 @@
         const getFirstFriday = (y, m) => {
             let d = new Date(y, m, 1);
             while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
-            d.setHours(23, 59, 59, 999);
             return d;
         };
         const startApertura = getFirstFriday(year, 0);
@@ -414,25 +400,10 @@
         return Math.max(1, Math.min(26, diffWeeks));
     }
 
-    function getRacha(history) {
-        if(!history || history.length === 0) return 0;
-        let racha = 0;
-        const last = history[history.length - 1];
-        for(let i = history.length - 1; i >= 0; i--) {
-            if(history[i] === last) racha += (last === 'w' ? 1 : -1);
-            else break;
-        }
-        return racha;
-    }
-
     function renderResumen() {
-        const resumenContainer = document.getElementById('resumenCompacto');
-        if (stats.length === 0) {
-            resumenContainer.innerHTML = '';
-            return;
-        }
-
+        if (stats.length === 0) return;
         const maxPJ = Math.max(...stats.map(p => p.g + p.p), 1);
+        const currentLeaderG = Math.max(...stats.map(p => p.g), 0);
         const TOTAL_FECHAS = 26;
         const fechaActual = getCurrentTournamentFecha();
         const fechasFaltantes = Math.max(0, TOTAL_FECHAS - fechaActual);
@@ -444,234 +415,166 @@
         }));
 
         const filteredForPerc = (maxPJ >= 7) ? data.filter(d => d.pj >= (maxPJ / 2)) : data;
-        const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 1);
-        const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 1);
+        const topPerc = [...filteredForPerc].sort((a,b) => b.perc - a.perc).slice(0, 3);
+        const botPerc = [...filteredForPerc].sort((a,b) => a.perc - b.perc).slice(0, 3);
+        const topRacha = [...data].sort((a,b) => b.racha - a.racha).slice(0, 3);
+        const botRacha = [...data].sort((a,b) => a.racha - b.racha).slice(0, 3);
 
-        resumenContainer.innerHTML = `
+        const baPlayers = new Set(stats.filter(p => maxPJ >= 7 && (p.g + p.p) < (maxPJ / 2)).map(p => p.name));
+        const duoEntries = Object.entries(partnerships)
+            .map(([duo, count]) => ({ duo, count }))
+            .filter(({ duo }) => {
+                const [p1, p2] = duo.split(' | ');
+                return !baPlayers.has(p1) && !baPlayers.has(p2);
+            })
+            .sort((a,b) => b.count - a.count);
+        const topDuos = duoEntries.slice(0, 5);
+        const botDuos = duoEntries.filter(d => d.count > 0).reverse().slice(0, 5);
+
+        const html = `
             <div class="resumen-section">
-                <h4>ESTADO DEL TORNEO</h4>
-                <div class="resumen-item"><span>Fecha Actual:</span> <span>${fechaActual} / 26</span></div>
-                <div class="resumen-item"><span>Fechas Restantes:</span> <span>${fechasFaltantes}</span></div>
+                <h4>Mejores (%)</h4>
+                ${topPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${Math.round(p.perc)}%</span></div>`).join('')}
+                <h4 style="margin-top:6px">Peores (%)</h4>
+                ${botPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${Math.round(p.perc)}%</span></div>`).join('')}
+                <h4 style="margin-top:6px">Parejas más frecuentes</h4>
+                ${topDuos.length > 0 ? topDuos.map(d => `<div class="resumen-item"><span>${d.duo}</span><span class="val-win">${d.count}</span></div>`).join('') : '<div>-</div>'}
             </div>
             <div class="resumen-section">
-                <h4>DESTACADOS</h4>
-                <div class="resumen-item"><span>Mejor Efectividad:</span> <span class="val-win">${topPerc[0] ? topPerc[0].name + ' (' + Math.round(topPerc[0].perc) + '%)' : '-'}</span></div>
-                <div class="resumen-item"><span>Mejor Racha:</span> <span class="val-prob">${topRacha[0] && topRacha[0].racha > 0 ? topRacha[0].name + ' (' + topRacha[0].racha + ')' : '-'}</span></div>
+                <h4>Mejores Rachas</h4>
+                ${topRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${p.racha > 0 ? '🔥' + p.racha : '-'}</span></div>`).join('')}
+                <h4 style="margin-top:6px">Peores Rachas</h4>
+                ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '💀' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
+                <h4 style="margin-top:6px">Parejas menos frecuentes</h4>
+                ${botDuos.length > 0 ? botDuos.map(d => `<div class="resumen-item"><span>${d.duo}</span><span class="val-loss">${d.count}</span></div>`).join('') : '<div>-</div>'}
             </div>
-        `;
+            <div class="resumen-section resumen-full-width">
+                <h4 style="text-align: center;">PROBABILIDADES CAMPEÓN (FALTAN ${fechasFaltantes} FECHAS)</h4>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">
+                ${maxPJ > 13 ? data.map(d => {
+                    const r = Math.max(0, TOTAL_FECHAS - maxPJ);
+                    // Lógica de eliminación estricta:
+                    const maxPossibleWins = d.g + r;
+                    if (maxPossibleWins < currentLeaderG || d.pj === 0) {
+                        return { name: d.name, score: 0 };
+                    }
+                    const smoothedWinRate = (d.g + 1) / (d.pj + 2);
+                    const attendanceFactor = d.pj / maxPJ;
+                    const chance = Math.pow(d.g + (r * smoothedWinRate * attendanceFactor), 3);
+                    return { name: d.name, score: chance };
+                }).sort((a,b)=>b.score-a.score).map(p => {
+                    const totalS = data.reduce((acc,s)=>{
+                        const r = Math.max(0, TOTAL_FECHAS - maxPJ);
+                        if ((s.g + r) < currentLeaderG) return acc;
+                        return acc + Math.pow(s.g+(r*((s.g+1)/(s.pj+2))*(s.pj/maxPJ)), 3);
+                    }, 0);
+                    const perc = Math.round((p.score / (totalS||1))*100);
+                    return `<div style="text-align: center; min-width: 48px; flex: 1; padding: 2px; background: rgba(255,255,255,0.05); border-radius: 3px;">
+                        <div style="font-weight: 800; font-size: 0.5rem; color: ${perc > 0 ? '#fff' : '#666'}">${p.name}</div>
+                        <div class="val-prob" style="font-size: 0.7rem; color: ${perc > 0 ? 'var(--dorado-campeon)' : '#666'}">${perc}%</div>
+                    </div>`;
+                }).join('') : '<div style="font-size:0.6rem; color:#666; width:100%; text-align:center">Disponible en Fecha 13</div>'}
+                </div>
+            </div>`;
+        document.getElementById('resumenCompacto').innerHTML = html;
     }
 
     function render() {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-
-        // Ordenamos por Victorias (G) descendente, luego Partidos Perdidos (P) ascendente
-        stats.sort((a, b) => {
-            if(b.g !== a.g) return b.g - a.g;
-            return a.p - b.p;
-        });
-
-        stats.forEach((player, index) => {
-            const isChamp = player.isChampion ? 'fila-campeon' : '';
-            const pj = player.g + player.p;
-            const perc = pj > 0 ? Math.round((player.g / pj) * 100) : 0;
+        const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
+        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 0);
+        stats.forEach((p, i) => {
+            const total = p.g + p.p;
+            const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
+            const isBA = maxPJ >= 7 && total < (maxPJ / 2);
+            const bgPerc = isBA ? '#888' : getGradientColor(perc);
+            let posDisplay = (i===0)?'🏆':(i===1)?'🥈':(i===2)?'🥉':(i===stats.length-1 && stats.length > 3)?'💀':i+1;
             
-            let rachaHtml = '';
-            const racha = getRacha(player.history);
-            if(racha > 0) rachaHtml = `<span class="racha sube">↑${racha}</span>`;
-            if(racha < 0) rachaHtml = `<span class="racha baja">↓${Math.abs(racha)}</span>`;
-
-            let dotsHtml = '';
-            if(player.history) {
-                const recent = player.history.slice(-5);
-                dotsHtml = recent.map(h => `<div class="dot ${h==='w'?'dot-g':'dot-p'}"></div>`).join('');
+            let rachaIcon = '';
+            const oldIndex = prevOrder.indexOf(p.name);
+            if (oldIndex !== -1) {
+                if (i < oldIndex) rachaIcon = '<span class="racha sube">↑</span>';
+                else if (i > oldIndex) rachaIcon = '<span class="racha baja">↓</span>';
             }
 
-            const tr = document.createElement('tr');
-            tr.className = isChamp;
-            tr.innerHTML = `
-                <td class="col-pos">${index + 1}</td>
-                <td class="name-col" onclick="openPlayerModal(${index})">
-                    <div class="name-wrapper">
-                        <span>${player.name} ${rachaHtml}</span>
-                        <div class="dots-container">${dotsHtml}</div>
-                    </div>
-                </td>
-                <td class="col-pj">${pj}</td>
-                <td class="col-p">
-                    <input type="number" class="table-input" value="${player.p}" ${!isEditMode ? 'readonly' : ''} onchange="handleStatChange(${index}, 'p', this.value)">
-                    <span class="input-snapshot">${player.p}</span>
-                </td>
-                <td class="col-g">
-                    <input type="number" class="table-input" value="${player.g}" ${!isEditMode ? 'readonly' : ''} onchange="handleStatChange(${index}, 'g', this.value)">
-                    <span class="input-snapshot">${player.g}</span>
-                </td>
-                <td class="perc-cell">${perc}%</td>
-                <td class="col-food">
-                    <input type="number" class="table-input" value="${player.food || 0}" ${!isEditMode ? 'readonly' : ''} onchange="handleStatChange(${index}, 'food', this.value)">
-                    <span class="input-snapshot">${player.food || 0}</span>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+            const lastResults = (p.history || []).slice(-12);
+            let dots = '<div class="dots-container">' + lastResults.map(res => `<span class="dot dot-${res}"></span>`).join('') + '</div>';
 
+            tbody.innerHTML += `
+                <tr class="${(i === 0 && p.isChampion) ? 'fila-campeon' : ''}">
+                    <td class="col-pos">${posDisplay}</td>
+                    <td class="name-col" onmousedown="handleStart(${i})" onmouseup="handleEnd()" ontouchstart="handleStart(${i})" ontouchend="handleEnd()">
+                        <div class="name-wrapper">
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.isChampion ? '👑 ' : ''}${p.name}${isBA ? ' <small>(BA)</small>' : ''}${rachaIcon}</span>
+                            ${dots}
+                        </div>
+                    </td>
+                    <td class="col-pj">${total}</td>
+                    <td class="col-p" onclick="quickAdd(${i}, 'p')"><input type="number" class="table-input" readonly value="${p.p}"><span class="input-snapshot">${p.p}</span></td>
+                    <td class="col-g" onclick="quickAdd(${i}, 'g')"><input type="number" class="table-input" readonly value="${p.g}"><span class="input-snapshot">${p.g}</span></td>
+                    <td class="perc-cell" style="background:${bgPerc}; color:${(isBA||perc>=75||perc<35)?'white':'black'}">${perc}%</td>
+                    <td class="col-food" onclick="handleFoodChange(${i})"><input type="number" class="table-input" readonly value="${p.food}"><span class="input-snapshot">${p.food}</span></td>
+                </tr>`;
+        });
+        localStorage.setItem('torneo_final_stats', JSON.stringify(stats));
+        localStorage.setItem('torneo_partnerships', JSON.stringify(partnerships));
         renderResumen();
     }
 
-    function handleStatChange(idx, type, val, resultType = null) {
-        val = parseInt(val) || 0;
-        if(type === 'g' || type === 'p') {
-            stats[idx][type] = val;
-            if(!stats[idx].history) stats[idx].history = [];
-            if(resultType === 'win') stats[idx].history.push('w');
-            if(resultType === 'loss') stats[idx].history.push('l');
-            // Mantener historial corto si se desea
-            if(stats[idx].history.length > 10) stats[idx].history.shift();
-        } else if(type === 'food') {
-            stats[idx].food = val;
-        }
-        if(isEditMode) saveTableData(); // Si editamos manualmente no regeneramos el orden automático al instante
-    }
-
-    function addNewPlayer() {
-        const nameInput = document.getElementById('newPlayerName');
-        const name = nameInput.value.trim();
-        if(name) {
-            saveUndoState();
-            stats.push({ name: name, g: 0, p: 0, food: 0, history: [], isChampion: false });
-            nameInput.value = '';
-            saveTableData();
-            render();
-        }
-    }
-
-    function updateTitle(val) {
-        document.getElementById('displayTitle').innerText = val || "APERTURA 2026";
-        localStorage.setItem('torneo_title', val);
-    }
-
-    function saveTableData() {
-        localStorage.setItem('torneo_final_stats', JSON.stringify(stats));
-        localStorage.setItem('torneo_partnerships', JSON.stringify(partnerships));
-    }
-
-    function openPlayerModal(idx) {
-        if(!isEditMode) return;
-        activePlayerIdx = idx;
-        document.getElementById('modalPlayerName').innerText = `Opciones de ${stats[idx].name}`;
-        document.getElementById('editNameInput').value = stats[idx].name;
-        document.getElementById('playerModal').style.display = 'flex';
-        resetModalViews();
-    }
-
-    function showEditSection() {
-        document.getElementById('modalMainActions').style.display = 'none';
-        document.getElementById('editNameContainer').style.display = 'block';
-    }
-
-    function showDelSection() {
-        document.getElementById('modalMainActions').style.display = 'none';
-        document.getElementById('confirmDelContainer').style.display = 'block';
-    }
-
-    function resetModalViews() {
-        document.getElementById('modalMainActions').style.display = 'block';
-        document.getElementById('editNameContainer').style.display = 'none';
-        document.getElementById('confirmDelContainer').style.display = 'none';
-    }
-
-    function closeModal() {
-        document.getElementById('playerModal').style.display = 'none';
-        activePlayerIdx = null;
-    }
-
-    function modalAction(action) {
-        if(activePlayerIdx === null) return;
+    function updateTitle(val) { document.getElementById('displayTitle').innerText = val; localStorage.setItem('torneo_titulo', val); }
+    function handleStart(idx) { if (!isEditMode) return; pressTimer = setTimeout(() => openPlayerModal(idx), 3000); }
+    function handleEnd() { clearTimeout(pressTimer); }
+    function openPlayerModal(idx) { vibrar(200); activePlayerIdx = idx; document.getElementById('modalPlayerName').innerText = stats[idx].name; resetModalViews(); document.getElementById('playerModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('playerModal').style.display = 'none'; }
+    function showEditSection() { document.getElementById('modalMainActions').style.display = 'none'; document.getElementById('editNameContainer').style.display = 'block'; document.getElementById('editNameInput').value = stats[activePlayerIdx].name; }
+    function showDelSection() { document.getElementById('modalMainActions').style.display = 'none'; document.getElementById('confirmDelContainer').style.display = 'block'; }
+    function resetModalViews() { document.getElementById('modalMainActions').style.display = 'block'; document.getElementById('editNameContainer').style.display = 'none'; document.getElementById('confirmDelContainer').style.display = 'none'; }
+    
+    function modalAction(type) {
         saveUndoState();
-
-        if(action === 'edit') {
-            const newName = document.getElementById('editNameInput').value.trim();
-            if(newName) stats[activePlayerIdx].name = newName;
-        } else if(action === 'champion') {
-            stats.forEach(p => p.isChampion = false);
-            stats[activePlayerIdx].isChampion = true;
-        } else if(action === 'delete') {
-            stats.splice(activePlayerIdx, 1);
-        }
-
-        saveTableData();
-        render();
-        closeModal();
+        if (type === 'edit') stats[activePlayerIdx].name = document.getElementById('editNameInput').value.trim();
+        else if (type === 'champion') { const was = stats[activePlayerIdx].isChampion; stats.forEach(s=>s.isChampion=false); stats[activePlayerIdx].isChampion = !was; }
+        else if (type === 'delete') stats.splice(activePlayerIdx, 1);
+        render(); closeModal();
     }
 
-    function exportData() {
-        const dataStr = JSON.stringify({ stats, partnerships });
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(dataBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `TorneoTruco_${new Date().toISOString().slice(0,10)}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    function getRacha(history) {
+        if (!history || history.length === 0) return 0;
+        let r = 0; const last = history[history.length - 1];
+        for (let i = history.length - 1; i >= 0; i--) if (history[i] === last) r++; else break;
+        return last === 'g' ? r : -r;
     }
 
-    function importData() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json, application/json';
-        input.onchange = e => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = event => {
-                try {
-                    const backupData = JSON.parse(event.target.result);
-                    if (backupData.stats) stats = backupData.stats;
-                    if (backupData.partnerships) partnerships = backupData.partnerships;
-                    saveUndoState();
-                    saveTableData();
-                    alert('¡Backup cargado con éxito!');
-                    render();
-                } catch (error) {
-                    alert('Error al cargar backup.');
-                }
-            };
-            reader.readAsText(file);
-        };
-        input.click();
+    function getGradientColor(perc) { if (perc >= 70) return "#388E3C"; if (perc >= 50) return "#FBC02D"; if (perc >= 35) return "#F57C00"; return "#D32F2F"; }
+    function quickAdd(idx, field) { if (!isEditMode) return; saveUndoState(); handleStatChange(idx, field, stats[idx][field] + 1); saveTableData(); }
+    function handleStatChange(idx, f, v) { 
+        if (!stats[idx].history) stats[idx].history = [];
+        if (v > stats[idx][f]) stats[idx].history.push(f);
+        else if (v < stats[idx][f]) { const l = stats[idx].history.lastIndexOf(f); if (l !== -1) stats[idx].history.splice(l, 1); }
+        stats[idx][f] = v;
     }
-
-    function shareAsImage() {
-        const capture = document.getElementById('captureArea');
-        document.body.classList.add('exporting');
-        
-        html2canvas(capture, {
-            backgroundColor: '#1a472a',
-            scale: 2,
-            logging: false
-        }).then(canvas => {
-            document.body.classList.remove('exporting');
-            sonar();
-            canvas.toBlob(blob => {
-                if (navigator.share) {
-                    const file = new File([blob], 'tabla_truco.png', { type: 'image/png' });
-                    navigator.share({
-                        title: 'Tabla de Truco',
-                        files: [file]
-                    }).catch(err => console.log('Error sharing:', err));
-                } else {
-                    const link = document.createElement('a');
-                    link.download = 'tabla_truco.png';
-                    link.href = canvas.toDataURL();
-                    link.click();
-                }
-            }, 'image/png');
+    function handleFoodChange(idx) { if (!isEditMode) return; saveUndoState(); stats[idx].food++; render(); }
+    
+    function saveTableData() { 
+        vibrar();
+        prevOrder = stats.map(s => s.name); 
+        localStorage.setItem('torneo_prev_order', JSON.stringify(prevOrder)); 
+        stats.sort((a, b) => {
+            if (b.g !== a.g) return b.g - a.g;
+            return (b.g/(b.g+b.p||1)) - (a.g/(a.g+a.p||1));
         });
+        render(); 
     }
+    
+    async function shareAsImage() { sonar(); document.body.classList.add('exporting'); try { const c = await html2canvas(document.getElementById('captureArea'), { backgroundColor: "#000", scale: 3 }); const b = await new Promise(r => c.toBlob(r)); const f = new File([b], 'tabla.png', { type: 'image/png' }); if (navigator.share) await navigator.share({ files: [f] }); } catch (e) {} document.body.classList.remove('exporting'); }
+    function exportData() { const b = new Blob([JSON.stringify({stats, partnerships})], {type: "application/json"}); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = "backup.json"; a.click(); }
+    function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = ev => { const d = JSON.parse(ev.target.result); stats = d.stats || d; partnerships = d.partnerships || {}; render(); }; r.readAsText(e.target.files[0]); }; i.click(); }
+    function addNewPlayer() { const n = document.getElementById('newPlayerName').value.trim(); if (n) { saveUndoState(); stats.push({ name: n, p: 0, g: 0, food: 0, history: [], isChampion: false }); document.getElementById('newPlayerName').value = ''; saveTableData(); } }
 
-    // Inicialización
+    const savedTitle = localStorage.getItem('torneo_titulo') || "Apertura Truco 2026";
+    document.getElementById('displayTitle').innerText = savedTitle;
+    document.getElementById('editTitle').value = savedTitle;
     render();
 </script>
 </body>
 </html>
+
