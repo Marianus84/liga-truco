@@ -383,7 +383,7 @@
         saveTableData();
     }
 
-    function getCurrentTournamentFecha() {
+     function getCurrentTournamentFecha() {
         const now = new Date();
         const year = now.getFullYear();
         const getFirstFriday = (y, m) => {
@@ -394,10 +394,16 @@
         const startApertura = getFirstFriday(year, 0);
         const startClausura = getFirstFriday(year, 6);
         let seasonStart = (now >= startClausura) ? startClausura : startApertura;
-        let diffMs = now - seasonStart;
+        
+        // MODIFICACIÓN: Le sumamos 6 días (en milisegundos) al cálculo. 
+        // Esto adelanta el "corte" de la semana para que ocurra el sábado a las 00:00 
+        // en lugar de esperar al próximo viernes.
+        let diffMs = now - seasonStart + (6 * 24 * 60 * 60 * 1000);
+        
         let diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
         return Math.max(1, Math.min(26, diffWeeks));
     }
+
 
     function renderResumen() {
         if (stats.length === 0) return;
