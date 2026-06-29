@@ -475,7 +475,7 @@
             <div class="resumen-section resumen-full-width">
                 <h4 style="text-align: center;">PROBABILIDADES CAMPEÓN (FALTAN ${fechasFaltantes} FECHAS)</h4>
                 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">
-                ${maxPJ > 13 ? validData.map(d => {
+                ${maxPJ > 0 ? validData.map(d => {
                     const r = Math.max(0, TOTAL_FECHAS - maxPJ);
                     const maxPossibleWins = d.g + r;
                     if (maxPossibleWins < currentLeaderG || d.pj === 0) {
@@ -605,7 +605,7 @@
     function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = ev => { const d = JSON.parse(ev.target.result); stats = d.stats || d; partnerships = d.partnerships || {}; render(); }; r.readAsText(e.target.files[0]); }; i.click(); }
     function addNewPlayer() { const n = document.getElementById('newPlayerName').value.trim(); if (n) { saveUndoState(); stats.push({ name: n, p: 0, g: 0, food: 0, history: [], isChampion: false }); document.getElementById('newPlayerName').value = ''; saveTableData(); } }
 
-    const savedTitle = localStorage.getItem('torneo_titulo') || "Apertura Truco 2026";
+    const savedTitle = localStorage.getItem('torneo_titulo') || "Clausura Truco 2026";
     document.getElementById('displayTitle').innerText = savedTitle;
     document.getElementById('editTitle').value = savedTitle;
     render();
