@@ -383,7 +383,7 @@
         saveTableData();
     }
 
-     function getCurrentTournamentFecha() {
+    function getCurrentTournamentFecha() {
         const now = new Date();
         const year = now.getFullYear();
         const getFirstFriday = (y, m) => {
@@ -391,17 +391,30 @@
             while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
             return d;
         };
+        const getLastFriday = (y, m) => {
+            let d = new Date(y, m + 1, 0); 
+            while (d.getDay() !== 5) d.setDate(d.getDate() - 1);
+            return d;
+        };
         const startApertura = getFirstFriday(year, 0);
         const startClausura = getFirstFriday(year, 6);
-        let seasonStart = (now >= startClausura) ? startClausura : startApertura;
+
+        // El cambio de torneo ocurre el sábado anterior al primer viernes del Clausura
+        const corteClausura = new Date(startClausura.getTime() - (6 * 24 * 60 * 60 * 1000));
         
-        // MODIFICACIÓN: Le sumamos 6 días (en milisegundos) al cálculo. 
-        // Esto adelanta el "corte" de la semana para que ocurra el sábado a las 00:00 
-        // en lugar de esperar al próximo viernes.
-        let diffMs = now - seasonStart + (6 * 24 * 60 * 60 * 1000);
+        const isClausura = now >= corteClausura;
+        const seasonStart = isClausura ? startClausura : startApertura;
+        const seasonEnd = isClausura ? getLastFriday(year, 11) : getLastFriday(year, 5);
         
+        let diffMs = now.getTime() - seasonStart.getTime() + (6 * 24 * 60 * 60 * 1000);
         let diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
-        return Math.max(1, Math.min(26, diffWeeks));
+        
+        let totalFechasSeason = Math.floor((seasonEnd.getTime() - seasonStart.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+
+        return {
+            actual: Math.max(1, Math.min(totalFechasSeason, diffWeeks)),
+            total: totalFechasSeason
+        };
     }
 
 
@@ -409,8 +422,9 @@
         if (stats.length === 0) return;
         const maxPJ = Math.max(...stats.map(p => p.g + p.p), 1);
         const currentLeaderG = Math.max(...stats.map(p => p.g), 0);
-        const TOTAL_FECHAS = 26;
-        const fechaActual = getCurrentTournamentFecha();
+        const fechaInfo = getCurrentTournamentFecha();
+        const TOTAL_FECHAS = fechaInfo.total;
+        const fechaActual = fechaInfo.actual;
         const fechasFaltantes = Math.max(0, TOTAL_FECHAS - fechaActual + 1);
         
         const data = stats.map(p => {
@@ -546,7 +560,15 @@
         saveUndoState();
         if (type === 'edit') stats[activePlayerIdx].name = document.getElementById('editNameInput').value.trim();
         else if (type === 'champion') { const was = stats[activePlayerIdx].isChampion; stats.forEach(s=>s.isChampion=false); stats[activePlayerIdx].isChampion = !was; }
-        else if (type === 'delete') stats.splice(activePlayerIdx, 1);
+        else if (type === 'delete') {
+            const deletedName = stats[activePlayerIdx].name;
+            stats.splice(activePlayerIdx, 1);
+            for (let key in partnerships) {
+                if (key.split(' | ').includes(deletedName)) {
+                    delete partnerships[key];
+                }
+            }
+        }
         render(); closeModal();
     }
 
