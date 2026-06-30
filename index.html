@@ -521,7 +521,7 @@
 
             const racha = getRacha(p.history);
             const anchor = racha <= -4 ? ' ⚓' : '';
-            const trunk = (total > 0 && perc < 30) ? ' 🪵' : '';
+            const trunk = (total >= 5 && perc < 30) ? ' 🪵' : '';
 
             const lastResults = (p.history || []).slice(-30);
             let dots = '<div class="dots-container">' + lastResults.map(res => `<span class="dot dot-${res}"></span>`).join('') + '</div>';
