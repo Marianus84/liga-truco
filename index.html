@@ -246,7 +246,7 @@
 
     <div class="btn-main" style="padding: 0 5px;">
         <button class="btn btn-record-match" onclick="openMatchModal()">⚔️ Registrar Partida</button>
-        <button class="btn btn-share" onclick="shareAsBothImages()">Compartir Tabla + Pica Pica 📲</button>
+        <button class="btn btn-share" onclick="shareTabla()">Compartir Tabla 📲</button>
 
         <div class="card">
             <div class="input-group">
@@ -307,7 +307,7 @@
                     <div id="stats-list" class="grid grid-cols-1 gap-2"></div>
                 </div>
             </div>
-            <button onclick="shareStats()" class="w-full mt-6 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg">📸 Compartir Pica Pica por WhatsApp</button>
+            <button onclick="sharePicaPica()" class="w-full mt-6 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg">📸 Compartir Pica Pica 📲</button>
         </div>
     </div>
 </div>
@@ -676,56 +676,50 @@
 
 
     // ==========================================
-    // LOGICA NUEVA PARA COMPARTIR AMBAS IMAGENES
+    // LOGICA NUEVA PARA COMPARTIR DE MANERA INDEPENDIENTE
     // ==========================================
-    async function shareAsBothImages() { 
+    async function shareTabla() { 
         sonar(); 
         document.body.classList.add('exporting'); 
         try { 
-            // 1. Capturar Tabla de Truco Principal
-            const c1 = await html2canvas(document.getElementById('captureArea'), { backgroundColor: "#000", scale: 3 }); 
-            const b1 = await new Promise(r => c1.toBlob(r)); 
-            const f1 = new File([b1], 'tabla_torneo.png', { type: 'image/png' }); 
+            const c = await html2canvas(document.getElementById('captureArea'), { backgroundColor: "#000", scale: 3 }); 
+            const b = await new Promise(r => c.toBlob(r)); 
+            const f = new File([b], 'tabla_torneo.png', { type: 'image/png' }); 
 
-            // 2. Preparar y capturar estadisticas de Pica Pica secretamente
-            renderStats(); // Asegurar datos actualizados
-            const picaContainer = document.getElementById('picapica-app-container');
-            const statsSection = document.getElementById('section-stats');
-            const picaCaptureArea = document.getElementById('picapica-capture-area');
-            
-            const wasAppHidden = picaContainer.classList.contains('hidden');
-            const wasStatsHidden = statsSection.classList.contains('hidden');
-
-            // Hacemos visibles temporales para que html2canvas los pueda ver
-            if (wasAppHidden) {
-                picaContainer.classList.remove('hidden');
-                // Lo movemos fuera de pantalla temporalmente si queremos evitar el "flicker", pero para ser seguro con la captura lo dejamos asi.
-            }
-            if (wasStatsHidden) {
-                statsSection.classList.remove('hidden');
-            }
-            
-            // Pausa minúscula para asegurar que el DOM actualice
-            await new Promise(r => setTimeout(r, 50));
-
-            const c2 = await html2canvas(picaCaptureArea, { backgroundColor: "#064e3b", scale: 2 });
-            const b2 = await new Promise(r => c2.toBlob(r));
-            const f2 = new File([b2], 'picapica_stats.png', { type: 'image/png' });
-
-            // Restauramos los estados ocultos de Pica Pica si estaban ocultos
-            if (wasAppHidden) picaContainer.classList.add('hidden');
-            if (wasStatsHidden) statsSection.classList.add('hidden');
-
-            // 3. Compartir ambos archivos juntos (Solo funciona en dispositivos móviles / navegadores soportados)
             if (navigator.share) {
-                await navigator.share({ files: [f1, f2], title: 'Estadísticas de Truco' }); 
+                await navigator.share({ files: [f], title: 'Tabla de Truco' }); 
             } else {
-                alert("Tu navegador no soporta compartir múltiples archivos.");
+                // Fallback para pc
+                const link = document.createElement('a');
+                link.download = 'tabla_torneo.png';
+                link.href = c.toDataURL("image/png");
+                link.click();
             }
         } catch (e) { 
             console.error("Error al compartir", e);
         } 
         document.body.classList.remove('exporting'); 
+    }
+
+    async function sharePicaPica() {
+        renderStats(); 
+        try {
+            const c = await html2canvas(document.getElementById("picapica-capture-area"), {backgroundColor: "#064e3b", scale: 2});
+            const b = await new Promise(r => c.toBlob(r));
+            const f = new File([b], 'resultados_pica_pica.png', { type: 'image/png' });
+            
+            if (navigator.share) {
+                await navigator.share({ files: [f], title: 'Estadísticas Pica Pica' }); 
+            } else {
+                // Fallback para pc
+                const link = document.createElement('a');
+                link.download = 'resultados_pica_pica.png';
+                link.href = c.toDataURL("image/png");
+                link.click();
+            }
+        } catch (e) {
+            console.error("Error al compartir", e);
+        }
     }
 
 
@@ -830,17 +824,6 @@
                 <span class="font-bold text-amber-400 flex-[3_3_0%] text-right px-1 whitespace-normal">${m.p2}</span>
             </div>
         `).join('');
-    }
-
-    // Compartir stats ÚNICAMENTE de la Pica Pica (mantiene funcionalidad del boton original de la App 2)
-    function shareStats() {
-        renderStats(); 
-        html2canvas(document.getElementById("picapica-capture-area"), {backgroundColor: "#064e3b", scale: 2}).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'resultados_pica_pica.png';
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        });
     }
 
     // Inicializaciones al arrancar
