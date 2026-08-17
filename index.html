@@ -402,8 +402,8 @@
         const houseName = houseIdx >= 0 && stats[houseIdx] ? stats[houseIdx].name : 'Nadie';
 
         document.getElementById('matchConfirmationText').innerHTML = `
-            <div><strong>🏆 GANAN:</strong><br>${winnerNames}</div>
-            <div style="margin-top:8px;"><strong>💀 PIERDEN:</strong><br>${loserNames}</div>
+            <div><strong>🏆 EQUIPO GANADOR:</strong><br>${winnerNames}</div>
+            <div style="margin-top:8px;"><strong>💀 EQUIPO PERDEDOR:</strong><br>${loserNames}</div>
             <div style="margin-top:8px;"><strong>🏠 CASA:</strong><br>${houseName}</div>`;
         document.getElementById('matchConfirmation').style.display = 'block';
         document.getElementById('matchSubmitButton').style.display = 'none';
@@ -576,6 +576,7 @@
 
             const racha = getRacha(p.history);
             const anchor = racha <= -4 ? ' ⚓' : '';
+            const fire = racha >= 4 ? ' 🔥' : '';
             const trunk = (total >= 5 && perc < 30) ? ' 🪵' : '';
 
             const lastResults = (p.history || []).slice(-30);
@@ -586,7 +587,7 @@
                     <td class="col-pos">${posDisplay}</td>
                     <td class="name-col" onmousedown="handleStart(${i})" onmouseup="handleEnd()" ontouchstart="handleStart(${i})" ontouchend="handleEnd()">
                         <div class="name-wrapper">
-                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.isChampion ? '👑 ' : ''}${p.name}${anchor}${trunk}${isBA ? ' <small>(BA)</small>' : ''}${rachaIcon}</span>
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.isChampion ? '👑 ' : ''}${p.name}${fire}${anchor}${trunk}${isBA ? ' <small>(BA)</small>' : ''}${rachaIcon}</span>
                             ${dots}
                         </div>
                     </td>
