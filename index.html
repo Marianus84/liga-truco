@@ -507,8 +507,8 @@
                 return validNames.has(p1) && validNames.has(p2);
             })
             .sort((a,b) => b.count - a.count);
-        const topDuos = duoEntries.slice(0, 5);
-        const botDuos = duoEntries.filter(d => d.count > 0).reverse().slice(0, 5);
+        const topDuos = duoEntries.slice(0, 3);
+        const botDuos = duoEntries.filter(d => d.count > 0).reverse().slice(0, 3);
 
         const html = `
             <div class="resumen-section">
