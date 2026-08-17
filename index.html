@@ -283,7 +283,13 @@
             <h5>🏠 ¿QUIÉN PUSO LA CASA?</h5>
             <div id="houseList"></div>
         </div>
-        <button class="modal-btn btn-update" onclick="submitMatch()">CONFIRMAR RESULTADO</button>
+        <div id="matchConfirmation" class="team-box" style="display:none; border-color:#22c55e;">
+            <h5>✅ CONFIRMAR PARTIDA</h5>
+            <div id="matchConfirmationText" style="font-size:0.85rem; line-height:1.7; text-align:center;"></div>
+            <button class="modal-btn btn-update" style="background:#22c55e;color:#000;margin-top:10px;" onclick="confirmMatch()">✅ SÍ, REGISTRAR PARTIDA</button>
+            <button class="modal-btn btn-modal-cancel" onclick="cancelMatchConfirmation()">↩ VOLVER A EDITAR</button>
+        </div>
+        <button id="matchSubmitButton" class="modal-btn btn-update" onclick="prepareMatchConfirmation()">CONFIRMAR RESULTADO</button>
         <button class="modal-btn btn-modal-cancel" onclick="closeMatchModal()">CANCELAR</button>
     </div>
 </div>
@@ -331,6 +337,8 @@
         wList.innerHTML = '';
         lList.innerHTML = '';
         hList.innerHTML = '';
+        document.getElementById('matchConfirmation').style.display = 'none';
+        document.getElementById('matchSubmitButton').style.display = 'flex';
         
         stats.forEach((p, i) => {
             const createItem = (type) => {
@@ -382,37 +390,54 @@
 
     function closeMatchModal() { document.getElementById('matchModal').style.display = 'none'; }
 
-    function submitMatch() {
+    function prepareMatchConfirmation() {
         const wins = Array.from(document.querySelectorAll('input[data-type="win"]:checked')).map(el => parseInt(el.dataset.idx));
         const loss = Array.from(document.querySelectorAll('input[data-type="loss"]:checked')).map(el => parseInt(el.dataset.idx));
         if (wins.length === 0 || loss.length === 0) return;
 
         const houseSelected = document.querySelector('input[name="housePlayer"]:checked');
         const houseIdx = houseSelected ? parseInt(houseSelected.value) : -1;
-        
+        const winnerNames = wins.map(idx => stats[idx].name).join(' + ');
+        const loserNames = loss.map(idx => stats[idx].name).join(' + ');
+        const houseName = houseIdx >= 0 && stats[houseIdx] ? stats[houseIdx].name : 'Nadie';
+
+        document.getElementById('matchConfirmationText').innerHTML = `
+            <div><strong>🏆 GANAN:</strong><br>${winnerNames}</div>
+            <div style="margin-top:8px;"><strong>💀 PIERDEN:</strong><br>${loserNames}</div>
+            <div style="margin-top:8px;"><strong>🏠 CASA:</strong><br>${houseName}</div>`;
+        document.getElementById('matchConfirmation').style.display = 'block';
+        document.getElementById('matchSubmitButton').style.display = 'none';
+        document.querySelectorAll('#winnersList input, #losersList input, #houseList input').forEach(input => input.disabled = true);
+    }
+
+    function cancelMatchConfirmation() {
+        document.getElementById('matchConfirmation').style.display = 'none';
+        document.getElementById('matchSubmitButton').style.display = 'flex';
+        document.querySelectorAll('#winnersList input, #losersList input, #houseList input').forEach(input => input.disabled = false);
+    }
+
+    function confirmMatch() {
+        const wins = Array.from(document.querySelectorAll('input[data-type="win"]:checked')).map(el => parseInt(el.dataset.idx));
+        const loss = Array.from(document.querySelectorAll('input[data-type="loss"]:checked')).map(el => parseInt(el.dataset.idx));
+        if (wins.length === 0 || loss.length === 0) { cancelMatchConfirmation(); return; }
+        const houseSelected = document.querySelector('input[name="housePlayer"]:checked');
+        const houseIdx = houseSelected ? parseInt(houseSelected.value) : -1;
         saveUndoState();
         vibrar(100);
-
         wins.forEach(idx => handleStatChange(idx, 'g', stats[idx].g + 1));
         loss.forEach(idx => handleStatChange(idx, 'p', stats[idx].p + 1));
-
-        // Registrar automáticamente quién puso la casa
-        if (houseIdx >= 0 && stats[houseIdx]) {
-            stats[houseIdx].food++;
-        }
-
+        if (houseIdx >= 0 && stats[houseIdx]) stats[houseIdx].food++;
         const recordPair = (idxA, idxB) => {
             const names = [stats[idxA].name, stats[idxB].name].sort();
             const key = names.join(' | ');
             partnerships[key] = (partnerships[key] || 0) + 1;
         };
-
         for(let i=0; i<wins.length; i++) for(let j=i+1; j<wins.length; j++) recordPair(wins[i], wins[j]);
         for(let i=0; i<loss.length; i++) for(let j=i+1; j<loss.length; j++) recordPair(loss[i], loss[j]);
-
         closeMatchModal();
         saveTableData();
     }
+
     function getCurrentTournamentFecha() {
         const now = new Date();
         const year = now.getFullYear();
