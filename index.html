@@ -12,48 +12,82 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         :root {
-            --verde-mesa: #1a472a;
-            --header-table: #000000;
-            --azul-oscuro: #002060;
-            --blanco-marfil: #FFFFFF;
-            --rojo-delete: #ef4444;
-            --win-dot: #22c55e;
-            --loss-dot: #ef4444;
-            --dorado-campeon: #ffd700;
+            --verde-mesa: #173f2a;
+            --verde-mesa-claro: #245b3d;
+            --header-table: #111111;
+            --azul-oscuro: #162f46;
+            --blanco-marfil: #f4ead2;
+            --papel: #ead9b8;
+            --rojo-delete: #b42318;
+            --rojo-truco: #9e2a22;
+            --win-dot: #2f8f46;
+            --loss-dot: #b42318;
+            --dorado-campeon: #d4af37;
+            --tinta: #17120d;
         }
 
-        body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background: var(--verde-mesa); 
-            color: #f3f4f6; 
-            margin: 0; padding: 5px; 
+        body {
+            font-family: Georgia, 'Times New Roman', serif;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(255,255,255,.035) 0 1px, transparent 1px),
+                radial-gradient(circle at 80% 70%, rgba(0,0,0,.06) 0 1px, transparent 1px),
+                linear-gradient(135deg, #143b27, #1d4c32 45%, #123522);
+            background-size: 7px 7px, 11px 11px, auto;
+            color: #f3f4f6;
+            margin: 0; padding: 5px;
             -webkit-tap-highlight-color: transparent;
         }
 
         .container { max-width: 100%; margin: auto; }
         
         #captureArea {
-            background: var(--verde-mesa);
+            background: transparent;
             padding: 0;
             display: block;
             width: 100%;
             box-sizing: border-box;
         }
 
-        .table-container { 
-            background: transparent; 
-            width: 100%; 
-            display: block; 
-            overflow: hidden; 
-            border: none;
+        .table-container {
+            background: rgba(10, 28, 18, .45);
+            width: 100%;
+            display: block;
+            overflow: hidden;
+            border: 2px solid #b08a43;
+            border-radius: 10px;
+            box-shadow: 0 5px 18px rgba(0,0,0,.38), inset 0 0 0 1px rgba(255,255,255,.08);
         }
 
-        table { width: 100%; border-collapse: collapse; color: #000; table-layout: fixed; border: none; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--tinta);
+            table-layout: fixed;
+            border: none;
+            background: var(--papel);
+        }
         
-        th { background: var(--header-table); color: #ffffff; padding: 3px 1px; font-size: 0.6rem; border: 1px solid #444; }
+        th {
+            background: linear-gradient(#1a1a1a, #090909);
+            color: #f6e7bd;
+            padding: 5px 1px;
+            font-size: 0.65rem;
+            border: 1px solid #4f3d24;
+            letter-spacing: .04em;
+            text-shadow: 0 1px 1px #000;
+        }
         #displayTitle { font-size: 0.6rem; font-weight: 800; margin: 0; display: block; }
 
-        td { padding: 0; text-align: center; border: 1px solid #000000; font-size: 0.85rem; font-weight: 700; height: 32px; vertical-align: middle; transition: background 0.3s; }
+        td {
+            padding: 0;
+            text-align: center;
+            border: 1px solid #5d4b31;
+            font-size: 0.85rem;
+            font-weight: 700;
+            height: 32px;
+            vertical-align: middle;
+            transition: background 0.3s;
+        }
 
         .fila-campeon td {
             background: var(--dorado-campeon) !important;
@@ -78,7 +112,18 @@
         .exporting .input-snapshot { display: block !important; }
 
         .col-pos { background: var(--azul-oscuro); color: white; width: 28px; font-size: 0.8rem; }
-        .name-col { text-align: left; padding: 0 5px; background: var(--blanco-marfil); width: auto; font-size: 0.85rem; font-weight: 800; position: relative; user-select: none; -webkit-user-select: none; }
+        .name-col {
+            text-align: left;
+            padding: 0 5px;
+            background: var(--blanco-marfil);
+            width: auto;
+            font-size: 0.85rem;
+            font-weight: 800;
+            position: relative;
+            user-select: none;
+            -webkit-user-select: none;
+            color: var(--tinta);
+        }
         
         .name-wrapper { 
             display: flex; 
@@ -102,9 +147,9 @@
         .dot-p { background-color: var(--loss-dot); }
 
         .col-pj { background: var(--blanco-marfil); width: 30px; font-size: 0.85rem; }
-.col-p { background: var(--blanco-marfil); color: #dc2626; width: 32px; font-size: 0.85rem; }
+        .col-p { background: var(--blanco-marfil); color: var(--rojo-truco); width: 32px; font-size: 0.85rem; }
 
-        .col-g { background: var(--azul-oscuro); color: white; width: 32px; }
+        .col-g { background: var(--azul-oscuro); color: #fff; width: 32px; }
         .col-g .table-input, .col-g .input-snapshot { font-size: 1rem; font-weight: 900; }
         .col-food { background: var(--blanco-marfil); width: 32px; }
         .perc-cell { font-size: 0.65rem; color: #000; width: 42px; }
@@ -114,13 +159,13 @@
         .baja { color: #dc2626; }
 
         #resumenCompacto {
-            background: #111;
+            background: linear-gradient(145deg, #15110c, #211a12);
             color: #fff;
             padding: 8px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
-            border-top: 1px solid #333;
+            border-top: 2px solid #b08a43;
         }
         .resumen-section { font-size: 0.65rem; }
         .resumen-section h4 { 
@@ -136,11 +181,28 @@
         .val-loss { color: #ef4444; font-weight: bold; }
         .val-prob { color: var(--dorado-campeon); font-weight: bold; }
 
-        .card { background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.2); }
+        .card {
+            background: rgba(13, 28, 19, .72);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #b08a43;
+            box-shadow: 0 4px 12px rgba(0,0,0,.22);
+        }
         .btn { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; }
         .btn-update { background: #22c55e; color: #000; }
-        .btn-share { background: #25d366; color: white; }
-        .btn-record-match { background: #a855f7; color: white; }
+        .btn-share {
+            background: linear-gradient(#2f7d4b, #1d5a35);
+            color: white;
+            border: 1px solid #8fb18f;
+        }
+        .btn-record-match {
+            background: linear-gradient(#b7352c, #8d211b);
+            color: #fff;
+            border: 1px solid #d8a36b;
+            box-shadow: 0 3px 8px rgba(0,0,0,.25);
+            letter-spacing: .04em;
+        }
         
         .btn-undo-ui { 
             background: #facc15; 
@@ -184,19 +246,61 @@
             background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
         .modal-content {
-            background: #1a1a1a; padding: 20px; border-radius: 12px; width: 90%; max-width: 320px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6); border: 1px solid #333; max-height: 90vh; overflow-y: auto;
+            background:
+                linear-gradient(145deg, #211a12, #14110d);
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,.7);
+            border: 2px solid #a47a38;
+            max-height: 90vh;
+            overflow-y: auto;
         }
-        .modal-title { margin-top: 0; color: #fff; font-size: 1.1rem; text-align: center; margin-bottom: 20px; font-weight: 800; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-title {
+            margin-top: 0;
+            color: #f1dfb5;
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 800;
+            border-bottom: 1px solid #695538;
+            padding-bottom: 10px;
+            letter-spacing: .04em;
+        }
         .modal-btn {
             width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 8px; border: none;
             font-weight: 900; cursor: pointer; font-size: 0.85rem; text-transform: uppercase;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .btn-modal-cancel { background: #333; color: #aaa; margin-top: 5px; }
-        .team-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid #444; margin-bottom: 10px; }
-        .team-box h5 { margin: 0 0 8px 0; font-size: 0.7rem; text-transform: uppercase; color: #aaa; }
-        .player-select-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #222; margin-bottom: 4px; border-radius: 4px; font-size: 0.8rem; }
+        .team-box {
+            background:
+                linear-gradient(rgba(245,231,195,.06), rgba(245,231,195,.02)),
+                rgba(0,0,0,.22);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #695538;
+            margin-bottom: 10px;
+        }
+        .team-box h5 {
+            margin: 0 0 8px 0;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #e4cf9d;
+            letter-spacing: .06em;
+        }
+        .player-select-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(244,234,210,.08);
+            margin-bottom: 4px;
+            border-radius: 4px;
+            border: 1px solid rgba(176,138,67,.18);
+            font-size: 0.8rem;
+        }
         .player-select-item.disabled { opacity: 0.2; pointer-events: none; background: #111; }
     </style>
 </head>
@@ -211,7 +315,7 @@
                 <thead>
                     <tr>
                         <th style="width: 32px;">Pos</th>
-                        <th><span id="displayTitle">CLAUSURA TRUCO 2026</span></th>
+                        <th><span id="displayTitle">♠️ CLAUSURA TRUCO 2026 ♣️</span></th>
                         <th style="width: 32px;">J</th>
                         <th style="width: 32px;">P</th>
                         <th style="width: 35px;">G</th>
@@ -576,7 +680,7 @@
 
             const racha = getRacha(p.history);
             const anchor = racha <= -4 ? ' ⚓' : '';
-            const fire = racha >= 4 ? ' 🔥' : '';
+            const fire = (!isBA && racha >= 4) ? ' 🔥' : '';
             const trunk = (total >= 5 && perc < 30) ? ' 🪵' : '';
 
             const lastResults = (p.history || []).slice(-30);
