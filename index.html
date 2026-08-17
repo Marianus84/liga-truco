@@ -279,6 +279,10 @@
             <h5>💀 EQUIPO PERDEDOR</h5>
             <div id="losersList"></div>
         </div>
+        <div class="team-box">
+            <h5>🏠 ¿QUIÉN PUSO LA CASA?</h5>
+            <div id="houseList"></div>
+        </div>
         <button class="modal-btn btn-update" onclick="submitMatch()">CONFIRMAR RESULTADO</button>
         <button class="modal-btn btn-modal-cancel" onclick="closeMatchModal()">CANCELAR</button>
     </div>
@@ -323,7 +327,10 @@
         if (stats.length < 2) return;
         const wList = document.getElementById('winnersList');
         const lList = document.getElementById('losersList');
-        wList.innerHTML = ''; lList.innerHTML = '';
+        const hList = document.getElementById('houseList');
+        wList.innerHTML = '';
+        lList.innerHTML = '';
+        hList.innerHTML = '';
         
         stats.forEach((p, i) => {
             const createItem = (type) => {
@@ -338,10 +345,26 @@
             };
             wList.appendChild(createItem('win'));
             lList.appendChild(createItem('loss'));
+
+            const houseDiv = document.createElement('div');
+            houseDiv.className = 'player-select-item';
+            houseDiv.innerHTML = `
+                <input type="radio" name="housePlayer" id="house-${i}" value="${i}">
+                <span>${p.name}</span>
+            `;
+            hList.appendChild(houseDiv);
         });
+
+        const noHouseDiv = document.createElement('div');
+        noHouseDiv.className = 'player-select-item';
+        noHouseDiv.innerHTML = `
+            <input type="radio" name="housePlayer" id="house-none" value="-1" checked>
+            <span>Nadie</span>
+        `;
+        hList.appendChild(noHouseDiv);
+
         document.getElementById('matchModal').style.display = 'flex';
     }
-
     function syncCheckboxes(el) {
         const idx = el.dataset.idx;
         const type = el.dataset.type;
@@ -363,12 +386,20 @@
         const wins = Array.from(document.querySelectorAll('input[data-type="win"]:checked')).map(el => parseInt(el.dataset.idx));
         const loss = Array.from(document.querySelectorAll('input[data-type="loss"]:checked')).map(el => parseInt(el.dataset.idx));
         if (wins.length === 0 || loss.length === 0) return;
+
+        const houseSelected = document.querySelector('input[name="housePlayer"]:checked');
+        const houseIdx = houseSelected ? parseInt(houseSelected.value) : -1;
         
         saveUndoState();
         vibrar(100);
 
         wins.forEach(idx => handleStatChange(idx, 'g', stats[idx].g + 1));
         loss.forEach(idx => handleStatChange(idx, 'p', stats[idx].p + 1));
+
+        // Registrar automáticamente quién puso la casa
+        if (houseIdx >= 0 && stats[houseIdx]) {
+            stats[houseIdx].food++;
+        }
 
         const recordPair = (idxA, idxB) => {
             const names = [stats[idxA].name, stats[idxB].name].sort();
@@ -382,7 +413,6 @@
         closeMatchModal();
         saveTableData();
     }
-
     function getCurrentTournamentFecha() {
         const now = new Date();
         const year = now.getFullYear();
@@ -539,7 +569,7 @@
                     <td class="col-p" onclick="quickAdd(${i}, 'p')"><input type="number" class="table-input" readonly value="${p.p}"><span class="input-snapshot">${p.p}</span></td>
                     <td class="col-g" onclick="quickAdd(${i}, 'g')"><input type="number" class="table-input" readonly value="${p.g}"><span class="input-snapshot">${p.g}</span></td>
                     <td class="perc-cell" style="background:${bgPerc}; color:${(isBA||perc>=75||perc<35)?'white':'black'}">${perc}%</td>
-                    <td class="col-food" onclick="handleFoodChange(${i})"><input type="number" class="table-input" readonly value="${p.food}"><span class="input-snapshot">${p.food}</span></td>
+                    <td class="col-food"><input type="number" class="table-input" readonly value="${p.food}"><span class="input-snapshot">${p.food}</span></td>
                 </tr>`;
         });
         localStorage.setItem('torneo_final_stats', JSON.stringify(stats));
