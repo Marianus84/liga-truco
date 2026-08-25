@@ -2,14 +2,24 @@
 <html lang="es-AR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
     <title>Tabla Campeonato de Truco</title>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <link rel="manifest" href="manifest.json">
+
     <meta name="theme-color" content="#1a472a">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="black-translucent"
+    >
 
     <style>
         :root {
@@ -23,6 +33,10 @@
             --dorado-campeon: #ffd700;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Roboto, sans-serif;
             background: var(--verde-mesa);
@@ -32,14 +46,16 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .container { max-width: 100%; margin: auto; }
+        .container {
+            max-width: 100%;
+            margin: auto;
+        }
 
         #captureArea {
             background: var(--verde-mesa);
             padding: 0;
             display: block;
             width: 100%;
-            box-sizing: border-box;
         }
 
         .table-container {
@@ -60,7 +76,7 @@
 
         th {
             background: var(--header-table);
-            color: #ffffff;
+            color: #fff;
             padding: 3px 1px;
             font-size: 0.6rem;
             border: 1px solid #444;
@@ -71,12 +87,15 @@
             font-weight: 800;
             margin: 0;
             display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         td {
             padding: 0;
             text-align: center;
-            border: 1px solid #000000;
+            border: 1px solid #000;
             font-size: 0.85rem;
             font-weight: 700;
             height: 32px;
@@ -175,8 +194,13 @@
             display: inline-block;
         }
 
-        .dot-g { background-color: var(--win-dot); }
-        .dot-p { background-color: var(--loss-dot); }
+        .dot-g {
+            background-color: var(--win-dot);
+        }
+
+        .dot-p {
+            background-color: var(--loss-dot);
+        }
 
         .col-pj {
             background: var(--blanco-marfil);
@@ -220,8 +244,13 @@
             font-weight: bold;
         }
 
-        .sube { color: #15803d; }
-        .baja { color: #dc2626; }
+        .sube {
+            color: #15803d;
+        }
+
+        .baja {
+            color: #dc2626;
+        }
 
         #resumenCompacto {
             background: #111;
@@ -233,7 +262,9 @@
             border-top: 1px solid #333;
         }
 
-        .resumen-section { font-size: 0.65rem; }
+        .resumen-section {
+            font-size: 0.65rem;
+        }
 
         .resumen-section h4 {
             margin: 0 0 4px 0;
@@ -254,6 +285,13 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 2px;
+            gap: 5px;
+        }
+
+        .resumen-item span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .val-win {
@@ -473,60 +511,139 @@
 <div class="container">
 
     <div id="captureArea">
+
         <div class="table-container">
 
-            <button class="btn-edit-ui" id="editToggle" onclick="toggleEditMode()">EDIT OFF</button>
+            <button
+                class="btn-edit-ui"
+                id="editToggle"
+                onclick="toggleEditMode()"
+            >
+                EDIT OFF
+            </button>
 
-            <button class="btn-undo-ui" onclick="undoLastAction()">↩ DESHACER</button>
+            <button
+                class="btn-undo-ui"
+                onclick="undoLastAction()"
+            >
+                ↩ DESHACER
+            </button>
 
             <table>
+
                 <thead>
+
                     <tr>
-                        <th style="width: 32px;">Pos</th>
-                        <th><span id="displayTitle">CLAUSURA TRUCO 2026</span></th>
-                        <th style="width: 32px;">J</th>
-                        <th style="width: 32px;">P</th>
-                        <th style="width: 35px;">G</th>
-                        <th style="width: 30px;">%</th>
-                        <th style="width: 20px;">🏠</th>
+
+                        <th style="width:32px;">
+                            Pos
+                        </th>
+
+                        <th>
+                            <span id="displayTitle">
+                                CLAUSURA TRUCO 2026
+                            </span>
+                        </th>
+
+                        <th style="width:32px;">
+                            J
+                        </th>
+
+                        <th style="width:32px;">
+                            P
+                        </th>
+
+                        <th style="width:35px;">
+                            G
+                        </th>
+
+                        <th style="width:30px;">
+                            %
+                        </th>
+
+                        <th style="width:20px;">
+                            🏠
+                        </th>
+
                     </tr>
+
                 </thead>
 
                 <tbody id="tableBody"></tbody>
+
             </table>
 
             <div id="resumenCompacto"></div>
+
         </div>
+
     </div>
 
-    <div class="btn-main" style="padding: 0 5px;">
 
-        <button class="btn btn-record-match" onclick="openMatchModal()">
+    <div class="btn-main" style="padding:0 5px;">
+
+        <button
+            class="btn btn-record-match"
+            onclick="openMatchModal()"
+        >
             ⚔️ Registrar Partida
         </button>
 
-        <button class="btn btn-share" onclick="shareAsImage()">
+
+        <button
+            class="btn btn-share"
+            onclick="shareAsImage()"
+        >
             Compartir Tabla 📲
         </button>
+
 
         <div class="card">
 
             <div class="input-group">
-                <input type="text" id="newPlayerName" placeholder="Nombre...">
-                <button class="btn btn-add" style="width: auto;" onclick="addNewPlayer()">+</button>
+
+                <input
+                    type="text"
+                    id="newPlayerName"
+                    placeholder="Nombre..."
+                >
+
+                <button
+                    class="btn btn-add"
+                    style="width:auto;"
+                    onclick="addNewPlayer()"
+                >
+                    +
+                </button>
+
             </div>
+
 
             <input
                 type="text"
                 id="editTitle"
-                style="width: 93%; margin-top: 8px;"
+                style="width:93%;margin-top:8px;"
                 placeholder="Título"
                 oninput="updateTitle(this.value)"
             >
 
+
             <div class="actions-grid">
-                <button class="btn btn-backup" onclick="exportData()">💾 Guardar Backup</button>
-                <button class="btn btn-backup" onclick="importData()">📂 Cargar Backup</button>
+
+                <button
+                    class="btn btn-backup"
+                    onclick="exportData()"
+                >
+                    💾 Guardar Backup
+                </button>
+
+                <button
+                    class="btn btn-backup"
+                    onclick="importData()"
+                >
+                    📂 Cargar Backup
+                </button>
+
             </div>
 
         </div>
@@ -535,11 +652,22 @@
 
 </div>
 
+
+<!-- =========================================================
+     MODAL JUGADOR
+========================================================= -->
+
 <div id="playerModal" class="modal-overlay">
 
     <div class="modal-content">
 
-        <h4 id="modalPlayerName" class="modal-title">Opciones</h4>
+        <h4
+            id="modalPlayerName"
+            class="modal-title"
+        >
+            Opciones
+        </h4>
+
 
         <div id="modalMainActions">
 
@@ -551,6 +679,7 @@
                 ✏️ EDITAR NOMBRE
             </button>
 
+
             <button
                 class="modal-btn btn-update"
                 style="background:var(--dorado-campeon);color:black"
@@ -558,6 +687,7 @@
             >
                 👑 MARCAR CAMPEÓN
             </button>
+
 
             <button
                 class="modal-btn btn-update"
@@ -569,23 +699,43 @@
 
         </div>
 
-        <div id="editNameContainer" style="display:none">
+
+        <div
+            id="editNameContainer"
+            style="display:none"
+        >
 
             <input
                 type="text"
                 id="editNameInput"
-                style="width:100%;padding:10px;margin-bottom:10px;border-radius:4px;border:1px solid #333;background:#000;color:#fff;"
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin-bottom:10px;
+                    border-radius:4px;
+                    border:1px solid #333;
+                    background:#000;
+                    color:#fff;
+                "
             >
 
-            <div style="display:flex; gap:5px;">
+
+            <div style="display:flex;gap:5px;">
 
                 <button
                     class="btn-update"
-                    style="flex:1;padding:10px;border:none;border-radius:4px;background:#22c55e"
+                    style="
+                        flex:1;
+                        padding:10px;
+                        border:none;
+                        border-radius:4px;
+                        background:#22c55e
+                    "
                     onclick="modalAction('edit')"
                 >
                     GUARDAR
                 </button>
+
 
                 <button
                     class="btn-modal-cancel"
@@ -599,11 +749,22 @@
 
         </div>
 
-        <div id="confirmDelContainer" style="display:none">
 
-            <p style="color:#ef4444; font-weight:bold; text-align:center">
+        <div
+            id="confirmDelContainer"
+            style="display:none"
+        >
+
+            <p
+                style="
+                    color:#ef4444;
+                    font-weight:bold;
+                    text-align:center
+                "
+            >
                 ¿ELIMINAR JUGADOR?
             </p>
+
 
             <button
                 class="modal-btn btn-update"
@@ -613,13 +774,21 @@
                 SÍ, ELIMINAR
             </button>
 
-            <button class="btn-modal-cancel" onclick="resetModalViews()">
+
+            <button
+                class="btn-modal-cancel"
+                onclick="resetModalViews()"
+            >
                 CANCELAR
             </button>
 
         </div>
 
-        <button class="modal-btn btn-modal-cancel" onclick="closeModal()">
+
+        <button
+            class="modal-btn btn-modal-cancel"
+            onclick="closeModal()"
+        >
             CERRAR
         </button>
 
@@ -627,47 +796,85 @@
 
 </div>
 
+
+<!-- =========================================================
+     MODAL PARTIDA
+========================================================= -->
+
 <div id="matchModal" class="modal-overlay">
 
     <div class="modal-content">
 
-        <h4 class="modal-title">REGISTRAR PARTIDA</h4>
+        <h4 class="modal-title">
+            REGISTRAR PARTIDA
+        </h4>
+
 
         <div class="team-box">
-            <h5>🏆 EQUIPO GANADOR</h5>
+
+            <h5>
+                🏆 EQUIPO GANADOR
+            </h5>
+
             <div id="winnersList"></div>
+
         </div>
 
+
         <div class="team-box">
-            <h5>💀 EQUIPO PERDEDOR</h5>
+
+            <h5>
+                💀 EQUIPO PERDEDOR
+            </h5>
+
             <div id="losersList"></div>
+
         </div>
 
+
         <div class="team-box">
-            <h5>🏠 ¿QUIÉN PUSO LA CASA?</h5>
+
+            <h5>
+                🏠 ¿QUIÉN PUSO LA CASA?
+            </h5>
+
             <div id="houseList"></div>
+
         </div>
+
 
         <div
             id="matchConfirmation"
             class="team-box"
-            style="display:none; border-color:#22c55e;"
+            style="display:none;border-color:#22c55e;"
         >
 
-            <h5>✅ CONFIRMAR PARTIDA</h5>
+            <h5>
+                ✅ CONFIRMAR PARTIDA
+            </h5>
 
             <div
                 id="matchConfirmationText"
-                style="font-size:0.85rem; line-height:1.7; text-align:center;"
+                style="
+                    font-size:0.85rem;
+                    line-height:1.7;
+                    text-align:center;
+                "
             ></div>
+
 
             <button
                 class="modal-btn btn-update"
-                style="background:#22c55e;color:#000;margin-top:10px;"
+                style="
+                    background:#22c55e;
+                    color:#000;
+                    margin-top:10px;
+                "
                 onclick="confirmMatch()"
             >
                 ✅ SÍ, REGISTRAR PARTIDA
             </button>
+
 
             <button
                 class="modal-btn btn-modal-cancel"
@@ -678,6 +885,7 @@
 
         </div>
 
+
         <button
             id="matchSubmitButton"
             class="modal-btn btn-update"
@@ -685,6 +893,7 @@
         >
             CONFIRMAR RESULTADO
         </button>
+
 
         <button
             class="modal-btn btn-modal-cancel"
@@ -697,98 +906,260 @@
 
 </div>
 
+
 <script>
+
+/* =========================================================
+   ESTADO
+========================================================= */
 
 let undoStack = [];
 
 let stats =
-    JSON.parse(localStorage.getItem('torneo_final_stats')) || [];
+    JSON.parse(
+        localStorage.getItem('torneo_final_stats')
+    ) || [];
 
 let partnerships =
-    JSON.parse(localStorage.getItem('torneo_partnerships')) || {};
+    JSON.parse(
+        localStorage.getItem('torneo_partnerships')
+    ) || {};
 
 let prevOrder =
-    JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
+    JSON.parse(
+        localStorage.getItem('torneo_prev_order')
+    ) || [];
 
 let activePlayerIdx = null;
+
 let pressTimer = null;
+
 let isEditMode = false;
 
 
-function vibrar(ms = 80) {
-    if (navigator.vibrate) navigator.vibrate(ms);
+/* =========================================================
+   NORMALIZACIÓN DE DATOS
+   Esto evita errores con backups antiguos.
+========================================================= */
+
+function normalizeStats() {
+
+    if (!Array.isArray(stats)) {
+        stats = [];
+    }
+
+    stats = stats.map(player => {
+
+        const p = player || {};
+
+        return {
+            name: String(p.name || 'Jugador'),
+            g: Math.max(0, parseInt(p.g) || 0),
+            p: Math.max(0, parseInt(p.p) || 0),
+            food: Math.max(0, parseInt(p.food) || 0),
+            history: Array.isArray(p.history)
+                ? p.history.filter(x => x === 'g' || x === 'p')
+                : [],
+            isChampion: Boolean(p.isChampion)
+        };
+    });
+
+    /*
+       Si el historial no coincide con G/P,
+       lo reconstruimos.
+    */
+
+    stats.forEach((player, idx) => {
+
+        const expected =
+            player.g + player.p;
+
+        if (player.history.length !== expected) {
+            rebuildHistory(idx);
+        }
+    });
 }
 
 
-const sonidoShare = new Audio(
-    'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'
-);
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+
+/* =========================================================
+   VIBRACIÓN
+========================================================= */
+
+function vibrar(ms = 80) {
+
+    if (navigator.vibrate) {
+        navigator.vibrate(ms);
+    }
+}
+
+
+/* =========================================================
+   SONIDO
+========================================================= */
+
+const sonidoShare =
+    new Audio(
+        'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'
+    );
 
 
 function sonar() {
-    sonidoShare.play().catch(e => {});
+
+    sonidoShare
+        .play()
+        .catch(() => {});
 }
 
+
+/* =========================================================
+   EDIT MODE
+========================================================= */
 
 function toggleEditMode() {
 
     isEditMode = !isEditMode;
 
-    const btn = document.getElementById('editToggle');
+    const btn =
+        document.getElementById('editToggle');
 
-    btn.innerText = isEditMode
-        ? "EDIT ON"
-        : "EDIT OFF";
+    btn.innerText =
+        isEditMode
+            ? 'EDIT ON'
+            : 'EDIT OFF';
 
-    btn.classList.toggle('active', isEditMode);
+    btn.classList.toggle(
+        'active',
+        isEditMode
+    );
 
-    vibrar(isEditMode ? 150 : 50);
+    vibrar(
+        isEditMode
+            ? 150
+            : 50
+    );
 
     render();
 }
 
 
+/* =========================================================
+   UNDO
+========================================================= */
+
 function saveUndoState() {
 
     undoStack.push(
         JSON.stringify({
-            stats,
-            partnerships
+            stats:
+                JSON.parse(
+                    JSON.stringify(stats)
+                ),
+
+            partnerships:
+                JSON.parse(
+                    JSON.stringify(partnerships)
+                )
         })
     );
 
-    if (undoStack.length > 30) undoStack.shift();
+    if (undoStack.length > 30) {
+        undoStack.shift();
+    }
 }
 
 
 function undoLastAction() {
 
-    if (undoStack.length > 0) {
+    if (undoStack.length === 0) {
+        return;
+    }
 
-        const last = JSON.parse(
+    const last =
+        JSON.parse(
             undoStack.pop()
         );
 
-        stats = last.stats;
-        partnerships = last.partnerships;
+    stats =
+        last.stats || [];
 
-        render();
-    }
+    partnerships =
+        last.partnerships || {};
+
+    normalizeStats();
+
+    saveLocalData();
+
+    vibrar(100);
+
+    render();
 }
 
 
+/* =========================================================
+   GUARDADO CENTRAL
+========================================================= */
+
+function saveLocalData() {
+
+    localStorage.setItem(
+        'torneo_final_stats',
+        JSON.stringify(stats)
+    );
+
+    localStorage.setItem(
+        'torneo_partnerships',
+        JSON.stringify(partnerships)
+    );
+
+    localStorage.setItem(
+        'torneo_prev_order',
+        JSON.stringify(prevOrder)
+    );
+}
+
+
+/* =========================================================
+   MODAL PARTIDA
+========================================================= */
+
 function openMatchModal() {
 
-    if (stats.length < 2) return;
+    if (stats.length < 2) {
+        alert(
+            'Necesitas al menos 2 jugadores.'
+        );
+        return;
+    }
 
     const wList =
-        document.getElementById('winnersList');
+        document.getElementById(
+            'winnersList'
+        );
 
     const lList =
-        document.getElementById('losersList');
+        document.getElementById(
+            'losersList'
+        );
 
     const hList =
-        document.getElementById('houseList');
+        document.getElementById(
+            'houseList'
+        );
 
     wList.innerHTML = '';
     lList.innerHTML = '';
@@ -803,32 +1174,38 @@ function openMatchModal() {
     ).style.display = 'flex';
 
 
-    stats.forEach((p, i) => {
+    stats.forEach((player, i) => {
 
-        const createItem = (type) => {
+        const createItem =
+            type => {
 
-            const div =
-                document.createElement('div');
+                const div =
+                    document.createElement(
+                        'div'
+                    );
 
-            div.className =
-                'player-select-item';
+                div.className =
+                    'player-select-item';
 
-            div.id =
-                `container-${type}-${i}`;
+                div.id =
+                    `container-${type}-${i}`;
 
-            div.innerHTML = `
-                <input
-                    type="checkbox"
-                    id="chk-${type}-${i}"
-                    data-idx="${i}"
-                    data-type="${type}"
-                    onchange="syncCheckboxes(this)"
-                >
-                <span>${p.name}</span>
-            `;
+                div.innerHTML = `
+                    <input
+                        type="checkbox"
+                        id="chk-${type}-${i}"
+                        data-idx="${i}"
+                        data-type="${type}"
+                        onchange="syncCheckboxes(this)"
+                    >
 
-            return div;
-        };
+                    <span>
+                        ${escapeHtml(player.name)}
+                    </span>
+                `;
+
+                return div;
+            };
 
 
         wList.appendChild(
@@ -841,7 +1218,9 @@ function openMatchModal() {
 
 
         const houseDiv =
-            document.createElement('div');
+            document.createElement(
+                'div'
+            );
 
         houseDiv.className =
             'player-select-item';
@@ -853,15 +1232,22 @@ function openMatchModal() {
                 id="house-${i}"
                 value="${i}"
             >
-            <span>${p.name}</span>
+
+            <span>
+                ${escapeHtml(player.name)}
+            </span>
         `;
 
-        hList.appendChild(houseDiv);
+        hList.appendChild(
+            houseDiv
+        );
     });
 
 
     const noHouseDiv =
-        document.createElement('div');
+        document.createElement(
+            'div'
+        );
 
     noHouseDiv.className =
         'player-select-item';
@@ -874,10 +1260,14 @@ function openMatchModal() {
             value="-1"
             checked
         >
+
         <span>Nadie</span>
     `;
 
-    hList.appendChild(noHouseDiv);
+    hList.appendChild(
+        noHouseDiv
+    );
+
 
     document.getElementById(
         'matchModal'
@@ -887,9 +1277,11 @@ function openMatchModal() {
 
 function syncCheckboxes(el) {
 
-    const idx = el.dataset.idx;
+    const idx =
+        el.dataset.idx;
 
-    const type = el.dataset.type;
+    const type =
+        el.dataset.type;
 
     const otherType =
         type === 'win'
@@ -932,58 +1324,92 @@ function closeMatchModal() {
 }
 
 
-function prepareMatchConfirmation() {
+/* =========================================================
+   CONFIRMACIÓN PARTIDA
+========================================================= */
+
+function getSelectedMatchData() {
 
     const wins =
         Array.from(
             document.querySelectorAll(
                 'input[data-type="win"]:checked'
             )
-        ).map(el =>
-            parseInt(el.dataset.idx)
+        ).map(
+            el => parseInt(el.dataset.idx)
         );
 
-
-    const loss =
+    const losses =
         Array.from(
             document.querySelectorAll(
                 'input[data-type="loss"]:checked'
             )
-        ).map(el =>
-            parseInt(el.dataset.idx)
+        ).map(
+            el => parseInt(el.dataset.idx)
         );
-
-
-    if (wins.length === 0 || loss.length === 0)
-        return;
-
 
     const houseSelected =
         document.querySelector(
             'input[name="housePlayer"]:checked'
         );
 
-
     const houseIdx =
         houseSelected
-            ? parseInt(houseSelected.value)
+            ? parseInt(
+                houseSelected.value
+            )
             : -1;
+
+    return {
+        wins,
+        losses,
+        houseIdx
+    };
+}
+
+
+function prepareMatchConfirmation() {
+
+    const {
+        wins,
+        losses,
+        houseIdx
+    } =
+        getSelectedMatchData();
+
+
+    if (
+        wins.length === 0 ||
+        losses.length === 0
+    ) {
+
+        alert(
+            'Selecciona al menos un ganador y un perdedor.'
+        );
+
+        return;
+    }
 
 
     const winnerNames =
-        wins.map(idx =>
-            stats[idx].name
-        ).join(' + ');
+        wins
+            .map(
+                idx => stats[idx].name
+            )
+            .join(' + ');
 
 
     const loserNames =
-        loss.map(idx =>
-            stats[idx].name
-        ).join(' + ');
+        losses
+            .map(
+                idx => stats[idx].name
+            )
+            .join(' + ');
 
 
     const houseName =
-        houseIdx >= 0 && stats[houseIdx]
+        houseIdx >= 0 &&
+        stats[houseIdx]
             ? stats[houseIdx].name
             : 'Nadie';
 
@@ -991,22 +1417,41 @@ function prepareMatchConfirmation() {
     document.getElementById(
         'matchConfirmationText'
     ).innerHTML = `
+
         <div>
-            <strong>🏆 EQUIPO GANADOR:</strong>
+            <strong>
+                🏆 EQUIPO GANADOR:
+            </strong>
+
             <br>
-            ${winnerNames}
+
+            ${escapeHtml(winnerNames)}
         </div>
 
-        <div style="margin-top:8px;">
-            <strong>💀 EQUIPO PERDEDOR:</strong>
-            <br>
-            ${loserNames}
-        </div>
 
         <div style="margin-top:8px;">
-            <strong>🏠 CASA:</strong>
+
+            <strong>
+                💀 EQUIPO PERDEDOR:
+            </strong>
+
             <br>
-            ${houseName}
+
+            ${escapeHtml(loserNames)}
+
+        </div>
+
+
+        <div style="margin-top:8px;">
+
+            <strong>
+                🏠 CASA:
+            </strong>
+
+            <br>
+
+            ${escapeHtml(houseName)}
+
         </div>
     `;
 
@@ -1025,8 +1470,9 @@ function prepareMatchConfirmation() {
         .querySelectorAll(
             '#winnersList input, #losersList input, #houseList input'
         )
-        .forEach(input =>
-            input.disabled = true
+        .forEach(
+            input =>
+                input.disabled = true
         );
 }
 
@@ -1037,7 +1483,6 @@ function cancelMatchConfirmation() {
         'matchConfirmation'
     ).style.display = 'none';
 
-
     document.getElementById(
         'matchSubmitButton'
     ).style.display = 'flex';
@@ -1047,35 +1492,31 @@ function cancelMatchConfirmation() {
         .querySelectorAll(
             '#winnersList input, #losersList input, #houseList input'
         )
-        .forEach(input =>
-            input.disabled = false
+        .forEach(
+            input =>
+                input.disabled = false
         );
 }
 
 
+/* =========================================================
+   REGISTRAR PARTIDA
+========================================================= */
+
 function confirmMatch() {
 
-    const wins =
-        Array.from(
-            document.querySelectorAll(
-                'input[data-type="win"]:checked'
-            )
-        ).map(el =>
-            parseInt(el.dataset.idx)
-        );
+    const {
+        wins,
+        losses,
+        houseIdx
+    } =
+        getSelectedMatchData();
 
 
-    const loss =
-        Array.from(
-            document.querySelectorAll(
-                'input[data-type="loss"]:checked'
-            )
-        ).map(el =>
-            parseInt(el.dataset.idx)
-        );
-
-
-    if (wins.length === 0 || loss.length === 0) {
+    if (
+        wins.length === 0 ||
+        losses.length === 0
+    ) {
 
         cancelMatchConfirmation();
 
@@ -1083,71 +1524,103 @@ function confirmMatch() {
     }
 
 
-    const houseSelected =
-        document.querySelector(
-            'input[name="housePlayer"]:checked'
-        );
-
-
-    const houseIdx =
-        houseSelected
-            ? parseInt(houseSelected.value)
-            : -1;
-
-
     saveUndoState();
 
     vibrar(100);
 
 
-    wins.forEach(idx =>
-        handleStatChange(
-            idx,
-            'g',
-            stats[idx].g + 1
-        )
-    );
+    /*
+       GANADORES
+    */
+
+    wins.forEach(idx => {
+
+        stats[idx].g++;
+
+        if (!stats[idx].history) {
+            stats[idx].history = [];
+        }
+
+        stats[idx].history.push('g');
+    });
 
 
-    loss.forEach(idx =>
-        handleStatChange(
-            idx,
-            'p',
-            stats[idx].p + 1
-        )
-    );
+    /*
+       PERDEDORES
+    */
+
+    losses.forEach(idx => {
+
+        stats[idx].p++;
+
+        if (!stats[idx].history) {
+            stats[idx].history = [];
+        }
+
+        stats[idx].history.push('p');
+    });
 
 
-    if (houseIdx >= 0 && stats[houseIdx]) {
+    /*
+       CASA
+    */
+
+    if (
+        houseIdx >= 0 &&
+        stats[houseIdx]
+    ) {
+
         stats[houseIdx].food++;
     }
 
 
-    const recordPair =
-        (idxA, idxB) => {
+    /*
+       REGISTRO DE PAREJAS
+    */
 
-            const names = [
-                stats[idxA].name,
-                stats[idxB].name
-            ].sort();
+    function recordPair(idxA, idxB) {
+
+        if (
+            !stats[idxA] ||
+            !stats[idxB]
+        ) {
+            return;
+        }
+
+        const names = [
+            stats[idxA].name,
+            stats[idxB].name
+        ].sort();
 
 
-            const key =
-                names.join(' | ');
+        const key =
+            names.join(' | ');
 
 
-            partnerships[key] =
-                (partnerships[key] || 0) + 1;
-        };
+        partnerships[key] =
+            (
+                partnerships[key] ||
+                0
+            ) + 1;
+    }
 
 
-    for (let i = 0; i < wins.length; i++) {
+    /*
+       Parejas ganadoras
+    */
+
+    for (
+        let i = 0;
+        i < wins.length;
+        i++
+    ) {
 
         for (
             let j = i + 1;
             j < wins.length;
             j++
         ) {
+
             recordPair(
                 wins[i],
                 wins[j]
@@ -1156,16 +1629,25 @@ function confirmMatch() {
     }
 
 
-    for (let i = 0; i < loss.length; i++) {
+    /*
+       Parejas perdedoras
+    */
+
+    for (
+        let i = 0;
+        i < losses.length;
+        i++
+    ) {
 
         for (
             let j = i + 1;
-            j < loss.length;
+            j < losses.length;
             j++
         ) {
+
             recordPair(
-                loss[i],
-                loss[j]
+                losses[i],
+                losses[j]
             );
         }
     }
@@ -1177,60 +1659,76 @@ function confirmMatch() {
 }
 
 
+/* =========================================================
+   FECHAS DEL TORNEO
+========================================================= */
+
 function getCurrentTournamentFecha() {
 
-    const now = new Date();
+    const now =
+        new Date();
 
     const year =
         now.getFullYear();
 
 
-    const getFirstFriday =
-        (y, m) => {
+    function getFirstFriday(y, m) {
 
-            let d =
-                new Date(y, m, 1);
+        let d =
+            new Date(y, m, 1);
 
-            while (
-                d.getDay() !== 5
-            ) {
-                d.setDate(
-                    d.getDate() + 1
-                );
-            }
+        while (
+            d.getDay() !== 5
+        ) {
 
-            return d;
-        };
+            d.setDate(
+                d.getDate() + 1
+            );
+        }
+
+        return d;
+    }
 
 
-    const getLastFriday =
-        (y, m) => {
+    function getLastFriday(y, m) {
 
-            let d =
-                new Date(
-                    y,
-                    m + 1,
-                    0
-                );
+        let d =
+            new Date(
+                y,
+                m + 1,
+                0
+            );
 
-            while (
-                d.getDay() !== 5
-            ) {
-                d.setDate(
-                    d.getDate() - 1
-                );
-            }
+        while (
+            d.getDay() !== 5
+        ) {
 
-            return d;
-        };
+            d.setDate(
+                d.getDate() - 1
+            );
+        }
+
+        return d;
+    }
 
 
     const startApertura =
-        getFirstFriday(year, 0);
+        getFirstFriday(
+            year,
+            0
+        );
 
     const startClausura =
-        getFirstFriday(year, 6);
+        getFirstFriday(
+            year,
+            6
+        );
 
+
+    /*
+       El Clausura se considera iniciado
+       desde el sábado anterior al primer viernes.
+    */
 
     const corteClausura =
         new Date(
@@ -1257,8 +1755,22 @@ function getCurrentTournamentFecha() {
 
     const seasonEnd =
         isClausura
-            ? getLastFriday(year, 11)
-            : getLastFriday(year, 5);
+            ? getLastFriday(
+                year,
+                11
+            )
+            : getLastFriday(
+                year,
+                5
+            );
+
+
+    const weekMs =
+        7 *
+        24 *
+        60 *
+        60 *
+        1000;
 
 
     let diffMs =
@@ -1276,13 +1788,7 @@ function getCurrentTournamentFecha() {
     let diffWeeks =
         Math.floor(
             diffMs /
-            (
-                7 *
-                24 *
-                60 *
-                60 *
-                1000
-            )
+            weekMs
         ) + 1;
 
 
@@ -1292,13 +1798,7 @@ function getCurrentTournamentFecha() {
                 seasonEnd.getTime() -
                 seasonStart.getTime()
             ) /
-            (
-                7 *
-                24 *
-                60 *
-                60 *
-                1000
-            )
+            weekMs
         ) + 1;
 
 
@@ -1319,10 +1819,20 @@ function getCurrentTournamentFecha() {
 }
 
 
+/* =========================================================
+   RESUMEN
+========================================================= */
+
 function renderResumen() {
 
-    if (stats.length === 0)
+    if (stats.length === 0) {
+
+        document.getElementById(
+            'resumenCompacto'
+        ).innerHTML = '';
+
         return;
+    }
 
 
     const maxPJ =
@@ -1354,49 +1864,55 @@ function renderResumen() {
         fechaInfo.actual;
 
 
+    /*
+       Fechas que quedan después de la actual.
+    */
+
     const fechasFaltantes =
         Math.max(
             0,
             TOTAL_FECHAS -
-            fechaActual +
-            1
+            fechaActual
         );
 
 
     const data =
-        stats.map(p => {
+        stats.map(player => {
 
             const total =
-                p.g + p.p;
+                player.g +
+                player.p;
+
 
             return {
 
                 name:
-                    p.name,
+                    player.name,
 
                 pj:
                     total,
 
                 g:
-                    p.g,
+                    player.g,
 
                 perc:
                     total > 0
                         ? (
-                            p.g /
+                            player.g /
                             total
                         ) * 100
                         : 0,
 
                 racha:
                     getRacha(
-                        p.history
+                        player.history
                     ),
 
                 isBA:
                     (
                         maxPJ >= 7 &&
-                        total < (
+                        total <
+                        (
                             maxPJ / 2
                         )
                     )
@@ -1413,7 +1929,7 @@ function renderResumen() {
     const topPerc =
         [...validData]
             .sort(
-                (a,b) =>
+                (a, b) =>
                     b.perc -
                     a.perc
             )
@@ -1423,7 +1939,7 @@ function renderResumen() {
     const botPerc =
         [...validData]
             .sort(
-                (a,b) =>
+                (a, b) =>
                     a.perc -
                     b.perc
             )
@@ -1433,7 +1949,7 @@ function renderResumen() {
     const topRacha =
         [...validData]
             .sort(
-                (a,b) =>
+                (a, b) =>
                     b.racha -
                     a.racha
             )
@@ -1443,7 +1959,7 @@ function renderResumen() {
     const botRacha =
         [...validData]
             .sort(
-                (a,b) =>
+                (a, b) =>
                     a.racha -
                     b.racha
             )
@@ -1459,98 +1975,150 @@ function renderResumen() {
 
 
     const duoEntries =
-        Object
-            .entries(partnerships)
-            .map(
-                ([duo, count]) => ({
-                    duo,
-                    count
-                })
-            )
-            .filter(
-                ({ duo }) => {
+        Object.entries(
+            partnerships
+        )
+        .map(
+            ([duo, count]) => ({
+                duo,
+                count:
+                    Number(count) || 0
+            })
+        )
+        .filter(
+            ({ duo }) => {
 
-                    const [p1, p2] =
-                        duo.split(' | ');
+                const parts =
+                    duo.split(' | ');
 
-                    return (
-                        validNames.has(p1) &&
-                        validNames.has(p2)
-                    );
+                if (parts.length !== 2) {
+                    return false;
                 }
-            )
-            .sort(
-                (a,b) =>
-                    b.count -
-                    a.count
-            );
+
+                return (
+                    validNames.has(parts[0]) &&
+                    validNames.has(parts[1])
+                );
+            }
+        )
+        .sort(
+            (a, b) =>
+                b.count -
+                a.count
+        );
 
 
     const topDuos =
         duoEntries.slice(0, 3);
 
 
+    /*
+       Para las parejas menos frecuentes
+       necesitamos ordenar ascendentemente.
+    */
+
     const botDuos =
-        duoEntries
-            .filter(
-                d => d.count > 0
+        [...duoEntries]
+            .sort(
+                (a, b) =>
+                    a.count -
+                    b.count
             )
-            .reverse()
             .slice(0, 3);
 
 
+    /* =====================================================
+       PROBABILIDAD DE CAMPEÓN
+    ===================================================== */
+
+    const probabilityData =
+        calculateChampionProbabilities(
+            validData,
+            TOTAL_FECHAS,
+            maxPJ,
+            currentLeaderG,
+            fechasFaltantes
+        );
+
+
     const html = `
+
         <div class="resumen-section">
 
-            <h4>Mejores (%)</h4>
+            <h4>
+                Mejores (%)
+            </h4>
 
-            ${topPerc.map(
-                p => `
-                    <div class="resumen-item">
-                        <span>${p.name}</span>
-                        <span class="val-win">
-                            ${Math.round(p.perc)}%
-                        </span>
-                    </div>
-                `
-            ).join('')}
+            ${
+                topPerc.length
+                    ? topPerc.map(
+                        p => `
+                            <div class="resumen-item">
+
+                                <span>
+                                    ${escapeHtml(p.name)}
+                                </span>
+
+                                <span class="val-win">
+                                    ${Math.round(p.perc)}%
+                                </span>
+
+                            </div>
+                        `
+                    ).join('')
+                    : '<div>-</div>'
+            }
 
 
-            <h4 style="margin-top:6px">
+            <h4 style="margin-top:6px;">
                 Peores (%)
             </h4>
 
-            ${botPerc.map(
-                p => `
-                    <div class="resumen-item">
-                        <span>${p.name}</span>
-                        <span class="val-loss">
-                            ${Math.round(p.perc)}%
-                        </span>
-                    </div>
-                `
-            ).join('')}
+            ${
+                botPerc.length
+                    ? botPerc.map(
+                        p => `
+                            <div class="resumen-item">
+
+                                <span>
+                                    ${escapeHtml(p.name)}
+                                </span>
+
+                                <span class="val-loss">
+                                    ${Math.round(p.perc)}%
+                                </span>
+
+                            </div>
+                        `
+                    ).join('')
+                    : '<div>-</div>'
+            }
 
 
-            <h4 style="margin-top:6px">
+            <h4 style="margin-top:6px;">
                 Parejas más frecuentes
             </h4>
 
             ${
-                topDuos.length > 0
+                topDuos.length
 
-                ? topDuos.map(
-                    d => `
-                        <div class="resumen-item">
-                            <span>${d.duo}</span>
-                            <span class="val-win">
-                                ${d.count}
-                            </span>
-                        </div>
-                    `
-                ).join('')
+                    ? topDuos.map(
+                        d => `
+                            <div class="resumen-item">
 
-                : '<div>-</div>'
+                                <span>
+                                    ${escapeHtml(d.duo)}
+                                </span>
+
+                                <span class="val-win">
+                                    ${d.count}
+                                </span>
+
+                            </div>
+                        `
+                    ).join('')
+
+                    : '<div>-</div>'
             }
 
         </div>
@@ -1558,63 +2126,88 @@ function renderResumen() {
 
         <div class="resumen-section">
 
-            <h4>Mejores Rachas</h4>
+            <h4>
+                Mejores Rachas
+            </h4>
 
-            ${topRacha.map(
-                p => `
-                    <div class="resumen-item">
-                        <span>${p.name}</span>
-                        <span class="val-win">
-                            ${
-                                p.racha > 0
-                                    ? '' + p.racha
-                                    : '-'
-                            }
-                        </span>
-                    </div>
-                `
-            ).join('')}
+            ${
+                topRacha.length
+                    ? topRacha.map(
+                        p => `
+                            <div class="resumen-item">
+
+                                <span>
+                                    ${escapeHtml(p.name)}
+                                </span>
+
+                                <span class="val-win">
+                                    ${
+                                        p.racha > 0
+                                            ? p.racha
+                                            : '-'
+                                    }
+                                </span>
+
+                            </div>
+                        `
+                    ).join('')
+                    : '<div>-</div>'
+            }
 
 
-            <h4 style="margin-top:6px">
+            <h4 style="margin-top:6px;">
                 Peores Rachas
             </h4>
 
-            ${botRacha.map(
-                p => `
-                    <div class="resumen-item">
-                        <span>${p.name}</span>
-                        <span class="val-loss">
-                            ${
-                                p.racha < 0
-                                    ? '' + Math.abs(p.racha)
-                                    : '-'
-                            }
-                        </span>
-                    </div>
-                `
-            ).join('')}
+            ${
+                botRacha.length
+                    ? botRacha.map(
+                        p => `
+                            <div class="resumen-item">
+
+                                <span>
+                                    ${escapeHtml(p.name)}
+                                </span>
+
+                                <span class="val-loss">
+                                    ${
+                                        p.racha < 0
+                                            ? Math.abs(p.racha)
+                                            : '-'
+                                    }
+                                </span>
+
+                            </div>
+                        `
+                    ).join('')
+                    : '<div>-</div>'
+            }
 
 
-            <h4 style="margin-top:6px">
+            <h4 style="margin-top:6px;">
                 Parejas menos frecuentes
             </h4>
 
             ${
-                botDuos.length > 0
+                botDuos.length
 
-                ? botDuos.map(
-                    d => `
-                        <div class="resumen-item">
-                            <span>${d.duo}</span>
-                            <span class="val-loss">
-                                ${d.count}
-                            </span>
-                        </div>
-                    `
-                ).join('')
+                    ? botDuos.map(
+                        d => `
+                            <div class="resumen-item">
 
-                : '<div>-</div>'
+                                <span>
+                                    ${escapeHtml(d.duo)}
+                                </span>
+
+                                <span class="val-loss">
+                                    ${d.count}
+                                </span>
+
+                            </div>
+                        `
+                    ).join('')
+
+                    : '<div>-</div>'
             }
 
         </div>
@@ -1625,7 +2218,12 @@ function renderResumen() {
             <h4 style="text-align:center;">
 
                 PROBABILIDADES CAMPEÓN
-                (FALTAN ${fechasFaltantes} FECHAS)
+
+                ${
+                    fechasFaltantes > 0
+                        ? `(FALTAN ${fechasFaltantes} FECHAS)`
+                        : '(ÚLTIMA FECHA)'
+                }
 
             </h4>
 
@@ -1640,144 +2238,11 @@ function renderResumen() {
             >
 
                 ${
-                    maxPJ > 0
+                    probabilityData.length
 
-                    ? validData.map(
-                        d => {
+                        ? probabilityData.map(
+                            p => `
 
-                            const r =
-                                Math.max(
-                                    0,
-                                    TOTAL_FECHAS -
-                                    maxPJ
-                                );
-
-
-                            const maxPossibleWins =
-                                d.g + r;
-
-
-                            if (
-                                maxPossibleWins <
-                                currentLeaderG ||
-                                d.pj === 0
-                            ) {
-
-                                return {
-                                    name: d.name,
-                                    score: 0
-                                };
-                            }
-
-
-                            const smoothedWinRate =
-                                (
-                                    d.g + 1
-                                ) /
-                                (
-                                    d.pj + 2
-                                );
-
-
-                            const attendanceFactor =
-                                d.pj /
-                                maxPJ;
-
-
-                            const chance =
-                                Math.pow(
-                                    d.g +
-                                    (
-                                        r *
-                                        smoothedWinRate *
-                                        attendanceFactor
-                                    ),
-                                    3
-                                );
-
-
-                            return {
-                                name:
-                                    d.name,
-
-                                score:
-                                    chance
-                            };
-
-                        }
-                    )
-                    .sort(
-                        (a,b) =>
-                            b.score -
-                            a.score
-                    )
-                    .map(
-                        p => {
-
-                            const totalS =
-                                validData.reduce(
-                                    (acc,s) => {
-
-                                        const r =
-                                            Math.max(
-                                                0,
-                                                TOTAL_FECHAS -
-                                                maxPJ
-                                            );
-
-
-                                        if (
-                                            (
-                                                s.g + r
-                                            ) <
-                                            currentLeaderG
-                                        ) {
-                                            return acc;
-                                        }
-
-
-                                        return (
-                                            acc +
-                                            Math.pow(
-                                                s.g +
-                                                (
-                                                    r *
-                                                    (
-                                                        (
-                                                            s.g + 1
-                                                        ) /
-                                                        (
-                                                            s.pj + 2
-                                                        )
-                                                    ) *
-                                                    (
-                                                        s.pj /
-                                                        maxPJ
-                                                    )
-                                                ),
-                                                3
-                                            )
-                                        );
-
-                                    },
-                                    0
-                                );
-
-
-                            const perc =
-                                Math.round(
-                                    (
-                                        p.score /
-                                        (
-                                            totalS ||
-                                            1
-                                        )
-                                    ) *
-                                    100
-                                );
-
-
-                            return `
                                 <div
                                     style="
                                         text-align:center;
@@ -1794,13 +2259,13 @@ function renderResumen() {
                                             font-weight:800;
                                             font-size:0.5rem;
                                             color:${
-                                                perc > 0
+                                                p.perc > 0
                                                     ? '#fff'
                                                     : '#666'
                                             };
                                         "
                                     >
-                                        ${p.name}
+                                        ${escapeHtml(p.name)}
                                     </div>
 
 
@@ -1809,33 +2274,32 @@ function renderResumen() {
                                         style="
                                             font-size:0.7rem;
                                             color:${
-                                                perc > 0
+                                                p.perc > 0
                                                     ? 'var(--dorado-campeon)'
                                                     : '#666'
                                             };
                                         "
                                     >
-                                        ${perc}%
+                                        ${p.perc}%
                                     </div>
 
                                 </div>
-                            `;
-                        }
-                    )
-                    .join('')
 
-                    : `
-                        <div
-                            style="
-                                font-size:0.6rem;
-                                color:#666;
-                                width:100%;
-                                text-align:center;
-                            "
-                        >
-                            Disponible en Fecha 13
-                        </div>
-                    `
+                            `
+                        ).join('')
+
+                        : `
+                            <div
+                                style="
+                                    font-size:0.6rem;
+                                    color:#666;
+                                    width:100%;
+                                    text-align:center;
+                                "
+                            >
+                                Disponible cuando haya resultados.
+                            </div>
+                        `
                 }
 
             </div>
@@ -1850,7 +2314,213 @@ function renderResumen() {
 }
 
 
+/* =========================================================
+   PROBABILIDADES CAMPEÓN
+========================================================= */
+
+function calculateChampionProbabilities(
+    validData,
+    totalFechas,
+    maxPJ,
+    currentLeaderG,
+    fechasFaltantes
+) {
+
+    if (
+        !validData.length ||
+        maxPJ <= 0
+    ) {
+        return [];
+    }
+
+
+    /*
+       Número de partidas futuras estimadas
+       según la participación del jugador.
+
+       Usamos la diferencia entre las fechas
+       restantes y la cantidad de partidas ya
+       disputadas como referencia.
+    */
+
+    const results =
+        validData.map(player => {
+
+            const currentPJ =
+                player.pj;
+
+
+            const remaining =
+                Math.max(
+                    0,
+                    fechasFaltantes
+                );
+
+
+            /*
+               Estimación conservadora de victorias
+               futuras.
+            */
+
+            const winRate =
+                (
+                    player.g + 1
+                ) /
+                (
+                    player.pj + 2
+                );
+
+
+            /*
+               Factor de participación.
+            */
+
+            const attendance =
+                maxPJ > 0
+                    ? Math.min(
+                        1,
+                        player.pj /
+                        maxPJ
+                    )
+                    : 0;
+
+
+            /*
+               Jugador sin ninguna partida:
+               probabilidad 0.
+            */
+
+            if (currentPJ === 0) {
+
+                return {
+                    name:
+                        player.name,
+
+                    score:
+                        0
+                };
+            }
+
+
+            /*
+               Estimación de victorias futuras.
+            */
+
+            const expectedFutureWins =
+                remaining *
+                winRate *
+                Math.max(
+                    0.5,
+                    attendance
+                );
+
+
+            const projectedWins =
+                player.g +
+                expectedFutureWins;
+
+
+            /*
+               Si incluso ganando todas las
+               fechas restantes no puede alcanzar
+               al líder, queda en 0%.
+            */
+
+            const absoluteMaximum =
+                player.g +
+                remaining;
+
+
+            if (
+                absoluteMaximum <
+                currentLeaderG
+            ) {
+
+                return {
+                    name:
+                        player.name,
+
+                    score:
+                        0
+                };
+            }
+
+
+            /*
+               Penalización muy ligera por
+               baja participación.
+            */
+
+            const participationFactor =
+                0.75 +
+                (
+                    0.25 *
+                    attendance
+                );
+
+
+            const score =
+                Math.pow(
+                    projectedWins,
+                    3
+                ) *
+                participationFactor;
+
+
+            return {
+
+                name:
+                    player.name,
+
+                score
+            };
+
+        });
+
+
+    const totalScore =
+        results.reduce(
+            (sum, p) =>
+                sum + p.score,
+            0
+        );
+
+
+    return results
+        .map(p => ({
+
+            name:
+                p.name,
+
+            perc:
+                totalScore > 0
+                    ? Math.round(
+                        (
+                            p.score /
+                            totalScore
+                        ) *
+                        100
+                    )
+                    : 0,
+
+            score:
+                p.score
+        }))
+        .sort(
+            (a, b) =>
+                b.score -
+                a.score
+        );
+}
+
+
+/* =========================================================
+   RENDER TABLA
+========================================================= */
+
 function render() {
+
+    normalizeStats();
 
     const tbody =
         document.getElementById(
@@ -1870,17 +2540,18 @@ function render() {
 
 
     stats.forEach(
-        (p, i) => {
+        (player, i) => {
 
             const total =
-                p.g + p.p;
+                player.g +
+                player.p;
 
 
             const perc =
                 total > 0
                     ? Math.round(
                         (
-                            p.g /
+                            player.g /
                             total
                         ) *
                         100
@@ -1890,7 +2561,8 @@ function render() {
 
             const isBA =
                 maxPJ >= 7 &&
-                total < (
+                total <
+                (
                     maxPJ / 2
                 );
 
@@ -1903,27 +2575,42 @@ function render() {
                     );
 
 
-            let posDisplay =
-                (i === 0)
-                    ? '🏆'
-                    : (i === 1)
-                        ? '🥈'
-                        : (i === 2)
-                            ? '🥉'
-                            : (
-                                i === stats.length - 1 &&
-                                stats.length > 3
-                            )
-                                ? '💀'
-                                : i + 1;
+            let posDisplay;
 
+            if (i === 0) {
+                posDisplay = '🏆';
+            }
+
+            else if (i === 1) {
+                posDisplay = '🥈';
+            }
+
+            else if (i === 2) {
+                posDisplay = '🥉';
+            }
+
+            else if (
+                i === stats.length - 1 &&
+                stats.length > 3
+            ) {
+                posDisplay = '💀';
+            }
+
+            else {
+                posDisplay =
+                    i + 1;
+            }
+
+
+            /*
+               Movimiento en la clasificación.
+            */
 
             let rachaIcon = '';
 
-
             const oldIndex =
                 prevOrder.indexOf(
-                    p.name
+                    player.name
                 );
 
 
@@ -1934,7 +2621,9 @@ function render() {
                     rachaIcon =
                         '<span class="racha sube">↑</span>';
 
-                } else if (i > oldIndex) {
+                }
+
+                else if (i > oldIndex) {
 
                     rachaIcon =
                         '<span class="racha baja">↓</span>';
@@ -1944,7 +2633,7 @@ function render() {
 
             const racha =
                 getRacha(
-                    p.history
+                    player.history
                 );
 
 
@@ -1971,204 +2660,260 @@ function render() {
 
             const lastResults =
                 (
-                    p.history ||
+                    player.history ||
                     []
                 ).slice(-30);
 
 
-            let dots =
-                '<div class="dots-container">' +
-                lastResults.map(
-                    res =>
-                        `<span class="dot dot-${res}"></span>`
-                ).join('') +
-                '</div>';
+            const dots =
+                `
+                <div class="dots-container">
+
+                    ${
+                        lastResults.map(
+                            result =>
+                                `
+                                <span
+                                    class="dot dot-${result}"
+                                ></span>
+                                `
+                        ).join('')
+                    }
+
+                </div>
+                `;
 
 
-            tbody.innerHTML += `
+            const tr =
+                document.createElement(
+                    'tr'
+                );
 
-                <tr
-                    class="${
-                        (
-                            i === 0 &&
-                            p.isChampion
-                        )
-                            ? 'fila-campeon'
-                            : ''
-                    }"
+
+            if (
+                player.isChampion
+            ) {
+                tr.className =
+                    'fila-campeon';
+            }
+
+
+            tr.innerHTML = `
+
+                <td class="col-pos">
+                    ${posDisplay}
+                </td>
+
+
+                <td
+                    class="name-col"
+                    onmousedown="handleStart(${i})"
+                    onmouseup="handleEnd()"
+                    onmouseleave="handleEnd()"
+                    ontouchstart="handleStart(${i})"
+                    ontouchend="handleEnd()"
+                    ontouchcancel="handleEnd()"
                 >
 
-                    <td class="col-pos">
-                        ${posDisplay}
-                    </td>
+                    <div class="name-wrapper">
 
-
-                    <td
-                        class="name-col"
-                        onmousedown="handleStart(${i})"
-                        onmouseup="handleEnd()"
-                        ontouchstart="handleStart(${i})"
-                        ontouchend="handleEnd()"
-                    >
-
-                        <div class="name-wrapper">
-
-                            <span
-                                style="
-                                    white-space:nowrap;
-                                    overflow:hidden;
-                                    text-overflow:ellipsis;
-                                "
-                            >
-                                ${
-                                    p.isChampion
-                                        ? '👑 '
-                                        : ''
-                                }
-
-                                ${p.name}
-
-                                ${fire}
-                                ${anchor}
-                                ${trunk}
-
-                                ${
-                                    isBA
-                                        ? ' <small>(BA)</small>'
-                                        : ''
-                                }
-
-                                ${rachaIcon}
-                            </span>
-
-                            ${dots}
-
-                        </div>
-
-                    </td>
-
-
-                    <td class="col-pj">
-
-                        <input
-                            type="number"
-                            class="table-input"
-                            min="0"
-                            value="${total}"
-                            ${
-                                isEditMode
-                                    ? ''
-                                    : 'readonly'
-                            }
-                            onchange="editTableField(${i}, 'pj', this.value)"
-                            onclick="event.stopPropagation()"
+                        <span
+                            style="
+                                white-space:nowrap;
+                                overflow:hidden;
+                                text-overflow:ellipsis;
+                            "
                         >
 
-                        <span class="input-snapshot">
-                            ${total}
-                        </span>
-
-                    </td>
-
-
-                    <td class="col-p">
-
-                        <input
-                            type="number"
-                            class="table-input"
-                            min="0"
-                            value="${p.p}"
                             ${
-                                isEditMode
-                                    ? ''
-                                    : 'readonly'
+                                player.isChampion
+                                    ? '👑 '
+                                    : ''
                             }
-                            onchange="editTableField(${i}, 'p', this.value)"
-                            onclick="event.stopPropagation()"
-                        >
 
-                        <span class="input-snapshot">
-                            ${p.p}
-                        </span>
+                            ${escapeHtml(player.name)}
 
-                    </td>
+                            ${fire}
+                            ${anchor}
+                            ${trunk}
 
-
-                    <td class="col-g">
-
-                        <input
-                            type="number"
-                            class="table-input"
-                            min="0"
-                            value="${p.g}"
                             ${
-                                isEditMode
-                                    ? ''
-                                    : 'readonly'
+                                isBA
+                                    ? ' <small>(BA)</small>'
+                                    : ''
                             }
-                            onchange="editTableField(${i}, 'g', this.value)"
-                            onclick="event.stopPropagation()"
-                        >
 
-                        <span class="input-snapshot">
-                            ${p.g}
+                            ${rachaIcon}
+
                         </span>
 
-                    </td>
+                        ${dots}
+
+                    </div>
+
+                </td>
 
 
-                    <td
-                        class="perc-cell"
-                        style="
-                            background:${bgPerc};
-                            color:${
-                                (
-                                    isBA ||
-                                    perc >= 75 ||
-                                    perc < 35
-                                )
-                                    ? 'white'
-                                    : 'black'
-                            };
+                <!-- J -->
+
+                <td class="col-pj">
+
+                    <input
+                        type="number"
+                        class="table-input"
+                        min="0"
+                        value="${total}"
+                        ${
+                            isEditMode
+                                ? ''
+                                : 'readonly'
+                        }
+                        onchange="
+                            editTableField(
+                                ${i},
+                                'pj',
+                                this.value
+                            )
                         "
+                        onclick="event.stopPropagation()"
                     >
-                        ${perc}%
-                    </td>
+
+                    <span class="input-snapshot">
+                        ${total}
+                    </span>
+
+                </td>
 
 
-                    <td class="col-food">
+                <!-- P -->
 
-                        <input
-                            type="number"
-                            class="table-input"
-                            min="0"
-                            value="${p.food}"
-                            ${
-                                isEditMode
-                                    ? ''
-                                    : 'readonly'
-                            }
-                            onchange="editTableField(${i}, 'food', this.value)"
-                            onclick="event.stopPropagation()"
-                        >
+                <td class="col-p">
 
-                        <span class="input-snapshot">
-                            ${p.food}
-                        </span>
+                    <input
+                        type="number"
+                        class="table-input"
+                        min="0"
+                        value="${player.p}"
+                        ${
+                            isEditMode
+                                ? ''
+                                : 'readonly'
+                        }
+                        onchange="
+                            editTableField(
+                                ${i},
+                                'p',
+                                this.value
+                            )
+                        "
+                        onclick="event.stopPropagation()"
+                    >
 
-                    </td>
+                    <span class="input-snapshot">
+                        ${player.p}
+                    </span>
 
-                </tr>
+                </td>
+
+
+                <!-- G -->
+
+                <td class="col-g">
+
+                    <input
+                        type="number"
+                        class="table-input"
+                        min="0"
+                        value="${player.g}"
+                        ${
+                            isEditMode
+                                ? ''
+                                : 'readonly'
+                        }
+                        onchange="
+                            editTableField(
+                                ${i},
+                                'g',
+                                this.value
+                            )
+                        "
+                        onclick="event.stopPropagation()"
+                    >
+
+                    <span class="input-snapshot">
+                        ${player.g}
+                    </span>
+
+                </td>
+
+
+                <!-- % -->
+
+                <td
+                    class="perc-cell"
+                    style="
+                        background:${bgPerc};
+                        color:${
+                            (
+                                isBA ||
+                                perc >= 75 ||
+                                perc < 35
+                            )
+                                ? 'white'
+                                : 'black'
+                        };
+                    "
+                >
+                    ${perc}%
+                </td>
+
+
+                <!-- CASA -->
+
+                <td class="col-food">
+
+                    <input
+                        type="number"
+                        class="table-input"
+                        min="0"
+                        value="${player.food}"
+                        ${
+                            isEditMode
+                                ? ''
+                                : 'readonly'
+                        }
+                        onchange="
+                            editTableField(
+                                ${i},
+                                'food',
+                                this.value
+                            )
+                        "
+                        onclick="event.stopPropagation()"
+                    >
+
+                    <span class="input-snapshot">
+                        ${player.food}
+                    </span>
+
+                </td>
+
             `;
+
+
+            tbody.appendChild(tr);
         }
     );
 
+
+    /*
+       Guardamos sin modificar el orden.
+    */
 
     localStorage.setItem(
         'torneo_final_stats',
         JSON.stringify(stats)
     );
-
 
     localStorage.setItem(
         'torneo_partnerships',
@@ -2180,45 +2925,77 @@ function render() {
 }
 
 
-function updateTitle(val) {
+/* =========================================================
+   TÍTULO
+========================================================= */
+
+function updateTitle(value) {
+
+    const title =
+        value.trim() ||
+        'Clausura Truco 2026';
+
 
     document.getElementById(
         'displayTitle'
-    ).innerText = val;
+    ).innerText =
+        title;
 
 
     localStorage.setItem(
         'torneo_titulo',
-        val
+        title
     );
 }
 
 
+/* =========================================================
+   LONG PRESS
+========================================================= */
+
 function handleStart(idx) {
 
-    if (!isEditMode)
+    if (!isEditMode) {
         return;
+    }
+
+
+    clearTimeout(
+        pressTimer
+    );
 
 
     pressTimer =
         setTimeout(
             () =>
                 openPlayerModal(idx),
-            3000
+            1000
         );
 }
 
 
 function handleEnd() {
-    clearTimeout(pressTimer);
+
+    clearTimeout(
+        pressTimer
+    );
 }
 
 
+/* =========================================================
+   MODAL JUGADOR
+========================================================= */
+
 function openPlayerModal(idx) {
+
+    if (!stats[idx]) {
+        return;
+    }
 
     vibrar(200);
 
-    activePlayerIdx = idx;
+    activePlayerIdx =
+        idx;
 
 
     document.getElementById(
@@ -2232,7 +3009,8 @@ function openPlayerModal(idx) {
 
     document.getElementById(
         'playerModal'
-    ).style.display = 'flex';
+    ).style.display =
+        'flex';
 }
 
 
@@ -2240,7 +3018,8 @@ function closeModal() {
 
     document.getElementById(
         'playerModal'
-    ).style.display = 'none';
+    ).style.display =
+        'none';
 }
 
 
@@ -2248,12 +3027,14 @@ function showEditSection() {
 
     document.getElementById(
         'modalMainActions'
-    ).style.display = 'none';
+    ).style.display =
+        'none';
 
 
     document.getElementById(
         'editNameContainer'
-    ).style.display = 'block';
+    ).style.display =
+        'block';
 
 
     document.getElementById(
@@ -2267,12 +3048,14 @@ function showDelSection() {
 
     document.getElementById(
         'modalMainActions'
-    ).style.display = 'none';
+    ).style.display =
+        'none';
 
 
     document.getElementById(
         'confirmDelContainer'
-    ).style.display = 'block';
+    ).style.display =
+        'block';
 }
 
 
@@ -2280,60 +3063,168 @@ function resetModalViews() {
 
     document.getElementById(
         'modalMainActions'
-    ).style.display = 'block';
+    ).style.display =
+        'block';
 
 
     document.getElementById(
         'editNameContainer'
-    ).style.display = 'none';
+    ).style.display =
+        'none';
 
 
     document.getElementById(
         'confirmDelContainer'
-    ).style.display = 'none';
+    ).style.display =
+        'none';
 }
 
 
+/* =========================================================
+   ACCIONES DEL MODAL
+========================================================= */
+
 function modalAction(type) {
+
+    if (
+        activePlayerIdx === null ||
+        !stats[activePlayerIdx]
+    ) {
+        return;
+    }
+
 
     saveUndoState();
 
 
+    /* EDITAR */
+
     if (type === 'edit') {
 
-        stats[activePlayerIdx].name =
-            document
-                .getElementById(
-                    'editNameInput'
-                )
-                .value
-                .trim();
+        const newName =
+            document.getElementById(
+                'editNameInput'
+            )
+            .value
+            .trim();
 
+
+        if (!newName) {
+
+            alert(
+                'El nombre no puede estar vacío.'
+            );
+
+            undoStack.pop();
+
+            return;
+        }
+
+
+        const oldName =
+            stats[activePlayerIdx].name;
+
+
+        /*
+           Si cambia el nombre,
+           también actualizamos las parejas.
+        */
+
+        if (
+            oldName !== newName
+        ) {
+
+            const updatedPartnerships =
+                {};
+
+
+            Object.entries(
+                partnerships
+            ).forEach(
+                ([key, count]) => {
+
+                    const parts =
+                        key.split(
+                            ' | '
+                        );
+
+
+                    const updated =
+                        parts.map(
+                            name =>
+                                name === oldName
+                                    ? newName
+                                    : name
+                        );
+
+
+                    updated.sort();
+
+
+                    const newKey =
+                        updated.join(
+                            ' | '
+                        );
+
+
+                    updatedPartnerships[newKey] =
+                        (
+                            updatedPartnerships[newKey] ||
+                            0
+                        ) + count;
+                }
+            );
+
+
+            partnerships =
+                updatedPartnerships;
+        }
+
+
+        stats[activePlayerIdx].name =
+            newName;
     }
 
-    else if (type === 'champion') {
 
-        const was =
-            stats[activePlayerIdx]
-                .isChampion;
+    /* CAMPEÓN */
+
+    else if (
+        type === 'champion'
+    ) {
+
+        const wasChampion =
+            Boolean(
+                stats[activePlayerIdx]
+                    .isChampion
+            );
 
 
         stats.forEach(
-            s =>
-                s.isChampion = false
+            player =>
+                player.isChampion = false
         );
 
 
+        /*
+           Si ya era campeón,
+           se desmarca.
+        */
+
         stats[activePlayerIdx]
             .isChampion =
-            !was;
-
+                !wasChampion;
     }
 
-    else if (type === 'delete') {
+
+    /* ELIMINAR */
+
+    else if (
+        type === 'delete'
+    ) {
 
         const deletedName =
-            stats[activePlayerIdx].name;
+            stats[activePlayerIdx]
+                .name;
 
 
         stats.splice(
@@ -2342,45 +3233,62 @@ function modalAction(type) {
         );
 
 
-        for (let key in partnerships) {
+        /*
+           Eliminamos todas las parejas
+           que contengan al jugador.
+        */
 
-            if (
-                key
-                    .split(' | ')
-                    .includes(
-                        deletedName
-                    )
-            ) {
+        Object.keys(
+            partnerships
+        ).forEach(
+            key => {
 
-                delete partnerships[key];
+                if (
+                    key
+                        .split(' | ')
+                        .includes(
+                            deletedName
+                        )
+                ) {
+
+                    delete partnerships[key];
+                }
             }
-        }
+        );
     }
 
 
-    render();
+    activePlayerIdx =
+        null;
+
+
+    saveTableData();
 
     closeModal();
 }
 
 
+/* =========================================================
+   RACHAS
+========================================================= */
+
 function getRacha(history) {
 
     if (
-        !history ||
+        !Array.isArray(history) ||
         history.length === 0
     ) {
         return 0;
     }
 
 
-    let r = 0;
-
-
     const last =
         history[
             history.length - 1
         ];
+
+
+    let r = 0;
 
 
     for (
@@ -2409,25 +3317,40 @@ function getRacha(history) {
 }
 
 
+/* =========================================================
+   COLORES
+========================================================= */
+
 function getGradientColor(perc) {
 
-    if (perc >= 70)
-        return "#388E3C";
+    if (perc >= 70) {
+        return '#388E3C';
+    }
 
-    if (perc >= 50)
-        return "#FBC02D";
+    if (perc >= 50) {
+        return '#FBC02D';
+    }
 
-    if (perc >= 35)
-        return "#F57C00";
+    if (perc >= 35) {
+        return '#F57C00';
+    }
 
-    return "#D32F2F";
+    return '#D32F2F';
 }
 
 
+/* =========================================================
+   CAMBIOS RÁPIDOS
+========================================================= */
+
 function quickAdd(idx, field) {
 
-    if (!isEditMode)
+    if (
+        !isEditMode ||
+        !stats[idx]
+    ) {
         return;
+    }
 
 
     saveUndoState();
@@ -2444,96 +3367,140 @@ function quickAdd(idx, field) {
 }
 
 
-function handleStatChange(idx, f, v) {
+/* =========================================================
+   CAMBIO DE ESTADÍSTICA
+========================================================= */
 
-    if (!stats[idx].history) {
-        stats[idx].history = [];
+function handleStatChange(
+    idx,
+    field,
+    value
+) {
+
+    if (!stats[idx]) {
+        return;
     }
 
+
+    const player =
+        stats[idx];
+
+
+    const oldValue =
+        Number(
+            player[field]
+        ) || 0;
+
+
+    const newValue =
+        Math.max(
+            0,
+            Number(value) || 0
+        );
+
+
+    /*
+       Solo G y P modifican historial.
+    */
 
     if (
-        v >
-        stats[idx][f]
+        field === 'g' ||
+        field === 'p'
     ) {
 
-        stats[idx].history.push(f);
+        player[field] =
+            newValue;
 
-    }
+        rebuildHistory(idx);
 
-    else if (
-        v <
-        stats[idx][f]
-    ) {
+    } else {
 
-        const l =
-            stats[idx]
-                .history
-                .lastIndexOf(f);
-
-
-        if (l !== -1) {
-
-            stats[idx]
-                .history
-                .splice(
-                    l,
-                    1
-                );
-        }
+        player[field] =
+            newValue;
     }
 
 
-    stats[idx][f] = v;
+    return {
+        oldValue,
+        newValue
+    };
 }
 
 
-/* ================================
-   EDICIÓN MANUAL DE LA TABLA
-   ================================ */
+/* =========================================================
+   EDICIÓN MANUAL
+========================================================= */
 
-function editTableField(idx, field, value) {
+function editTableField(
+    idx,
+    field,
+    value
+) {
 
-    if (!isEditMode) {
+    if (
+        !isEditMode ||
+        !stats[idx]
+    ) {
+
         render();
+
         return;
     }
 
 
     let newValue =
-        parseInt(value);
+        parseInt(
+            value,
+            10
+        );
 
 
     if (
         isNaN(newValue) ||
         newValue < 0
     ) {
+
         render();
+
         return;
     }
+
+
+    /*
+       No permitimos valores absurdos.
+    */
+
+    newValue =
+        Math.floor(
+            newValue
+        );
 
 
     saveUndoState();
 
 
-    /*
-        J = G + P
-
-        Al editar J se mantiene G y
-        se ajusta P para que el total
-        coincida.
-    */
-
-    if (field === 'pj') {
-
-        const currentG =
-            stats[idx].g;
+    const player =
+        stats[idx];
 
 
-        stats[idx].p =
+    /* =====================================================
+       J = G + P
+    ===================================================== */
+
+    if (
+        field === 'pj'
+    ) {
+
+        /*
+           Al modificar J mantenemos G
+           y ajustamos P.
+        */
+
+        player.p =
             Math.max(
                 0,
                 newValue -
-                currentG
+                player.g
             );
 
 
@@ -2541,12 +3508,49 @@ function editTableField(idx, field, value) {
     }
 
 
+    /* =====================================================
+       G
+    ===================================================== */
+
     else if (
-        field === 'g' ||
+        field === 'g'
+    ) {
+
+        /*
+           G no puede ser mayor que J
+           si J se interpreta como G + P.
+
+           Por eso, si se aumenta G,
+           se permite que J aumente automáticamente.
+        */
+
+        player.g =
+            newValue;
+
+
+        const total =
+            player.g +
+            player.p;
+
+
+        /*
+           J se calcula automáticamente,
+           por lo que no necesitamos almacenarlo.
+        */
+
+        rebuildHistory(idx);
+    }
+
+
+    /* =====================================================
+       P
+    ===================================================== */
+
+    else if (
         field === 'p'
     ) {
 
-        stats[idx][field] =
+        player.p =
             newValue;
 
 
@@ -2554,11 +3558,15 @@ function editTableField(idx, field, value) {
     }
 
 
+    /* =====================================================
+       CASA
+    ===================================================== */
+
     else if (
         field === 'food'
     ) {
 
-        stats[idx].food =
+        player.food =
             newValue;
     }
 
@@ -2567,20 +3575,36 @@ function editTableField(idx, field, value) {
 }
 
 
+/* =========================================================
+   RECONSTRUIR HISTORIAL
+========================================================= */
+
 function rebuildHistory(idx) {
 
     const player =
         stats[idx];
 
 
-    const newHistory = [];
+    if (!player) {
+        return;
+    }
 
 
     /*
-        Se reconstruye el historial
-        para que coincida con los
-        valores corregidos.
+       IMPORTANTE:
+
+       La edición manual no puede saber
+       el orden histórico real de las
+       partidas.
+
+       Por eso reconstruimos el historial
+       de forma determinista.
+
+       Primero victorias y después derrotas.
     */
+
+    const history = [];
+
 
     for (
         let i = 0;
@@ -2588,7 +3612,7 @@ function rebuildHistory(idx) {
         i++
     ) {
 
-        newHistory.push('g');
+        history.push('g');
     }
 
 
@@ -2598,19 +3622,27 @@ function rebuildHistory(idx) {
         i++
     ) {
 
-        newHistory.push('p');
+        history.push('p');
     }
 
 
     player.history =
-        newHistory;
+        history;
 }
 
 
+/* =========================================================
+   CASA
+========================================================= */
+
 function handleFoodChange(idx) {
 
-    if (!isEditMode)
+    if (
+        !isEditMode ||
+        !stats[idx]
+    ) {
         return;
+    }
 
 
     saveUndoState();
@@ -2619,31 +3651,48 @@ function handleFoodChange(idx) {
     stats[idx].food++;
 
 
-    render();
+    saveTableData();
 }
 
+
+/* =========================================================
+   ORDENAR TABLA
+========================================================= */
 
 function saveTableData() {
 
     vibrar();
 
 
+    /*
+       Guardamos el orden ANTERIOR
+       antes de ordenar.
+
+       Esto corrige el problema de las
+       flechas ↑ ↓.
+    */
+
     prevOrder =
         stats.map(
-            s => s.name
+            player =>
+                player.name
         );
 
 
-    localStorage.setItem(
-        'torneo_prev_order',
-        JSON.stringify(prevOrder)
-    );
+    /*
+       Orden:
 
+       1. Más victorias.
+       2. Mejor porcentaje.
+       3. Más partidas.
+    */
 
     stats.sort(
         (a, b) => {
 
-            if (b.g !== a.g) {
+            if (
+                b.g !== a.g
+            ) {
 
                 return (
                     b.g -
@@ -2652,29 +3701,81 @@ function saveTableData() {
             }
 
 
+            const totalA =
+                a.g +
+                a.p;
+
+            const totalB =
+                b.g +
+                b.p;
+
+
+            const percA =
+                totalA > 0
+                    ? a.g / totalA
+                    : 0;
+
+
+            const percB =
+                totalB > 0
+                    ? b.g / totalB
+                    : 0;
+
+
+            if (
+                percB !== percA
+            ) {
+
+                return (
+                    percB -
+                    percA
+                );
+            }
+
+
             return (
-                b.g /
-                (
-                    b.g +
-                    b.p ||
-                    1
-                )
-            ) -
-            (
-                a.g /
-                (
-                    a.g +
-                    a.p ||
-                    1
-                )
+                totalB -
+                totalA
             );
         }
+    );
+
+
+    /*
+       El orden actual se guarda
+       después de ordenar.
+
+       El orden anterior se mantiene
+       en memoria para mostrar ↑ ↓.
+    */
+
+    localStorage.setItem(
+        'torneo_prev_order',
+        JSON.stringify(
+            prevOrder
+        )
+    );
+
+
+    localStorage.setItem(
+        'torneo_final_stats',
+        JSON.stringify(stats)
+    );
+
+
+    localStorage.setItem(
+        'torneo_partnerships',
+        JSON.stringify(partnerships)
     );
 
 
     render();
 }
 
+
+/* =========================================================
+   COMPARTIR IMAGEN
+========================================================= */
 
 async function shareAsImage() {
 
@@ -2688,43 +3789,122 @@ async function shareAsImage() {
 
     try {
 
-        const c =
+        const capture =
+            document.getElementById(
+                'captureArea'
+            );
+
+
+        const canvas =
             await html2canvas(
-                document.getElementById(
-                    'captureArea'
-                ),
+                capture,
                 {
-                    backgroundColor: "#000",
-                    scale: 3
+                    backgroundColor:
+                        '#000',
+
+                    scale: 3,
+
+                    useCORS: true
                 }
             );
 
 
-        const b =
+        const blob =
             await new Promise(
-                r =>
-                    c.toBlob(r)
+                resolve =>
+                    canvas.toBlob(
+                        resolve,
+                        'image/png'
+                    )
             );
 
 
-        const f =
-            new File(
-                [b],
-                'tabla.png',
-                {
-                    type: 'image/png'
-                }
+        if (!blob) {
+            throw new Error(
+                'No se pudo crear la imagen.'
             );
-
-
-        if (navigator.share) {
-
-            await navigator.share({
-                files: [f]
-            });
         }
 
-    } catch (e) {}
+
+        const file =
+            new File(
+                [blob],
+                'tabla-truco.png',
+                {
+                    type:
+                        'image/png'
+                }
+            );
+
+
+        /*
+           Compartir directamente
+           si el navegador lo permite.
+        */
+
+        if (
+            navigator.share &&
+            navigator.canShare &&
+            navigator.canShare({
+                files: [file]
+            })
+        ) {
+
+            await navigator.share({
+                files: [file],
+                title:
+                    document.getElementById(
+                        'displayTitle'
+                    ).innerText
+            });
+
+        }
+
+        /*
+           Fallback para navegadores
+           que no soportan compartir archivos.
+        */
+
+        else {
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            const a =
+                document.createElement(
+                    'a'
+                );
+
+
+            a.href = url;
+
+            a.download =
+                'tabla-truco.png';
+
+            a.click();
+
+
+            setTimeout(
+                () =>
+                    URL.revokeObjectURL(
+                        url
+                    ),
+                1000
+            );
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            'Error compartiendo:',
+            error
+        );
+    }
 
 
     document.body.classList.remove(
@@ -2733,141 +3913,347 @@ async function shareAsImage() {
 }
 
 
+/* =========================================================
+   EXPORTAR BACKUP
+========================================================= */
+
 function exportData() {
 
-    const b =
+    const data = {
+
+        version:
+            2,
+
+        title:
+            localStorage.getItem(
+                'torneo_titulo'
+            ) ||
+            'Clausura Truco 2026',
+
+        stats:
+            stats,
+
+        partnerships:
+            partnerships
+    };
+
+
+    const blob =
         new Blob(
             [
-                JSON.stringify({
-                    stats,
-                    partnerships
-                })
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
             ],
             {
                 type:
-                    "application/json"
+                    'application/json'
             }
         );
 
 
-    const u =
-        URL.createObjectURL(b);
+    const url =
+        URL.createObjectURL(
+            blob
+        );
 
 
     const a =
-        document.createElement('a');
+        document.createElement(
+            'a'
+        );
 
 
-    a.href = u;
+    a.href =
+        url;
+
 
     a.download =
-        "backup.json";
+        'backup-truco.json';
 
+
+    document.body.appendChild(a);
 
     a.click();
+
+    a.remove();
+
+
+    setTimeout(
+        () =>
+            URL.revokeObjectURL(
+                url
+            ),
+        1000
+    );
 }
 
+
+/* =========================================================
+   IMPORTAR BACKUP
+========================================================= */
 
 function importData() {
 
-    const i =
-        document.createElement('input');
+    const input =
+        document.createElement(
+            'input'
+        );
 
 
-    i.type = 'file';
+    input.type =
+        'file';
+
+    input.accept =
+        '.json,application/json';
 
 
-    i.onchange = e => {
+    input.onchange =
+        event => {
 
-        const r =
-            new FileReader();
-
-
-        r.onload = ev => {
-
-            const d =
-                JSON.parse(
-                    ev.target.result
-                );
+            const file =
+                event.target.files[0];
 
 
-            stats =
-                d.stats ||
-                d;
+            if (!file) {
+                return;
+            }
 
 
-            partnerships =
-                d.partnerships ||
-                {};
+            const reader =
+                new FileReader();
 
 
-            render();
+            reader.onload =
+                loadEvent => {
+
+                    try {
+
+                        const data =
+                            JSON.parse(
+                                loadEvent
+                                    .target
+                                    .result
+                            );
+
+
+                        /*
+                           Soporta:
+
+                           {
+                              stats: [...],
+                              partnerships: {...}
+                           }
+
+                           y también backups
+                           antiguos que eran
+                           directamente un array.
+                        */
+
+                        if (
+                            Array.isArray(data)
+                        ) {
+
+                            stats =
+                                data;
+
+                            partnerships =
+                                {};
+
+                        }
+
+                        else {
+
+                            stats =
+                                data.stats ||
+                                [];
+
+                            partnerships =
+                                data.partnerships ||
+                                {};
+
+                            if (
+                                data.title
+                            ) {
+
+                                localStorage.setItem(
+                                    'torneo_titulo',
+                                    data.title
+                                );
+                            }
+                        }
+
+
+                        normalizeStats();
+
+
+                        /*
+                           Eliminamos undo anterior
+                           para evitar volver a un
+                           estado incompatible.
+                        */
+
+                        undoStack =
+                            [];
+
+
+                        saveLocalData();
+
+
+                        const savedTitle =
+                            localStorage.getItem(
+                                'torneo_titulo'
+                            ) ||
+                            'Clausura Truco 2026';
+
+
+                        document.getElementById(
+                            'displayTitle'
+                        ).innerText =
+                            savedTitle;
+
+
+                        document.getElementById(
+                            'editTitle'
+                        ).value =
+                            savedTitle;
+
+
+                        render();
+
+
+                        alert(
+                            'Backup cargado correctamente.'
+                        );
+
+                    }
+
+                    catch (error) {
+
+                        console.error(
+                            error
+                        );
+
+                        alert(
+                            'El archivo no es un backup válido.'
+                        );
+                    }
+                };
+
+
+            reader.readAsText(
+                file
+            );
         };
 
 
-        r.readAsText(
-            e.target.files[0]
-        );
-    };
-
-
-    i.click();
+    input.click();
 }
 
+
+/* =========================================================
+   AÑADIR JUGADOR
+========================================================= */
 
 function addNewPlayer() {
 
-    const n =
-        document
-            .getElementById(
-                'newPlayerName'
-            )
-            .value
-            .trim();
-
-
-    if (n) {
-
-        saveUndoState();
-
-
-        stats.push({
-
-            name:
-                n,
-
-            p:
-                0,
-
-            g:
-                0,
-
-            food:
-                0,
-
-            history:
-                [],
-
-            isChampion:
-                false
-        });
-
-
+    const input =
         document.getElementById(
             'newPlayerName'
-        ).value = '';
+        );
 
 
-        saveTableData();
+    const name =
+        input.value.trim();
+
+
+    if (!name) {
+        return;
     }
+
+
+    /*
+       Evitar nombres duplicados.
+    */
+
+    const exists =
+        stats.some(
+            player =>
+                player.name
+                    .toLowerCase() ===
+                name.toLowerCase()
+        );
+
+
+    if (exists) {
+
+        alert(
+            'Ya existe un jugador con ese nombre.'
+        );
+
+        return;
+    }
+
+
+    saveUndoState();
+
+
+    stats.push({
+
+        name,
+
+        p: 0,
+
+        g: 0,
+
+        food: 0,
+
+        history: [],
+
+        isChampion: false
+
+    });
+
+
+    input.value =
+        '';
+
+
+    saveTableData();
 }
 
+
+/* =========================================================
+   ENTER PARA AÑADIR JUGADOR
+========================================================= */
+
+document.getElementById(
+    'newPlayerName'
+).addEventListener(
+    'keydown',
+    event => {
+
+        if (
+            event.key === 'Enter'
+        ) {
+
+            addNewPlayer();
+        }
+    }
+);
+
+
+/* =========================================================
+   CARGAR TÍTULO
+========================================================= */
 
 const savedTitle =
     localStorage.getItem(
         'torneo_titulo'
     ) ||
-    "Clausura Truco 2026";
+    'Clausura Truco 2026';
 
 
 document.getElementById(
@@ -2881,6 +4267,12 @@ document.getElementById(
 ).value =
     savedTitle;
 
+
+/* =========================================================
+   INICIALIZACIÓN
+========================================================= */
+
+normalizeStats();
 
 render();
 
