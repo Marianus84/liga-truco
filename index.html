@@ -1,4280 +1,1937 @@
 <!DOCTYPE html>
-<html lang="es-AR">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    >
+    <title>El Camino del Héroe</title>
 
-    <title>Tabla Campeonato de Truco</title>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <link rel="manifest" href="manifest.json">
-
-    <meta name="theme-color" content="#1a472a">
+    <link id="dynamic-manifest" rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22El%20Camino%20del%20H%C3%A9roe%22%2C%22short_name%22%3A%22H%C3%A9roe%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230b0f19%22%2C%22theme_color%22%3A%22%230b0f19%22%2C%22icons%22%3A%5B%5D%7D">
+    <meta name="theme-color" content="#0b0f19">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta
-        name="apple-mobile-web-app-status-bar-style"
-        content="black-translucent"
-    >
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Héroe">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        :root {
-            --verde-mesa: #1a472a;
-            --header-table: #000000;
-            --azul-oscuro: #002060;
-            --blanco-marfil: #FFFFFF;
-            --rojo-delete: #ef4444;
-            --win-dot: #22c55e;
-            --loss-dot: #ef4444;
-            --dorado-campeon: #ffd700;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
 
         * {
             box-sizing: border-box;
         }
 
+        html,
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background: var(--verde-mesa);
-            color: #f3f4f6;
             margin: 0;
-            padding: 5px;
+            padding: 0;
+            background: #0b0f19;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, .hero-font {
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+        }
+
+        button,
+        input,
+        select {
+            font-family: 'Inter', sans-serif;
+        }
+
+        button {
             -webkit-tap-highlight-color: transparent;
         }
 
-        .container {
-            max-width: 100%;
+        .app {
+            max-width: 480px;
+            min-height: 100vh;
             margin: auto;
-        }
-
-        #captureArea {
-            background: var(--verde-mesa);
-            padding: 0;
-            display: block;
-            width: 100%;
-        }
-
-        .table-container {
-            background: transparent;
-            width: 100%;
-            display: block;
-            overflow: hidden;
-            border: none;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            color: #000;
-            table-layout: fixed;
-            border: none;
-        }
-
-        th {
-            background: var(--header-table);
-            color: #fff;
-            padding: 3px 1px;
-            font-size: 0.6rem;
-            border: 1px solid #444;
-        }
-
-        #displayTitle {
-            font-size: 0.6rem;
-            font-weight: 800;
-            margin: 0;
-            display: block;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        td {
-            padding: 0;
-            text-align: center;
-            border: 1px solid #000;
-            font-size: 0.85rem;
-            font-weight: 700;
-            height: 32px;
-            vertical-align: middle;
-            transition: background 0.3s;
-        }
-
-        .fila-campeon td {
-            background: var(--dorado-campeon) !important;
-            color: #000 !important;
-            border-color: #b8860b !important;
-        }
-
-        .fila-campeon .col-pos,
-        .fila-campeon .col-g {
-            background: #b8860b !important;
-            color: #fff !important;
-        }
-
-        .table-input {
-            width: 100%;
-            height: 32px;
-            background: transparent;
-            border: none;
-            text-align: center;
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: inherit;
-            outline: none;
-            padding: 0;
-            margin: 0;
-            line-height: 32px;
-            cursor: pointer;
-        }
-
-        .input-snapshot {
-            display: none;
-            font-size: 0.7rem;
-            font-weight: 800;
-            line-height: 32px;
-            text-align: center;
-        }
-
-        .exporting .table-input,
-        .exporting .btn-delete,
-        .exporting .btn-undo-ui,
-        .exporting .btn-edit-ui,
-        .exporting .btn-record-match {
-            display: none !important;
-        }
-
-        .exporting .input-snapshot {
-            display: block !important;
-        }
-
-        .col-pos {
-            background: var(--azul-oscuro);
-            color: white;
-            width: 28px;
-            font-size: 0.8rem;
-        }
-
-        .name-col {
-            text-align: left;
-            padding: 0 5px;
-            background: var(--blanco-marfil);
-            width: auto;
-            font-size: 0.85rem;
-            font-weight: 800;
+            background: #0b0f19;
             position: relative;
-            user-select: none;
-            -webkit-user-select: none;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
         }
 
-        .name-wrapper {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            height: 100%;
+        .gold-accent { color: #fbbf24; }
+        .bg-gold { background: #fbbf24; color: #0b0f19; }
+        .border-gold { border-color: #fbbf24; }
+
+        .progress-track {
+            background: #1e293b;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
         }
 
-        .dots-container {
-            display: flex;
-            gap: 1px;
-            margin-left: 4px;
-            flex-shrink: 0;
-            flex-wrap: nowrap;
-            justify-content: flex-end;
+        .progress-gold {
+            background: linear-gradient(90deg, #d97706, #fbbf24);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
         }
 
-        .dot {
-            width: 4.3px;
-            height: 4.3px;
-            border-radius: 50%;
-            display: inline-block;
+        .progress-red {
+            background: linear-gradient(90deg, #991b1b, #ef4444);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
         }
-
-        .dot-g {
-            background-color: var(--win-dot);
-        }
-
-        .dot-p {
-            background-color: var(--loss-dot);
-        }
-
-        .col-pj {
-            background: var(--blanco-marfil);
-            width: 30px;
-            font-size: 0.85rem;
-        }
-
-        .col-p {
-            background: var(--blanco-marfil);
-            color: #dc2626;
-            width: 32px;
-            font-size: 0.85rem;
-        }
-
-        .col-g {
-            background: var(--azul-oscuro);
-            color: white;
-            width: 32px;
-        }
-
-        .col-g .table-input,
-        .col-g .input-snapshot {
-            font-size: 1rem;
-            font-weight: 900;
-        }
-
-        .col-food {
-            background: var(--blanco-marfil);
-            width: 32px;
-        }
-
-        .perc-cell {
-            font-size: 0.65rem;
-            color: #000;
-            width: 42px;
-        }
-
-        .racha {
-            font-size: 0.8rem;
-            margin-left: 3px;
-            font-weight: bold;
-        }
-
-        .sube {
-            color: #15803d;
-        }
-
-        .baja {
-            color: #dc2626;
-        }
-
-        #resumenCompacto {
-            background: #111;
-            color: #fff;
-            padding: 8px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            border-top: 1px solid #333;
-        }
-
-        .resumen-section {
-            font-size: 0.65rem;
-        }
-
-        .resumen-section h4 {
-            margin: 0 0 4px 0;
-            font-size: 0.6rem;
-            text-transform: uppercase;
-            color: #888;
-            border-bottom: 1px solid #222;
-        }
-
-        .resumen-full-width {
-            grid-column: span 2;
-            border-top: 1px solid #222;
-            padding-top: 4px;
-            margin-top: 2px;
-        }
-
-        .resumen-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 2px;
-            gap: 5px;
-        }
-
-        .resumen-item span:first-child {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .val-win {
-            color: #22c55e;
-            font-weight: bold;
-        }
-
-        .val-loss {
-            color: #ef4444;
-            font-weight: bold;
-        }
-
-        .val-prob {
-            color: var(--dorado-campeon);
-            font-weight: bold;
+        
+        .progress-blue {
+            background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
         }
 
         .card {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            border: 1px solid rgba(255,255,255,0.2);
+            background: #151e2e;
+            border-radius: 16px;
+            border: 1px solid #2a3a52;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255,255,255,0.05);
         }
 
-        .btn {
-            width: 100%;
-            padding: 10px;
-            margin-top: 8px;
-            border-radius: 6px;
-            border: none;
-            font-weight: bold;
-            font-size: 0.85rem;
-            cursor: pointer;
-            text-transform: uppercase;
+        .modal-backdrop {
+            background: rgba(0, 0, 0, .75);
+            backdrop-filter: blur(5px);
         }
 
-        .btn-update {
-            background: #22c55e;
-            color: #000;
+        .safe-bottom { padding-bottom: calc(115px + env(safe-area-inset-bottom)); }
+        .nav-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 2px rgba(251, 191, 36, .2);
         }
 
-        .btn-share {
-            background: #25d366;
-            color: white;
+        .day-row { transition: transform .15s ease, opacity .2s ease; }
+        .day-row:active { transform: scale(.99); }
+
+        .past-day {
+            opacity: .70;
+            background: #0f1623;
+            box-shadow: none !important;
+            padding: 12px 16px !important;
+            border: 1px dashed #2a3a52;
         }
 
-        .btn-record-match {
-            background: #a855f7;
-            color: white;
+        .today-day {
+            box-shadow:
+                0 0 0 1px rgba(251, 191, 36, .5),
+                0 4px 20px rgba(251, 191, 36, .15);
+            border: 1px solid #fbbf24;
         }
 
-        .btn-undo-ui {
-            background: #facc15;
-            color: #000;
-            padding: 4px 10px;
-            font-size: 0.65rem;
-            border-radius: 4px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            float: right;
-            margin: 8px 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        .water-circle {
+            position: relative;
+            overflow: hidden;
+            border-radius: 50%;
+            background: #0f1623;
+            box-shadow:
+                inset 0 0 20px #000,
+                0 0 0 4px #1e293b,
+                0 0 15px rgba(251, 191, 36, 0.2);
+            transform: perspective(300px);
+            will-change: transform;
         }
 
-        .btn-edit-ui {
-            background: #6b7280;
-            color: #fff;
-            padding: 4px 10px;
-            font-size: 0.65rem;
-            border-radius: 4px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            float: left;
-            margin: 8px 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            transition: all 0.2s;
+        .water-fill {
+            position: absolute;
+            left: -15%;
+            width: 130%;
+            bottom: 0;
+            background: linear-gradient(180deg, #fbbf24, #b45309);
+            transition: height .7s cubic-bezier(.22, .61, .36, 1), transform 0.1s ease-out;
+            will-change: transform, height;
+            box-shadow: inset 0 5px 15px rgba(255,255,255,0.3);
+        }
+        
+        .water-fill.damage {
+            background: linear-gradient(180deg, #ef4444, #7f1d1d);
         }
 
-        .btn-edit-ui.active {
-            background: #ef4444;
-            color: #fff;
+        .water-wave {
+            position: absolute;
+            left: -20%;
+            width: 140%;
+            height: 32px;
+            top: -15px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.15);
+            animation: waveMove 3.2s linear infinite;
         }
 
-        .btn-add {
-            background: #3b82f6;
-            color: white;
-            margin-top: 0;
+        .water-wave-2 {
+            position: absolute;
+            left: -20%;
+            width: 140%;
+            height: 28px;
+            top: -11px;
+            border-radius: 50%;
+            background: rgba(0,0,0,.15);
+            animation: waveMoveReverse 4.5s linear infinite;
         }
 
-        .btn-backup {
-            background: #6b7280;
-            color: white;
-            font-size: 0.7rem;
-            margin-top: 5px;
+        .water-shimmer {
+            position: absolute;
+            left: -50%;
+            width: 200%;
+            height: 70%;
+            top: 15%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,.20),
+                transparent
+            );
+            transform: rotate(-15deg);
+            animation: shimmer 4s ease-in-out infinite;
         }
 
-        .actions-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            margin-top: 5px;
-        }
+        @keyframes waveMove { from { transform: translateX(0); } to { transform: translateX(-12%); } }
+        @keyframes waveMoveReverse { from { transform: translateX(-8%); } to { transform: translateX(8%); } }
+        @keyframes shimmer { 0% { transform: translateX(-30%) rotate(-15deg); } 50% { transform: translateX(30%) rotate(-15deg); } 100% { transform: translateX(-30%) rotate(-15deg); } }
 
-        .input-group {
+        .water-content {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
             display: flex;
-            gap: 5px;
-            margin-top: 5px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            background: #fff;
-            border: 1px solid #3b82f6;
-            padding: 6px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            color: #000;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: #1a1a1a;
-            padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 320px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-            border: 1px solid #333;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-title {
-            margin-top: 0;
-            color: #fff;
-            font-size: 1.1rem;
-            text-align: center;
-            margin-bottom: 20px;
-            font-weight: 800;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
-
-        .modal-btn {
-            width: 100%;
-            padding: 14px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 900;
-            cursor: pointer;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-modal-cancel {
-            background: #333;
-            color: #aaa;
-            margin-top: 5px;
-        }
-
-        .team-box {
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            margin-bottom: 10px;
-        }
-
-        .team-box h5 {
-            margin: 0 0 8px 0;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: #aaa;
-        }
-
-        .player-select-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px;
-            background: #222;
-            margin-bottom: 4px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-
-        .player-select-item.disabled {
-            opacity: 0.2;
             pointer-events: none;
-            background: #111;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
+
+        .water-number { font-size: 28px; font-family: 'Cinzel', serif; font-weight: 800; line-height: 1.1; color: white; }
+        .water-max { font-size: 14px; color: #cbd5e1; margin-top: 3px; font-weight: bold; }
+        .water-label { font-size: 12px; color: #fbbf24; margin-top: 6px; letter-spacing: 1px; font-weight: bold; text-transform: uppercase;}
+
+        .chart-grid-line { border-top: 1px dashed #334155; }
+        .chart-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+        .chart-scroll::-webkit-scrollbar { display: none; }
+        .chart-inner { min-width: 100%; }
+
+        .chart-label { font-size: 10px; color: #94a3b8; margin-top: 8px; white-space: nowrap; font-family: 'Cinzel'; font-weight: bold;}
+        .legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px currentColor; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f1623; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        .bg-surface { background-color: #1e293b; }
+        .text-muted { color: #94a3b8; }
     </style>
 </head>
 
 <body>
 
-<div class="container">
-
-    <div id="captureArea">
-
-        <div class="table-container">
-
-            <button
-                class="btn-edit-ui"
-                id="editToggle"
-                onclick="toggleEditMode()"
-            >
-                EDIT OFF
-            </button>
-
-            <button
-                class="btn-undo-ui"
-                onclick="undoLastAction()"
-            >
-                ↩ DESHACER
-            </button>
-
-            <table>
-
-                <thead>
-
-                    <tr>
-
-                        <th style="width:32px;">
-                            Pos
-                        </th>
-
-                        <th>
-                            <span id="displayTitle">
-                                CLAUSURA TRUCO 2026
-                            </span>
-                        </th>
-
-                        <th style="width:32px;">
-                            J
-                        </th>
-
-                        <th style="width:32px;">
-                            P
-                        </th>
-
-                        <th style="width:35px;">
-                            G
-                        </th>
-
-                        <th style="width:30px;">
-                            %
-                        </th>
-
-                        <th style="width:20px;">
-                            🏠
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody id="tableBody"></tbody>
-
-            </table>
-
-            <div id="resumenCompacto"></div>
-
-        </div>
-
-    </div>
-
-
-    <div class="btn-main" style="padding:0 5px;">
-
-        <button
-            class="btn btn-record-match"
-            onclick="openMatchModal()"
-        >
-            ⚔️ Registrar Partida
-        </button>
-
-
-        <button
-            class="btn btn-share"
-            onclick="shareAsImage()"
-        >
-            Compartir Tabla 📲
-        </button>
-
-
-        <div class="card">
-
-            <div class="input-group">
-
-                <input
-                    type="text"
-                    id="newPlayerName"
-                    placeholder="Nombre..."
-                >
-
-                <button
-                    class="btn btn-add"
-                    style="width:auto;"
-                    onclick="addNewPlayer()"
-                >
-                    +
-                </button>
-
-            </div>
-
-
-            <input
-                type="text"
-                id="editTitle"
-                style="width:93%;margin-top:8px;"
-                placeholder="Título"
-                oninput="updateTitle(this.value)"
-            >
-
-
-            <div class="actions-grid">
-
-                <button
-                    class="btn btn-backup"
-                    onclick="exportData()"
-                >
-                    💾 Guardar Backup
-                </button>
-
-                <button
-                    class="btn btn-backup"
-                    onclick="importData()"
-                >
-                    📂 Cargar Backup
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     MODAL JUGADOR
-========================================================= -->
-
-<div id="playerModal" class="modal-overlay">
-
-    <div class="modal-content">
-
-        <h4
-            id="modalPlayerName"
-            class="modal-title"
-        >
-            Opciones
-        </h4>
-
-
-        <div id="modalMainActions">
-
-            <button
-                class="modal-btn btn-update"
-                style="background:#3b82f6;color:white"
-                onclick="showEditSection()"
-            >
-                ✏️ EDITAR NOMBRE
-            </button>
-
-
-            <button
-                class="modal-btn btn-update"
-                style="background:var(--dorado-campeon);color:black"
-                onclick="modalAction('champion')"
-            >
-                👑 MARCAR CAMPEÓN
-            </button>
-
-
-            <button
-                class="modal-btn btn-update"
-                style="background:var(--rojo-delete);color:white"
-                onclick="showDelSection()"
-            >
-                🗑️ ELIMINAR
-            </button>
-
-        </div>
-
-
-        <div
-            id="editNameContainer"
-            style="display:none"
-        >
-
-            <input
-                type="text"
-                id="editNameInput"
-                style="
-                    width:100%;
-                    padding:10px;
-                    margin-bottom:10px;
-                    border-radius:4px;
-                    border:1px solid #333;
-                    background:#000;
-                    color:#fff;
-                "
-            >
-
-
-            <div style="display:flex;gap:5px;">
-
-                <button
-                    class="btn-update"
-                    style="
-                        flex:1;
-                        padding:10px;
-                        border:none;
-                        border-radius:4px;
-                        background:#22c55e
-                    "
-                    onclick="modalAction('edit')"
-                >
-                    GUARDAR
-                </button>
-
-
-                <button
-                    class="btn-modal-cancel"
-                    style="flex:1"
-                    onclick="resetModalViews()"
-                >
-                    ATRÁS
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <div
-            id="confirmDelContainer"
-            style="display:none"
-        >
-
-            <p
-                style="
-                    color:#ef4444;
-                    font-weight:bold;
-                    text-align:center
-                "
-            >
-                ¿ELIMINAR JUGADOR?
-            </p>
-
-
-            <button
-                class="modal-btn btn-update"
-                style="background:#ef4444;color:white"
-                onclick="modalAction('delete')"
-            >
-                SÍ, ELIMINAR
-            </button>
-
-
-            <button
-                class="btn-modal-cancel"
-                onclick="resetModalViews()"
-            >
-                CANCELAR
-            </button>
-
-        </div>
-
-
-        <button
-            class="modal-btn btn-modal-cancel"
-            onclick="closeModal()"
-        >
-            CERRAR
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     MODAL PARTIDA
-========================================================= -->
-
-<div id="matchModal" class="modal-overlay">
-
-    <div class="modal-content">
-
-        <h4 class="modal-title">
-            REGISTRAR PARTIDA
-        </h4>
-
-
-        <div class="team-box">
-
-            <h5>
-                🏆 EQUIPO GANADOR
-            </h5>
-
-            <div id="winnersList"></div>
-
-        </div>
-
-
-        <div class="team-box">
-
-            <h5>
-                💀 EQUIPO PERDEDOR
-            </h5>
-
-            <div id="losersList"></div>
-
-        </div>
-
-
-        <div class="team-box">
-
-            <h5>
-                🏠 ¿QUIÉN PUSO LA CASA?
-            </h5>
-
-            <div id="houseList"></div>
-
-        </div>
-
-
-        <div
-            id="matchConfirmation"
-            class="team-box"
-            style="display:none;border-color:#22c55e;"
-        >
-
-            <h5>
-                ✅ CONFIRMAR PARTIDA
-            </h5>
-
-            <div
-                id="matchConfirmationText"
-                style="
-                    font-size:0.85rem;
-                    line-height:1.7;
-                    text-align:center;
-                "
-            ></div>
-
-
-            <button
-                class="modal-btn btn-update"
-                style="
-                    background:#22c55e;
-                    color:#000;
-                    margin-top:10px;
-                "
-                onclick="confirmMatch()"
-            >
-                ✅ SÍ, REGISTRAR PARTIDA
-            </button>
-
-
-            <button
-                class="modal-btn btn-modal-cancel"
-                onclick="cancelMatchConfirmation()"
-            >
-                ↩ VOLVER A EDITAR
-            </button>
-
-        </div>
-
-
-        <button
-            id="matchSubmitButton"
-            class="modal-btn btn-update"
-            onclick="prepareMatchConfirmation()"
-        >
-            CONFIRMAR RESULTADO
-        </button>
-
-
-        <button
-            class="modal-btn btn-modal-cancel"
-            onclick="closeMatchModal()"
-        >
-            CANCELAR
-        </button>
-
-    </div>
-
-</div>
-
-
-<script>
-
-/* =========================================================
-   ESTADO
-========================================================= */
-
-let undoStack = [];
-
-let stats =
-    JSON.parse(
-        localStorage.getItem('torneo_final_stats')
-    ) || [];
-
-let partnerships =
-    JSON.parse(
-        localStorage.getItem('torneo_partnerships')
-    ) || {};
-
-let prevOrder =
-    JSON.parse(
-        localStorage.getItem('torneo_prev_order')
-    ) || [];
-
-let activePlayerIdx = null;
-
-let pressTimer = null;
-
-let isEditMode = false;
-
-
-/* =========================================================
-   NORMALIZACIÓN DE DATOS
-   Esto evita errores con backups antiguos.
-========================================================= */
-
-function normalizeStats() {
-
-    if (!Array.isArray(stats)) {
-        stats = [];
-    }
-
-    stats = stats.map(player => {
-
-        const p = player || {};
-
-        return {
-            name: String(p.name || 'Jugador'),
-            g: Math.max(0, parseInt(p.g) || 0),
-            p: Math.max(0, parseInt(p.p) || 0),
-            food: Math.max(0, parseInt(p.food) || 0),
-            history: Array.isArray(p.history)
-                ? p.history.filter(x => x === 'g' || x === 'p')
-                : [],
-            isChampion: Boolean(p.isChampion)
-        };
-    });
-
-    /*
-       Si el historial no coincide con G/P,
-       lo reconstruimos.
-    */
-
-    stats.forEach((player, idx) => {
-
-        const expected =
-            player.g + player.p;
-
-        if (player.history.length !== expected) {
-            rebuildHistory(idx);
-        }
-    });
+<div id="root"></div>
+
+<script type="text/babel">
+
+const { useState, useEffect } = React;
+
+const DEFAULT_SETTINGS = {
+    caloriesWeekly: 16590,
+    proteinWeekly: 1190,
+    stepsWeekly: 70000,
+    name: "Campaña del Héroe",
+    initialWeight: 80,
+    targetWeight: 75,
+    strictWindowsEnabled: false,
+    breakfastStart: "07:00",
+    breakfastEnd: "11:00",
+    lunchStart: "12:30",
+    lunchEnd: "16:00",
+    dinnerStart: "19:30",
+    dinnerEnd: "22:30"
+};
+
+const DAYS = [
+    "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"
+];
+
+const MEAL_TYPES = [
+    "Desayuno", "Almuerzo", "Cena"
+];
+
+const MEAL_LABELS = {
+    "Desayuno": "🌅 Alba (Desayuno)",
+    "Almuerzo": "☀️ Cenit (Almuerzo)",
+    "Cena": "🌙 Ocaso (Cena)"
+};
+
+function getMonday(date = new Date()) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    return d;
 }
 
-
-/* =========================================================
-   ESCAPE HTML
-========================================================= */
-
-function escapeHtml(value) {
-
-    return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+function dateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
 }
 
-
-/* =========================================================
-   VIBRACIÓN
-========================================================= */
-
-function vibrar(ms = 80) {
-
-    if (navigator.vibrate) {
-        navigator.vibrate(ms);
-    }
+function formatDate(date) {
+    return date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-
-/* =========================================================
-   SONIDO
-========================================================= */
-
-const sonidoShare =
-    new Audio(
-        'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'
-    );
-
-
-function sonar() {
-
-    sonidoShare
-        .play()
-        .catch(() => {});
+function formatWeekDate(date) {
+    return date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" });
 }
 
-
-/* =========================================================
-   EDIT MODE
-========================================================= */
-
-function toggleEditMode() {
-
-    isEditMode = !isEditMode;
-
-    const btn =
-        document.getElementById('editToggle');
-
-    btn.innerText =
-        isEditMode
-            ? 'EDIT ON'
-            : 'EDIT OFF';
-
-    btn.classList.toggle(
-        'active',
-        isEditMode
-    );
-
-    vibrar(
-        isEditMode
-            ? 150
-            : 50
-    );
-
-    render();
+function getWeekDates(referenceDate = new Date()) {
+    const monday = getMonday(referenceDate);
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        dates.push(d);
+    }
+    return dates;
 }
 
-
-/* =========================================================
-   UNDO
-========================================================= */
-
-function saveUndoState() {
-
-    undoStack.push(
-        JSON.stringify({
-            stats:
-                JSON.parse(
-                    JSON.stringify(stats)
-                ),
-
-            partnerships:
-                JSON.parse(
-                    JSON.stringify(partnerships)
-                )
-        })
-    );
-
-    if (undoStack.length > 30) {
-        undoStack.shift();
-    }
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
 }
 
-
-function undoLastAction() {
-
-    if (undoStack.length === 0) {
-        return;
-    }
-
-    const last =
-        JSON.parse(
-            undoStack.pop()
-        );
-
-    stats =
-        last.stats || [];
-
-    partnerships =
-        last.partnerships || {};
-
-    normalizeStats();
-
-    saveLocalData();
-
-    vibrar(100);
-
-    render();
-}
-
-
-/* =========================================================
-   GUARDADO CENTRAL
-========================================================= */
-
-function saveLocalData() {
-
-    localStorage.setItem(
-        'torneo_final_stats',
-        JSON.stringify(stats)
-    );
-
-    localStorage.setItem(
-        'torneo_partnerships',
-        JSON.stringify(partnerships)
-    );
-
-    localStorage.setItem(
-        'torneo_prev_order',
-        JSON.stringify(prevOrder)
-    );
-}
-
-
-/* =========================================================
-   MODAL PARTIDA
-========================================================= */
-
-function openMatchModal() {
-
-    if (stats.length < 2) {
-        alert(
-            'Necesitas al menos 2 jugadores.'
-        );
-        return;
-    }
-
-    const wList =
-        document.getElementById(
-            'winnersList'
-        );
-
-    const lList =
-        document.getElementById(
-            'losersList'
-        );
-
-    const hList =
-        document.getElementById(
-            'houseList'
-        );
-
-    wList.innerHTML = '';
-    lList.innerHTML = '';
-    hList.innerHTML = '';
-
-    document.getElementById(
-        'matchConfirmation'
-    ).style.display = 'none';
-
-    document.getElementById(
-        'matchSubmitButton'
-    ).style.display = 'flex';
-
-
-    stats.forEach((player, i) => {
-
-        const createItem =
-            type => {
-
-                const div =
-                    document.createElement(
-                        'div'
-                    );
-
-                div.className =
-                    'player-select-item';
-
-                div.id =
-                    `container-${type}-${i}`;
-
-                div.innerHTML = `
-                    <input
-                        type="checkbox"
-                        id="chk-${type}-${i}"
-                        data-idx="${i}"
-                        data-type="${type}"
-                        onchange="syncCheckboxes(this)"
-                    >
-
-                    <span>
-                        ${escapeHtml(player.name)}
-                    </span>
-                `;
-
-                return div;
-            };
-
-
-        wList.appendChild(
-            createItem('win')
-        );
-
-        lList.appendChild(
-            createItem('loss')
-        );
-
-
-        const houseDiv =
-            document.createElement(
-                'div'
-            );
-
-        houseDiv.className =
-            'player-select-item';
-
-        houseDiv.innerHTML = `
-            <input
-                type="radio"
-                name="housePlayer"
-                id="house-${i}"
-                value="${i}"
-            >
-
-            <span>
-                ${escapeHtml(player.name)}
-            </span>
-        `;
-
-        hList.appendChild(
-            houseDiv
-        );
-    });
-
-
-    const noHouseDiv =
-        document.createElement(
-            'div'
-        );
-
-    noHouseDiv.className =
-        'player-select-item';
-
-    noHouseDiv.innerHTML = `
-        <input
-            type="radio"
-            name="housePlayer"
-            id="house-none"
-            value="-1"
-            checked
-        >
-
-        <span>Nadie</span>
-    `;
-
-    hList.appendChild(
-        noHouseDiv
-    );
-
-
-    document.getElementById(
-        'matchModal'
-    ).style.display = 'flex';
-}
-
-
-function syncCheckboxes(el) {
-
-    const idx =
-        el.dataset.idx;
-
-    const type =
-        el.dataset.type;
-
-    const otherType =
-        type === 'win'
-            ? 'loss'
-            : 'win';
-
-    const otherContainer =
-        document.getElementById(
-            `container-${otherType}-${idx}`
-        );
-
-    const otherCheckbox =
-        document.getElementById(
-            `chk-${otherType}-${idx}`
-        );
-
-
-    if (el.checked) {
-
-        otherContainer.classList.add(
-            'disabled'
-        );
-
-        otherCheckbox.checked = false;
-
-    } else {
-
-        otherContainer.classList.remove(
-            'disabled'
-        );
-    }
-}
-
-
-function closeMatchModal() {
-
-    document.getElementById(
-        'matchModal'
-    ).style.display = 'none';
-}
-
-
-/* =========================================================
-   CONFIRMACIÓN PARTIDA
-========================================================= */
-
-function getSelectedMatchData() {
-
-    const wins =
-        Array.from(
-            document.querySelectorAll(
-                'input[data-type="win"]:checked'
-            )
-        ).map(
-            el => parseInt(el.dataset.idx)
-        );
-
-    const losses =
-        Array.from(
-            document.querySelectorAll(
-                'input[data-type="loss"]:checked'
-            )
-        ).map(
-            el => parseInt(el.dataset.idx)
-        );
-
-    const houseSelected =
-        document.querySelector(
-            'input[name="housePlayer"]:checked'
-        );
-
-    const houseIdx =
-        houseSelected
-            ? parseInt(
-                houseSelected.value
-            )
-            : -1;
-
-    return {
-        wins,
-        losses,
-        houseIdx
-    };
-}
-
-
-function prepareMatchConfirmation() {
-
-    const {
-        wins,
-        losses,
-        houseIdx
-    } =
-        getSelectedMatchData();
-
-
-    if (
-        wins.length === 0 ||
-        losses.length === 0
-    ) {
-
-        alert(
-            'Selecciona al menos un ganador y un perdedor.'
-        );
-
-        return;
-    }
-
-
-    const winnerNames =
-        wins
-            .map(
-                idx => stats[idx].name
-            )
-            .join(' + ');
-
-
-    const loserNames =
-        losses
-            .map(
-                idx => stats[idx].name
-            )
-            .join(' + ');
-
-
-    const houseName =
-        houseIdx >= 0 &&
-        stats[houseIdx]
-            ? stats[houseIdx].name
-            : 'Nadie';
-
-
-    document.getElementById(
-        'matchConfirmationText'
-    ).innerHTML = `
-
-        <div>
-            <strong>
-                🏆 EQUIPO GANADOR:
-            </strong>
-
-            <br>
-
-            ${escapeHtml(winnerNames)}
-        </div>
-
-
-        <div style="margin-top:8px;">
-
-            <strong>
-                💀 EQUIPO PERDEDOR:
-            </strong>
-
-            <br>
-
-            ${escapeHtml(loserNames)}
-
-        </div>
-
-
-        <div style="margin-top:8px;">
-
-            <strong>
-                🏠 CASA:
-            </strong>
-
-            <br>
-
-            ${escapeHtml(houseName)}
-
-        </div>
-    `;
-
-
-    document.getElementById(
-        'matchConfirmation'
-    ).style.display = 'block';
-
-
-    document.getElementById(
-        'matchSubmitButton'
-    ).style.display = 'none';
-
-
-    document
-        .querySelectorAll(
-            '#winnersList input, #losersList input, #houseList input'
-        )
-        .forEach(
-            input =>
-                input.disabled = true
-        );
-}
-
-
-function cancelMatchConfirmation() {
-
-    document.getElementById(
-        'matchConfirmation'
-    ).style.display = 'none';
-
-    document.getElementById(
-        'matchSubmitButton'
-    ).style.display = 'flex';
-
-
-    document
-        .querySelectorAll(
-            '#winnersList input, #losersList input, #houseList input'
-        )
-        .forEach(
-            input =>
-                input.disabled = false
-        );
-}
-
-
-/* =========================================================
-   REGISTRAR PARTIDA
-========================================================= */
-
-function confirmMatch() {
-
-    const {
-        wins,
-        losses,
-        houseIdx
-    } =
-        getSelectedMatchData();
-
-
-    if (
-        wins.length === 0 ||
-        losses.length === 0
-    ) {
-
-        cancelMatchConfirmation();
-
-        return;
-    }
-
-
-    saveUndoState();
-
-    vibrar(100);
-
-
-    /*
-       GANADORES
-    */
-
-    wins.forEach(idx => {
-
-        stats[idx].g++;
-
-        if (!stats[idx].history) {
-            stats[idx].history = [];
-        }
-
-        stats[idx].history.push('g');
-    });
-
-
-    /*
-       PERDEDORES
-    */
-
-    losses.forEach(idx => {
-
-        stats[idx].p++;
-
-        if (!stats[idx].history) {
-            stats[idx].history = [];
-        }
-
-        stats[idx].history.push('p');
-    });
-
-
-    /*
-       CASA
-    */
-
-    if (
-        houseIdx >= 0 &&
-        stats[houseIdx]
-    ) {
-
-        stats[houseIdx].food++;
-    }
-
-
-    /*
-       REGISTRO DE PAREJAS
-    */
-
-    function recordPair(idxA, idxB) {
-
-        if (
-            !stats[idxA] ||
-            !stats[idxB]
-        ) {
-            return;
-        }
-
-        const names = [
-            stats[idxA].name,
-            stats[idxB].name
-        ].sort();
-
-
-        const key =
-            names.join(' | ');
-
-
-        partnerships[key] =
-            (
-                partnerships[key] ||
-                0
-            ) + 1;
-    }
-
-
-    /*
-       Parejas ganadoras
-    */
-
-    for (
-        let i = 0;
-        i < wins.length;
-        i++
-    ) {
-
-        for (
-            let j = i + 1;
-            j < wins.length;
-            j++
-        ) {
-
-            recordPair(
-                wins[i],
-                wins[j]
-            );
-        }
-    }
-
-
-    /*
-       Parejas perdedoras
-    */
-
-    for (
-        let i = 0;
-        i < losses.length;
-        i++
-    ) {
-
-        for (
-            let j = i + 1;
-            j < losses.length;
-            j++
-        ) {
-
-            recordPair(
-                losses[i],
-                losses[j]
-            );
-        }
-    }
-
-
-    closeMatchModal();
-
-    saveTableData();
-}
-
-
-/* =========================================================
-   FECHAS DEL TORNEO
-========================================================= */
-
-function getCurrentTournamentFecha() {
-
-    const now =
-        new Date();
-
-    const year =
-        now.getFullYear();
-
-
-    function getFirstFriday(y, m) {
-
-        let d =
-            new Date(y, m, 1);
-
-        while (
-            d.getDay() !== 5
-        ) {
-
-            d.setDate(
-                d.getDate() + 1
-            );
-        }
-
-        return d;
-    }
-
-
-    function getLastFriday(y, m) {
-
-        let d =
-            new Date(
-                y,
-                m + 1,
-                0
-            );
-
-        while (
-            d.getDay() !== 5
-        ) {
-
-            d.setDate(
-                d.getDate() - 1
-            );
-        }
-
-        return d;
-    }
-
-
-    const startApertura =
-        getFirstFriday(
-            year,
-            0
-        );
-
-    const startClausura =
-        getFirstFriday(
-            year,
-            6
-        );
-
-
-    /*
-       El Clausura se considera iniciado
-       desde el sábado anterior al primer viernes.
-    */
-
-    const corteClausura =
-        new Date(
-            startClausura.getTime() -
-            (
-                6 *
-                24 *
-                60 *
-                60 *
-                1000
-            )
-        );
-
-
-    const isClausura =
-        now >= corteClausura;
-
-
-    const seasonStart =
-        isClausura
-            ? startClausura
-            : startApertura;
-
-
-    const seasonEnd =
-        isClausura
-            ? getLastFriday(
-                year,
-                11
-            )
-            : getLastFriday(
-                year,
-                5
-            );
-
-
-    const weekMs =
-        7 *
-        24 *
-        60 *
-        60 *
-        1000;
-
-
-    let diffMs =
-        now.getTime() -
-        seasonStart.getTime() +
-        (
-            6 *
-            24 *
-            60 *
-            60 *
-            1000
-        );
-
-
-    let diffWeeks =
-        Math.floor(
-            diffMs /
-            weekMs
-        ) + 1;
-
-
-    let totalFechasSeason =
-        Math.floor(
-            (
-                seasonEnd.getTime() -
-                seasonStart.getTime()
-            ) /
-            weekMs
-        ) + 1;
-
-
-    return {
-
-        actual:
-            Math.max(
-                1,
-                Math.min(
-                    totalFechasSeason,
-                    diffWeeks
-                )
-            ),
-
-        total:
-            totalFechasSeason
-    };
-}
-
-
-/* =========================================================
-   RESUMEN
-========================================================= */
-
-function renderResumen() {
-
-    if (stats.length === 0) {
-
-        document.getElementById(
-            'resumenCompacto'
-        ).innerHTML = '';
-
-        return;
-    }
-
-
-    const maxPJ =
-        Math.max(
-            ...stats.map(
-                p => p.g + p.p
-            ),
-            1
-        );
-
-
-    const currentLeaderG =
-        Math.max(
-            ...stats.map(
-                p => p.g
-            ),
-            0
-        );
-
-
-    const fechaInfo =
-        getCurrentTournamentFecha();
-
-
-    const TOTAL_FECHAS =
-        fechaInfo.total;
-
-    const fechaActual =
-        fechaInfo.actual;
-
-
-    /*
-       Fechas que quedan después de la actual.
-    */
-
-    const fechasFaltantes =
-        Math.max(
-            0,
-            TOTAL_FECHAS -
-            fechaActual
-        );
-
-
-    const data =
-        stats.map(player => {
-
-            const total =
-                player.g +
-                player.p;
-
-
-            return {
-
-                name:
-                    player.name,
-
-                pj:
-                    total,
-
-                g:
-                    player.g,
-
-                perc:
-                    total > 0
-                        ? (
-                            player.g /
-                            total
-                        ) * 100
-                        : 0,
-
-                racha:
-                    getRacha(
-                        player.history
-                    ),
-
-                isBA:
-                    (
-                        maxPJ >= 7 &&
-                        total <
-                        (
-                            maxPJ / 2
-                        )
-                    )
-            };
-        });
-
-
-    const validData =
-        data.filter(
-            d => !d.isBA
-        );
-
-
-    const topPerc =
-        [...validData]
-            .sort(
-                (a, b) =>
-                    b.perc -
-                    a.perc
-            )
-            .slice(0, 3);
-
-
-    const botPerc =
-        [...validData]
-            .sort(
-                (a, b) =>
-                    a.perc -
-                    b.perc
-            )
-            .slice(0, 3);
-
-
-    const topRacha =
-        [...validData]
-            .sort(
-                (a, b) =>
-                    b.racha -
-                    a.racha
-            )
-            .slice(0, 3);
-
-
-    const botRacha =
-        [...validData]
-            .sort(
-                (a, b) =>
-                    a.racha -
-                    b.racha
-            )
-            .slice(0, 3);
-
-
-    const validNames =
-        new Set(
-            validData.map(
-                d => d.name
-            )
-        );
-
-
-    const duoEntries =
-        Object.entries(
-            partnerships
-        )
-        .map(
-            ([duo, count]) => ({
-                duo,
-                count:
-                    Number(count) || 0
-            })
-        )
-        .filter(
-            ({ duo }) => {
-
-                const parts =
-                    duo.split(' | ');
-
-                if (parts.length !== 2) {
-                    return false;
-                }
-
-                return (
-                    validNames.has(parts[0]) &&
-                    validNames.has(parts[1])
-                );
-            }
-        )
-        .sort(
-            (a, b) =>
-                b.count -
-                a.count
-        );
-
-
-    const topDuos =
-        duoEntries.slice(0, 3);
-
-
-    /*
-       Para las parejas menos frecuentes
-       necesitamos ordenar ascendentemente.
-    */
-
-    const botDuos =
-        [...duoEntries]
-            .sort(
-                (a, b) =>
-                    a.count -
-                    b.count
-            )
-            .slice(0, 3);
-
-
-    /* =====================================================
-       PROBABILIDAD DE CAMPEÓN
-    ===================================================== */
-
-    const probabilityData =
-        calculateChampionProbabilities(
-            validData,
-            TOTAL_FECHAS,
-            maxPJ,
-            currentLeaderG,
-            fechasFaltantes
-        );
-
-
-    const html = `
-
-        <div class="resumen-section">
-
-            <h4>
-                Mejores (%)
-            </h4>
-
-            ${
-                topPerc.length
-                    ? topPerc.map(
-                        p => `
-                            <div class="resumen-item">
-
-                                <span>
-                                    ${escapeHtml(p.name)}
-                                </span>
-
-                                <span class="val-win">
-                                    ${Math.round(p.perc)}%
-                                </span>
-
-                            </div>
-                        `
-                    ).join('')
-                    : '<div>-</div>'
-            }
-
-
-            <h4 style="margin-top:6px;">
-                Peores (%)
-            </h4>
-
-            ${
-                botPerc.length
-                    ? botPerc.map(
-                        p => `
-                            <div class="resumen-item">
-
-                                <span>
-                                    ${escapeHtml(p.name)}
-                                </span>
-
-                                <span class="val-loss">
-                                    ${Math.round(p.perc)}%
-                                </span>
-
-                            </div>
-                        `
-                    ).join('')
-                    : '<div>-</div>'
-            }
-
-
-            <h4 style="margin-top:6px;">
-                Parejas más frecuentes
-            </h4>
-
-            ${
-                topDuos.length
-
-                    ? topDuos.map(
-                        d => `
-                            <div class="resumen-item">
-
-                                <span>
-                                    ${escapeHtml(d.duo)}
-                                </span>
-
-                                <span class="val-win">
-                                    ${d.count}
-                                </span>
-
-                            </div>
-                        `
-                    ).join('')
-
-                    : '<div>-</div>'
-            }
-
-        </div>
-
-
-        <div class="resumen-section">
-
-            <h4>
-                Mejores Rachas
-            </h4>
-
-            ${
-                topRacha.length
-                    ? topRacha.map(
-                        p => `
-                            <div class="resumen-item">
-
-                                <span>
-                                    ${escapeHtml(p.name)}
-                                </span>
-
-                                <span class="val-win">
-                                    ${
-                                        p.racha > 0
-                                            ? p.racha
-                                            : '-'
-                                    }
-                                </span>
-
-                            </div>
-                        `
-                    ).join('')
-                    : '<div>-</div>'
-            }
-
-
-            <h4 style="margin-top:6px;">
-                Peores Rachas
-            </h4>
-
-            ${
-                botRacha.length
-                    ? botRacha.map(
-                        p => `
-                            <div class="resumen-item">
-
-                                <span>
-                                    ${escapeHtml(p.name)}
-                                </span>
-
-                                <span class="val-loss">
-                                    ${
-                                        p.racha < 0
-                                            ? Math.abs(p.racha)
-                                            : '-'
-                                    }
-                                </span>
-
-                            </div>
-                        `
-                    ).join('')
-                    : '<div>-</div>'
-            }
-
-
-            <h4 style="margin-top:6px;">
-                Parejas menos frecuentes
-            </h4>
-
-            ${
-                botDuos.length
-
-                    ? botDuos.map(
-                        d => `
-                            <div class="resumen-item">
-
-                                <span>
-                                    ${escapeHtml(d.duo)}
-                                </span>
-
-                                <span class="val-loss">
-                                    ${d.count}
-                                </span>
-
-                            </div>
-                        `
-                    ).join('')
-
-                    : '<div>-</div>'
-            }
-
-        </div>
-
-
-        <div class="resumen-section resumen-full-width">
-
-            <h4 style="text-align:center;">
-
-                PROBABILIDADES CAMPEÓN
-
-                ${
-                    fechasFaltantes > 0
-                        ? `(FALTAN ${fechasFaltantes} FECHAS)`
-                        : '(ÚLTIMA FECHA)'
-                }
-
-            </h4>
-
-
-            <div
-                style="
-                    display:flex;
-                    flex-wrap:wrap;
-                    justify-content:center;
-                    gap:2px;
-                "
-            >
-
-                ${
-                    probabilityData.length
-
-                        ? probabilityData.map(
-                            p => `
-
-                                <div
-                                    style="
-                                        text-align:center;
-                                        min-width:48px;
-                                        flex:1;
-                                        padding:2px;
-                                        background:rgba(255,255,255,0.05);
-                                        border-radius:3px;
-                                    "
-                                >
-
-                                    <div
-                                        style="
-                                            font-weight:800;
-                                            font-size:0.5rem;
-                                            color:${
-                                                p.perc > 0
-                                                    ? '#fff'
-                                                    : '#666'
-                                            };
-                                        "
-                                    >
-                                        ${escapeHtml(p.name)}
-                                    </div>
-
-
-                                    <div
-                                        class="val-prob"
-                                        style="
-                                            font-size:0.7rem;
-                                            color:${
-                                                p.perc > 0
-                                                    ? 'var(--dorado-campeon)'
-                                                    : '#666'
-                                            };
-                                        "
-                                    >
-                                        ${p.perc}%
-                                    </div>
-
-                                </div>
-
-                            `
-                        ).join('')
-
-                        : `
-                            <div
-                                style="
-                                    font-size:0.6rem;
-                                    color:#666;
-                                    width:100%;
-                                    text-align:center;
-                                "
-                            >
-                                Disponible cuando haya resultados.
-                            </div>
-                        `
-                }
-
-            </div>
-
-        </div>
-    `;
-
-
-    document.getElementById(
-        'resumenCompacto'
-    ).innerHTML = html;
-}
-
-
-/* =========================================================
-   PROBABILIDADES CAMPEÓN
-========================================================= */
-
-function calculateChampionProbabilities(
-    validData,
-    totalFechas,
-    maxPJ,
-    currentLeaderG,
-    fechasFaltantes
-) {
-
-    if (
-        !validData.length ||
-        maxPJ <= 0
-    ) {
-        return [];
-    }
-
-
-    /*
-       Número de partidas futuras estimadas
-       según la participación del jugador.
-
-       Usamos la diferencia entre las fechas
-       restantes y la cantidad de partidas ya
-       disputadas como referencia.
-    */
-
-    const results =
-        validData.map(player => {
-
-            const currentPJ =
-                player.pj;
-
-
-            const remaining =
-                Math.max(
-                    0,
-                    fechasFaltantes
-                );
-
-
-            /*
-               Estimación conservadora de victorias
-               futuras.
-            */
-
-            const winRate =
-                (
-                    player.g + 1
-                ) /
-                (
-                    player.pj + 2
-                );
-
-
-            /*
-               Factor de participación.
-            */
-
-            const attendance =
-                maxPJ > 0
-                    ? Math.min(
-                        1,
-                        player.pj /
-                        maxPJ
-                    )
-                    : 0;
-
-
-            /*
-               Jugador sin ninguna partida:
-               probabilidad 0.
-            */
-
-            if (currentPJ === 0) {
-
-                return {
-                    name:
-                        player.name,
-
-                    score:
-                        0
-                };
-            }
-
-
-            /*
-               Estimación de victorias futuras.
-            */
-
-            const expectedFutureWins =
-                remaining *
-                winRate *
-                Math.max(
-                    0.5,
-                    attendance
-                );
-
-
-            const projectedWins =
-                player.g +
-                expectedFutureWins;
-
-
-            /*
-               Si incluso ganando todas las
-               fechas restantes no puede alcanzar
-               al líder, queda en 0%.
-            */
-
-            const absoluteMaximum =
-                player.g +
-                remaining;
-
-
-            if (
-                absoluteMaximum <
-                currentLeaderG
-            ) {
-
-                return {
-                    name:
-                        player.name,
-
-                    score:
-                        0
-                };
-            }
-
-
-            /*
-               Penalización muy ligera por
-               baja participación.
-            */
-
-            const participationFactor =
-                0.75 +
-                (
-                    0.25 *
-                    attendance
-                );
-
-
-            const score =
-                Math.pow(
-                    projectedWins,
-                    3
-                ) *
-                participationFactor;
-
-
-            return {
-
-                name:
-                    player.name,
-
-                score
-            };
-
-        });
-
-
-    const totalScore =
-        results.reduce(
-            (sum, p) =>
-                sum + p.score,
-            0
-        );
-
-
-    return results
-        .map(p => ({
-
-            name:
-                p.name,
-
-            perc:
-                totalScore > 0
-                    ? Math.round(
-                        (
-                            p.score /
-                            totalScore
-                        ) *
-                        100
-                    )
-                    : 0,
-
-            score:
-                p.score
-        }))
-        .sort(
-            (a, b) =>
-                b.score -
-                a.score
-        );
-}
-
-
-/* =========================================================
-   RENDER TABLA
-========================================================= */
-
-function render() {
-
-    normalizeStats();
-
-    const tbody =
-        document.getElementById(
-            'tableBody'
-        );
-
-    tbody.innerHTML = '';
-
-
-    const maxPJ =
-        Math.max(
-            ...stats.map(
-                p => p.g + p.p
-            ),
-            0
-        );
-
-
-    stats.forEach(
-        (player, i) => {
-
-            const total =
-                player.g +
-                player.p;
-
-
-            const perc =
-                total > 0
-                    ? Math.round(
-                        (
-                            player.g /
-                            total
-                        ) *
-                        100
-                    )
-                    : 0;
-
-
-            const isBA =
-                maxPJ >= 7 &&
-                total <
-                (
-                    maxPJ / 2
-                );
-
-
-            const bgPerc =
-                isBA
-                    ? '#888'
-                    : getGradientColor(
-                        perc
-                    );
-
-
-            let posDisplay;
-
-            if (i === 0) {
-                posDisplay = '🏆';
-            }
-
-            else if (i === 1) {
-                posDisplay = '🥈';
-            }
-
-            else if (i === 2) {
-                posDisplay = '🥉';
-            }
-
-            else if (
-                i === stats.length - 1 &&
-                stats.length > 3
-            ) {
-                posDisplay = '💀';
-            }
-
-            else {
-                posDisplay =
-                    i + 1;
-            }
-
-
-            /*
-               Movimiento en la clasificación.
-            */
-
-            let rachaIcon = '';
-
-            const oldIndex =
-                prevOrder.indexOf(
-                    player.name
-                );
-
-
-            if (oldIndex !== -1) {
-
-                if (i < oldIndex) {
-
-                    rachaIcon =
-                        '<span class="racha sube">↑</span>';
-
-                }
-
-                else if (i > oldIndex) {
-
-                    rachaIcon =
-                        '<span class="racha baja">↓</span>';
-                }
-            }
-
-
-            const racha =
-                getRacha(
-                    player.history
-                );
-
-
-            const anchor =
-                racha <= -4
-                    ? ' ⚓'
-                    : '';
-
-
-            const fire =
-                racha >= 4
-                    ? ' 🔥'
-                    : '';
-
-
-            const trunk =
-                (
-                    total >= 5 &&
-                    perc < 30
-                )
-                    ? ' 🪵'
-                    : '';
-
-
-            const lastResults =
-                (
-                    player.history ||
-                    []
-                ).slice(-30);
-
-
-            const dots =
-                `
-                <div class="dots-container">
-
-                    ${
-                        lastResults.map(
-                            result =>
-                                `
-                                <span
-                                    class="dot dot-${result}"
-                                ></span>
-                                `
-                        ).join('')
-                    }
-
-                </div>
-                `;
-
-
-            const tr =
-                document.createElement(
-                    'tr'
-                );
-
-
-            if (
-                player.isChampion
-            ) {
-                tr.className =
-                    'fila-campeon';
-            }
-
-
-            tr.innerHTML = `
-
-                <td class="col-pos">
-                    ${posDisplay}
-                </td>
-
-
-                <td
-                    class="name-col"
-                    onmousedown="handleStart(${i})"
-                    onmouseup="handleEnd()"
-                    onmouseleave="handleEnd()"
-                    ontouchstart="handleStart(${i})"
-                    ontouchend="handleEnd()"
-                    ontouchcancel="handleEnd()"
-                >
-
-                    <div class="name-wrapper">
-
-                        <span
-                            style="
-                                white-space:nowrap;
-                                overflow:hidden;
-                                text-overflow:ellipsis;
-                            "
-                        >
-
-                            ${
-                                player.isChampion
-                                    ? '👑 '
-                                    : ''
-                            }
-
-                            ${escapeHtml(player.name)}
-
-                            ${fire}
-                            ${anchor}
-                            ${trunk}
-
-                            ${
-                                isBA
-                                    ? ' <small>(BA)</small>'
-                                    : ''
-                            }
-
-                            ${rachaIcon}
-
-                        </span>
-
-                        ${dots}
-
-                    </div>
-
-                </td>
-
-
-                <!-- J -->
-
-                <td class="col-pj">
-
-                    <input
-                        type="number"
-                        class="table-input"
-                        min="0"
-                        value="${total}"
-                        ${
-                            isEditMode
-                                ? ''
-                                : 'readonly'
-                        }
-                        onchange="
-                            editTableField(
-                                ${i},
-                                'pj',
-                                this.value
-                            )
-                        "
-                        onclick="event.stopPropagation()"
-                    >
-
-                    <span class="input-snapshot">
-                        ${total}
-                    </span>
-
-                </td>
-
-
-                <!-- P -->
-
-                <td class="col-p">
-
-                    <input
-                        type="number"
-                        class="table-input"
-                        min="0"
-                        value="${player.p}"
-                        ${
-                            isEditMode
-                                ? ''
-                                : 'readonly'
-                        }
-                        onchange="
-                            editTableField(
-                                ${i},
-                                'p',
-                                this.value
-                            )
-                        "
-                        onclick="event.stopPropagation()"
-                    >
-
-                    <span class="input-snapshot">
-                        ${player.p}
-                    </span>
-
-                </td>
-
-
-                <!-- G -->
-
-                <td class="col-g">
-
-                    <input
-                        type="number"
-                        class="table-input"
-                        min="0"
-                        value="${player.g}"
-                        ${
-                            isEditMode
-                                ? ''
-                                : 'readonly'
-                        }
-                        onchange="
-                            editTableField(
-                                ${i},
-                                'g',
-                                this.value
-                            )
-                        "
-                        onclick="event.stopPropagation()"
-                    >
-
-                    <span class="input-snapshot">
-                        ${player.g}
-                    </span>
-
-                </td>
-
-
-                <!-- % -->
-
-                <td
-                    class="perc-cell"
-                    style="
-                        background:${bgPerc};
-                        color:${
-                            (
-                                isBA ||
-                                perc >= 75 ||
-                                perc < 35
-                            )
-                                ? 'white'
-                                : 'black'
-                        };
-                    "
-                >
-                    ${perc}%
-                </td>
-
-
-                <!-- CASA -->
-
-                <td class="col-food">
-
-                    <input
-                        type="number"
-                        class="table-input"
-                        min="0"
-                        value="${player.food}"
-                        ${
-                            isEditMode
-                                ? ''
-                                : 'readonly'
-                        }
-                        onchange="
-                            editTableField(
-                                ${i},
-                                'food',
-                                this.value
-                            )
-                        "
-                        onclick="event.stopPropagation()"
-                    >
-
-                    <span class="input-snapshot">
-                        ${player.food}
-                    </span>
-
-                </td>
-
-            `;
-
-
-            tbody.appendChild(tr);
-        }
-    );
-
-
-    /*
-       Guardamos sin modificar el orden.
-    */
-
-    localStorage.setItem(
-        'torneo_final_stats',
-        JSON.stringify(stats)
-    );
-
-    localStorage.setItem(
-        'torneo_partnerships',
-        JSON.stringify(partnerships)
-    );
-
-
-    renderResumen();
-}
-
-
-/* =========================================================
-   TÍTULO
-========================================================= */
-
-function updateTitle(value) {
-
-    const title =
-        value.trim() ||
-        'Clausura Truco 2026';
-
-
-    document.getElementById(
-        'displayTitle'
-    ).innerText =
-        title;
-
-
-    localStorage.setItem(
-        'torneo_titulo',
-        title
-    );
-}
-
-
-/* =========================================================
-   LONG PRESS
-========================================================= */
-
-function handleStart(idx) {
-
-    if (!isEditMode) {
-        return;
-    }
-
-
-    clearTimeout(
-        pressTimer
-    );
-
-
-    pressTimer =
-        setTimeout(
-            () =>
-                openPlayerModal(idx),
-            1000
-        );
-}
-
-
-function handleEnd() {
-
-    clearTimeout(
-        pressTimer
-    );
-}
-
-
-/* =========================================================
-   MODAL JUGADOR
-========================================================= */
-
-function openPlayerModal(idx) {
-
-    if (!stats[idx]) {
-        return;
-    }
-
-    vibrar(200);
-
-    activePlayerIdx =
-        idx;
-
-
-    document.getElementById(
-        'modalPlayerName'
-    ).innerText =
-        stats[idx].name;
-
-
-    resetModalViews();
-
-
-    document.getElementById(
-        'playerModal'
-    ).style.display =
-        'flex';
-}
-
-
-function closeModal() {
-
-    document.getElementById(
-        'playerModal'
-    ).style.display =
-        'none';
-}
-
-
-function showEditSection() {
-
-    document.getElementById(
-        'modalMainActions'
-    ).style.display =
-        'none';
-
-
-    document.getElementById(
-        'editNameContainer'
-    ).style.display =
-        'block';
-
-
-    document.getElementById(
-        'editNameInput'
-    ).value =
-        stats[activePlayerIdx].name;
-}
-
-
-function showDelSection() {
-
-    document.getElementById(
-        'modalMainActions'
-    ).style.display =
-        'none';
-
-
-    document.getElementById(
-        'confirmDelContainer'
-    ).style.display =
-        'block';
-}
-
-
-function resetModalViews() {
-
-    document.getElementById(
-        'modalMainActions'
-    ).style.display =
-        'block';
-
-
-    document.getElementById(
-        'editNameContainer'
-    ).style.display =
-        'none';
-
-
-    document.getElementById(
-        'confirmDelContainer'
-    ).style.display =
-        'none';
-}
-
-
-/* =========================================================
-   ACCIONES DEL MODAL
-========================================================= */
-
-function modalAction(type) {
-
-    if (
-        activePlayerIdx === null ||
-        !stats[activePlayerIdx]
-    ) {
-        return;
-    }
-
-
-    saveUndoState();
-
-
-    /* EDITAR */
-
-    if (type === 'edit') {
-
-        const newName =
-            document.getElementById(
-                'editNameInput'
-            )
-            .value
-            .trim();
-
-
-        if (!newName) {
-
-            alert(
-                'El nombre no puede estar vacío.'
-            );
-
-            undoStack.pop();
-
-            return;
-        }
-
-
-        const oldName =
-            stats[activePlayerIdx].name;
-
-
-        /*
-           Si cambia el nombre,
-           también actualizamos las parejas.
-        */
-
-        if (
-            oldName !== newName
-        ) {
-
-            const updatedPartnerships =
-                {};
-
-
-            Object.entries(
-                partnerships
-            ).forEach(
-                ([key, count]) => {
-
-                    const parts =
-                        key.split(
-                            ' | '
-                        );
-
-
-                    const updated =
-                        parts.map(
-                            name =>
-                                name === oldName
-                                    ? newName
-                                    : name
-                        );
-
-
-                    updated.sort();
-
-
-                    const newKey =
-                        updated.join(
-                            ' | '
-                        );
-
-
-                    updatedPartnerships[newKey] =
-                        (
-                            updatedPartnerships[newKey] ||
-                            0
-                        ) + count;
-                }
-            );
-
-
-            partnerships =
-                updatedPartnerships;
-        }
-
-
-        stats[activePlayerIdx].name =
-            newName;
-    }
-
-
-    /* CAMPEÓN */
-
-    else if (
-        type === 'champion'
-    ) {
-
-        const wasChampion =
-            Boolean(
-                stats[activePlayerIdx]
-                    .isChampion
-            );
-
-
-        stats.forEach(
-            player =>
-                player.isChampion = false
-        );
-
-
-        /*
-           Si ya era campeón,
-           se desmarca.
-        */
-
-        stats[activePlayerIdx]
-            .isChampion =
-                !wasChampion;
-    }
-
-
-    /* ELIMINAR */
-
-    else if (
-        type === 'delete'
-    ) {
-
-        const deletedName =
-            stats[activePlayerIdx]
-                .name;
-
-
-        stats.splice(
-            activePlayerIdx,
-            1
-        );
-
-
-        /*
-           Eliminamos todas las parejas
-           que contengan al jugador.
-        */
-
-        Object.keys(
-            partnerships
-        ).forEach(
-            key => {
-
-                if (
-                    key
-                        .split(' | ')
-                        .includes(
-                            deletedName
-                        )
-                ) {
-
-                    delete partnerships[key];
-                }
-            }
-        );
-    }
-
-
-    activePlayerIdx =
-        null;
-
-
-    saveTableData();
-
-    closeModal();
-}
-
-
-/* =========================================================
-   RACHAS
-========================================================= */
-
-function getRacha(history) {
-
-    if (
-        !Array.isArray(history) ||
-        history.length === 0
-    ) {
-        return 0;
-    }
-
-
-    const last =
-        history[
-            history.length - 1
-        ];
-
-
-    let r = 0;
-
-
-    for (
-        let i =
-            history.length - 1;
-        i >= 0;
-        i--
-    ) {
-
-        if (
-            history[i] === last
-        ) {
-
-            r++;
-
-        } else {
-
-            break;
-        }
-    }
-
-
-    return last === 'g'
-        ? r
-        : -r;
-}
-
-
-/* =========================================================
-   COLORES
-========================================================= */
-
-function getGradientColor(perc) {
-
-    if (perc >= 70) {
-        return '#388E3C';
-    }
-
-    if (perc >= 50) {
-        return '#FBC02D';
-    }
-
-    if (perc >= 35) {
-        return '#F57C00';
-    }
-
-    return '#D32F2F';
-}
-
-
-/* =========================================================
-   CAMBIOS RÁPIDOS
-========================================================= */
-
-function quickAdd(idx, field) {
-
-    if (
-        !isEditMode ||
-        !stats[idx]
-    ) {
-        return;
-    }
-
-
-    saveUndoState();
-
-
-    handleStatChange(
-        idx,
-        field,
-        stats[idx][field] + 1
-    );
-
-
-    saveTableData();
-}
-
-
-/* =========================================================
-   CAMBIO DE ESTADÍSTICA
-========================================================= */
-
-function handleStatChange(
-    idx,
-    field,
-    value
-) {
-
-    if (!stats[idx]) {
-        return;
-    }
-
-
-    const player =
-        stats[idx];
-
-
-    const oldValue =
-        Number(
-            player[field]
-        ) || 0;
-
-
-    const newValue =
-        Math.max(
-            0,
-            Number(value) || 0
-        );
-
-
-    /*
-       Solo G y P modifican historial.
-    */
-
-    if (
-        field === 'g' ||
-        field === 'p'
-    ) {
-
-        player[field] =
-            newValue;
-
-        rebuildHistory(idx);
-
-    } else {
-
-        player[field] =
-            newValue;
-    }
-
-
-    return {
-        oldValue,
-        newValue
-    };
-}
-
-
-/* =========================================================
-   EDICIÓN MANUAL
-========================================================= */
-
-function editTableField(
-    idx,
-    field,
-    value
-) {
-
-    if (
-        !isEditMode ||
-        !stats[idx]
-    ) {
-
-        render();
-
-        return;
-    }
-
-
-    let newValue =
-        parseInt(
-            value,
-            10
-        );
-
-
-    if (
-        isNaN(newValue) ||
-        newValue < 0
-    ) {
-
-        render();
-
-        return;
-    }
-
-
-    /*
-       No permitimos valores absurdos.
-    */
-
-    newValue =
-        Math.floor(
-            newValue
-        );
-
-
-    saveUndoState();
-
-
-    const player =
-        stats[idx];
-
-
-    /* =====================================================
-       J = G + P
-    ===================================================== */
-
-    if (
-        field === 'pj'
-    ) {
-
-        /*
-           Al modificar J mantenemos G
-           y ajustamos P.
-        */
-
-        player.p =
-            Math.max(
-                0,
-                newValue -
-                player.g
-            );
-
-
-        rebuildHistory(idx);
-    }
-
-
-    /* =====================================================
-       G
-    ===================================================== */
-
-    else if (
-        field === 'g'
-    ) {
-
-        /*
-           G no puede ser mayor que J
-           si J se interpreta como G + P.
-
-           Por eso, si se aumenta G,
-           se permite que J aumente automáticamente.
-        */
-
-        player.g =
-            newValue;
-
-
-        const total =
-            player.g +
-            player.p;
-
-
-        /*
-           J se calcula automáticamente,
-           por lo que no necesitamos almacenarlo.
-        */
-
-        rebuildHistory(idx);
-    }
-
-
-    /* =====================================================
-       P
-    ===================================================== */
-
-    else if (
-        field === 'p'
-    ) {
-
-        player.p =
-            newValue;
-
-
-        rebuildHistory(idx);
-    }
-
-
-    /* =====================================================
-       CASA
-    ===================================================== */
-
-    else if (
-        field === 'food'
-    ) {
-
-        player.food =
-            newValue;
-    }
-
-
-    saveTableData();
-}
-
-
-/* =========================================================
-   RECONSTRUIR HISTORIAL
-========================================================= */
-
-function rebuildHistory(idx) {
-
-    const player =
-        stats[idx];
-
-
-    if (!player) {
-        return;
-    }
-
-
-    /*
-       IMPORTANTE:
-
-       La edición manual no puede saber
-       el orden histórico real de las
-       partidas.
-
-       Por eso reconstruimos el historial
-       de forma determinista.
-
-       Primero victorias y después derrotas.
-    */
-
-    const history = [];
-
-
-    for (
-        let i = 0;
-        i < player.g;
-        i++
-    ) {
-
-        history.push('g');
-    }
-
-
-    for (
-        let i = 0;
-        i < player.p;
-        i++
-    ) {
-
-        history.push('p');
-    }
-
-
-    player.history =
-        history;
-}
-
-
-/* =========================================================
-   CASA
-========================================================= */
-
-function handleFoodChange(idx) {
-
-    if (
-        !isEditMode ||
-        !stats[idx]
-    ) {
-        return;
-    }
-
-
-    saveUndoState();
-
-
-    stats[idx].food++;
-
-
-    saveTableData();
-}
-
-
-/* =========================================================
-   ORDENAR TABLA
-========================================================= */
-
-function saveTableData() {
-
-    vibrar();
-
-
-    /*
-       Guardamos el orden ANTERIOR
-       antes de ordenar.
-
-       Esto corrige el problema de las
-       flechas ↑ ↓.
-    */
-
-    prevOrder =
-        stats.map(
-            player =>
-                player.name
-        );
-
-
-    /*
-       Orden:
-
-       1. Más victorias.
-       2. Mejor porcentaje.
-       3. Más partidas.
-    */
-
-    stats.sort(
-        (a, b) => {
-
-            if (
-                b.g !== a.g
-            ) {
-
-                return (
-                    b.g -
-                    a.g
-                );
-            }
-
-
-            const totalA =
-                a.g +
-                a.p;
-
-            const totalB =
-                b.g +
-                b.p;
-
-
-            const percA =
-                totalA > 0
-                    ? a.g / totalA
-                    : 0;
-
-
-            const percB =
-                totalB > 0
-                    ? b.g / totalB
-                    : 0;
-
-
-            if (
-                percB !== percA
-            ) {
-
-                return (
-                    percB -
-                    percA
-                );
-            }
-
-
-            return (
-                totalB -
-                totalA
-            );
-        }
-    );
-
-
-    /*
-       El orden actual se guarda
-       después de ordenar.
-
-       El orden anterior se mantiene
-       en memoria para mostrar ↑ ↓.
-    */
-
-    localStorage.setItem(
-        'torneo_prev_order',
-        JSON.stringify(
-            prevOrder
-        )
-    );
-
-
-    localStorage.setItem(
-        'torneo_final_stats',
-        JSON.stringify(stats)
-    );
-
-
-    localStorage.setItem(
-        'torneo_partnerships',
-        JSON.stringify(partnerships)
-    );
-
-
-    render();
-}
-
-
-/* =========================================================
-   COMPARTIR IMAGEN
-========================================================= */
-
-async function shareAsImage() {
-
-    sonar();
-
-
-    document.body.classList.add(
-        'exporting'
-    );
-
-
+function loadJSON(key, fallback) {
     try {
-
-        const capture =
-            document.getElementById(
-                'captureArea'
-            );
-
-
-        const canvas =
-            await html2canvas(
-                capture,
-                {
-                    backgroundColor:
-                        '#000',
-
-                    scale: 3,
-
-                    useCORS: true
-                }
-            );
-
-
-        const blob =
-            await new Promise(
-                resolve =>
-                    canvas.toBlob(
-                        resolve,
-                        'image/png'
-                    )
-            );
-
-
-        if (!blob) {
-            throw new Error(
-                'No se pudo crear la imagen.'
-            );
-        }
-
-
-        const file =
-            new File(
-                [blob],
-                'tabla-truco.png',
-                {
-                    type:
-                        'image/png'
-                }
-            );
-
-
-        /*
-           Compartir directamente
-           si el navegador lo permite.
-        */
-
-        if (
-            navigator.share &&
-            navigator.canShare &&
-            navigator.canShare({
-                files: [file]
-            })
-        ) {
-
-            await navigator.share({
-                files: [file],
-                title:
-                    document.getElementById(
-                        'displayTitle'
-                    ).innerText
-            });
-
-        }
-
-        /*
-           Fallback para navegadores
-           que no soportan compartir archivos.
-        */
-
-        else {
-
-            const url =
-                URL.createObjectURL(
-                    blob
-                );
-
-
-            const a =
-                document.createElement(
-                    'a'
-                );
-
-
-            a.href = url;
-
-            a.download =
-                'tabla-truco.png';
-
-            a.click();
-
-
-            setTimeout(
-                () =>
-                    URL.revokeObjectURL(
-                        url
-                    ),
-                1000
-            );
-        }
-
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : fallback;
+    } catch {
+        return fallback;
     }
+}
 
-    catch (error) {
+function isPastDate(key) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const date = new Date(key + "T00:00:00");
+    return date < today;
+}
 
-        console.error(
-            'Error compartiendo:',
-            error
-        );
-    }
+function formatShortDate(key) {
+    const date = new Date(key + "T00:00:00");
+    return date.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" });
+}
 
+function timeStringToMinutes(timeStr) {
+    if (!timeStr) return 0;
+    const [h, m] = timeStr.split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+}
 
-    document.body.classList.remove(
-        'exporting'
+function isCurrentTimeInRange(startStr, endStr) {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const startMinutes = timeStringToMinutes(startStr);
+    const endMinutes = timeStringToMinutes(endStr);
+    return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+}
+
+function CustomDialog({ config, onClose }) {
+    if (!config.show) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] modal-backdrop flex items-center justify-center p-4">
+            <div className="bg-surface border-2 border-slate-700 rounded-3xl p-6 w-full max-w-[320px] shadow-[0_0_30px_rgba(0,0,0,0.8)] animate-[fadeIn_0.2s_ease-out]">
+                {config.title && (
+                    <h3 className="text-xl font-extrabold mb-2 text-white hero-font text-gold-accent">{config.title}</h3>
+                )}
+                <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+                    {config.message}
+                </p>
+                
+                <div className="flex gap-3 justify-end">
+                    {!config.isAlert && (
+                        <button 
+                            onClick={onClose}
+                            className="px-5 py-2.5 rounded-xl text-slate-300 font-semibold bg-slate-700 hover:bg-slate-600 border border-slate-600 transition-colors"
+                        >
+                            Retirada
+                        </button>
+                    )}
+                    <button 
+                        onClick={() => {
+                            if (config.onConfirm) config.onConfirm();
+                            onClose();
+                        }}
+                        className="px-5 py-2.5 rounded-xl text-slate-900 font-bold bg-gold hover:bg-amber-400 transition-colors shadow-sm shadow-amber-500/20"
+                    >
+                        {config.isAlert ? 'Comprendido' : 'Proceder'}
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 }
 
+function ProgressCircle({ value, max, size, label }) {
+    const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
-/* =========================================================
-   EXPORTAR BACKUP
-========================================================= */
+    useEffect(() => {
+        function handleOrientation(e) {
+            if (e.beta !== null && e.gamma !== null) {
+                const x = clamp(e.gamma / 3, -15, 15);
+                const y = clamp(e.beta / 3, -15, 15);
+                setTilt({ x, y });
+            }
+        }
+        window.addEventListener('deviceorientation', handleOrientation);
+        return () => window.removeEventListener('deviceorientation', handleOrientation);
+    }, []);
 
-function exportData() {
+    const percent = max > 0 ? clamp(value / max, 0, 1) : 0;
+    const percentage = percent * 100;
+    const isDamage = value > max;
 
-    const data = {
+    return (
+        <div
+            className="water-circle flex-shrink-0"
+            style={{ width: size, height: size }}
+        >
+            <div
+                className={`water-fill ${isDamage ? 'damage' : ''}`}
+                style={{
+                    height: `${percentage}%`,
+                    transform: `translate(${tilt.x}px, ${tilt.y}px)`
+                }}
+            >
+                <div className="water-wave"></div>
+                <div className="water-wave-2"></div>
+                <div className="water-shimmer"></div>
+            </div>
 
-        version:
-            2,
+            <div className="water-content">
+                <div className="water-number">
+                    {Math.round(value).toLocaleString("es-ES")}
+                </div>
+                <div className="water-max">
+                    / {Math.round(max).toLocaleString("es-ES")}
+                </div>
+                <div className="water-label">
+                    {label}
+                </div>
+            </div>
+        </div>
+    );
+}
 
-        title:
-            localStorage.getItem(
-                'torneo_titulo'
-            ) ||
-            'Clausura Truco 2026',
+function MiniProgress({ value, max, label, suffix, color }) {
+    const percent = max > 0 ? clamp((value / max) * 100, 0, 100) : 0;
 
-        stats:
-            stats,
+    return (
+        <div>
+            <div className="flex justify-between text-xs mb-2">
+                <span className="text-slate-400">{label}</span>
+                <span className="font-semibold text-white">
+                    {Math.round(value).toLocaleString("es-ES")} / {Math.round(max).toLocaleString("es-ES")} {suffix}
+                </span>
+            </div>
+            <div className="h-2 rounded-full progress-track overflow-hidden">
+                <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${percent}%`, background: color || '#fbbf24' }}
+                />
+            </div>
+        </div>
+    );
+}
 
-        partnerships:
-            partnerships
+function App() {
+    const [activeTab, setActiveTab] = useState("home");
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+    const [showInstallBanner, setShowInstallBanner] = useState(false);
+    
+    useEffect(() => {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+            setShowInstallBanner(true);
+        });
+    }, []);
+
+    const handleInstallClick = async () => {
+        if (!deferredPrompt) {
+            showAlert("Instalación", "Para instalar la aplicación, pulsa el menú de tu navegador y selecciona 'Añadir a la pantalla principal' o 'Instalar aplicación'.");
+            return;
+        }
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            setDeferredPrompt(null);
+            setShowInstallBanner(false);
+        }
+    };
+    
+    const [dialogConfig, setDialogConfig] = useState({
+        show: false, title: "", message: "", isAlert: true, onConfirm: null
+    });
+
+    const showAlert = (title, message) => {
+        setDialogConfig({ show: true, title, message, isAlert: true, onConfirm: null });
     };
 
+    const showConfirm = (title, message, onConfirm) => {
+        setDialogConfig({ show: true, title, message, isAlert: false, onConfirm });
+    };
 
-    const blob =
-        new Blob(
-            [
-                JSON.stringify(
-                    data,
-                    null,
-                    2
-                )
-            ],
-            {
-                type:
-                    'application/json'
+    const closeDialog = () => setDialogConfig(prev => ({ ...prev, show: false }));
+
+    const [settings, setSettings] = useState(() => loadJSON("nutrition_settings", DEFAULT_SETTINGS));
+    
+    const [entries, setEntries] = useState(() => {
+        const raw = loadJSON("nutrition_entries", []);
+        const cleanMap = new Map();
+        raw.forEach(e => {
+            if (e && e.date && e.name && e.calories !== undefined) {
+                const uniqueKey = e.id ? String(e.id) : `${e.date}_${e.name}_${Math.random()}`;
+                cleanMap.set(uniqueKey, {
+                    id: e.id || Date.now() + Math.random(),
+                    date: String(e.date),
+                    name: String(e.name),
+                    calories: Number(e.calories) || 0,
+                    protein: Number(e.protein) || 0,
+                    mealType: String(e.mealType || "Desayuno")
+                });
             }
-        );
+        });
+        return Array.from(cleanMap.values());
+    });
+    const [savedFoods, setSavedFoods] = useState(() => loadJSON("nutrition_saved_foods", []));
+    const [stepsData, setStepsData] = useState(() => loadJSON("nutrition_steps", {}));
+    const [weightEntries, setWeightEntries] = useState(() => loadJSON("nutrition_weight", []));
+    
+    const [showAdd, setShowAdd] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(dateKey(new Date()));
+    const [selectedMealType, setSelectedMealType] = useState("Desayuno");
+    const [editingEntry, setEditingEntry] = useState(null);
+    const [editingFood, setEditingFood] = useState(null);
 
+    const [currentWeekReference, setCurrentWeekReference] = useState(new Date());
 
-    const url =
-        URL.createObjectURL(
-            blob
-        );
+    useEffect(() => { localStorage.setItem("nutrition_settings", JSON.stringify(settings)); }, [settings]);
+    useEffect(() => { localStorage.setItem("nutrition_entries", JSON.stringify(entries)); }, [entries]);
+    useEffect(() => { localStorage.setItem("nutrition_saved_foods", JSON.stringify(savedFoods)); }, [savedFoods]);
+    useEffect(() => { localStorage.setItem("nutrition_steps", JSON.stringify(stepsData)); }, [stepsData]);
+    useEffect(() => { localStorage.setItem("nutrition_weight", JSON.stringify(weightEntries)); }, [weightEntries]);
 
+    const weekDates = getWeekDates(currentWeekReference);
+    const weekKeys = weekDates.map(dateKey);
+    const todayKey = dateKey(new Date());
 
-    const a =
-        document.createElement(
-            'a'
-        );
+    function getDayEntries(key) {
+        return entries.filter(e => e.date === key);
+    }
 
+    function getDayCalories(key) {
+        return getDayEntries(key).reduce((sum, e) => sum + Number(e.calories || 0), 0);
+    }
 
-    a.href =
-        url;
+    function getDayProtein(key) {
+        return getDayEntries(key).reduce((sum, e) => sum + Number(e.protein || 0), 0);
+    }
 
+    function getDaySteps(key) {
+        return Number(stepsData[key] || 0);
+    }
 
-    a.download =
-        'backup-truco.json';
+    function setDaySteps(key, val) {
+        setStepsData(prev => ({ ...prev, [key]: Math.max(0, Number(val) || 0) }));
+    }
 
+    const weeklyCaloriesConsumed = weekKeys.reduce((sum, key) => sum + getDayCalories(key), 0);
+    const weeklyProteinConsumed = weekKeys.reduce((sum, key) => sum + getDayProtein(key), 0);
+    const weeklyStepsConsumed = weekKeys.reduce((sum, key) => sum + getDaySteps(key), 0);
 
-    document.body.appendChild(a);
+    const weeklyCaloriesRemaining = Math.max(0, Number(settings.caloriesWeekly || 0) - weeklyCaloriesConsumed);
 
-    a.click();
+    function getDynamicDailyBudget(index, totalWeeklyTarget, getConsumedFn) {
+        let remainingBudget = Number(totalWeeklyTarget || 0);
+        for (let i = 0; i < index; i++) {
+            remainingBudget -= getConsumedFn(weekKeys[i]);
+        }
+        const remainingDays = 7 - index;
+        if (remainingDays <= 0) return 0;
+        return Math.max(0, remainingBudget / remainingDays);
+    }
 
-    a.remove();
+    const todayIndex = weekKeys.indexOf(todayKey);
+    
+    const todayBudget = todayIndex >= 0 ? getDynamicDailyBudget(todayIndex, settings.caloriesWeekly, getDayCalories) : Number(settings.caloriesWeekly || 0) / 7;
+    const todayCalories = getDayCalories(todayKey);
+    const todayRemaining = Math.max(0, todayBudget - todayCalories);
 
+    const todayProteinBudget = todayIndex >= 0 ? getDynamicDailyBudget(todayIndex, settings.proteinWeekly, getDayProtein) : Number(settings.proteinWeekly || 0) / 7;
+    const todayProtein = getDayProtein(todayKey);
 
-    setTimeout(
-        () =>
-            URL.revokeObjectURL(
-                url
-            ),
-        1000
-    );
-}
+    const todayStepsBudget = todayIndex >= 0 ? getDynamicDailyBudget(todayIndex, settings.stepsWeekly, getDaySteps) : Number(settings.stepsWeekly || 0) / 7;
+    const todaySteps = getDaySteps(todayKey);
 
+    function saveEntry(data) {
+        if (settings.strictWindowsEnabled && selectedDate === todayKey && !editingEntry) {
+            let start = settings.breakfastStart;
+            let end = settings.breakfastEnd;
+            if (data.mealType === "Almuerzo") { start = settings.lunchStart; end = settings.lunchEnd; }
+            if (data.mealType === "Cena") { start = settings.dinnerStart; end = settings.dinnerEnd; }
 
-/* =========================================================
-   IMPORTAR BACKUP
-========================================================= */
-
-function importData() {
-
-    const input =
-        document.createElement(
-            'input'
-        );
-
-
-    input.type =
-        'file';
-
-    input.accept =
-        '.json,application/json';
-
-
-    input.onchange =
-        event => {
-
-            const file =
-                event.target.files[0];
-
-
-            if (!file) {
+            if (!isCurrentTimeInRange(start, end)) {
+                showConfirm(
+                    "Maldición de Tiempo",
+                    `Estás intentando forjar una provisión fuera del ciclo sagrado (${start} - ${end}). ¿Deseas romper el pacto y registrarlo igualmente?`,
+                    () => proceedSaveEntry(data)
+                );
                 return;
             }
+        }
 
+        proceedSaveEntry(data);
+    }
 
-            const reader =
-                new FileReader();
+    function proceedSaveEntry(data) {
+        if (editingEntry) {
+            setEntries(prev => prev.map(e => e.id === editingEntry.id ? {
+                ...e,
+                name: data.name.trim(),
+                calories: Number(data.calories),
+                protein: Number(data.protein),
+                mealType: data.mealType
+            } : e));
+        } else {
+            setEntries(prev => [
+                ...prev,
+                {
+                    id: Date.now() + Math.random(),
+                    date: selectedDate,
+                    name: data.name.trim(),
+                    calories: Number(data.calories),
+                    protein: Number(data.protein),
+                    mealType: data.mealType
+                }
+            ]);
+        }
 
+        const nameLower = data.name.trim().toLowerCase();
+        const existsInLibrary = savedFoods.some(f => f.name.toLowerCase() === nameLower);
+        
+        if (!existsInLibrary) {
+            setSavedFoods(prev => [...prev, {
+                id: Date.now() + Math.random(),
+                name: data.name.trim(),
+                calories: Number(data.calories),
+                protein: Number(data.protein || 0)
+            }]);
+        }
 
-            reader.onload =
-                loadEvent => {
+        setShowAdd(false);
+        setEditingEntry(null);
+    }
 
-                    try {
+    function deleteEntry(id) {
+        setEntries(prev => prev.filter(entry => entry.id !== id));
+    }
 
-                        const data =
-                            JSON.parse(
-                                loadEvent
-                                    .target
-                                    .result
-                            );
+    function deleteSavedFood(id) {
+        setSavedFoods(prev => prev.filter(food => food.id !== id));
+    }
 
+    function updateSavedFood(updatedFood) {
+        setSavedFoods(prev => prev.map(f => f.id === updatedFood.id ? updatedFood : f));
+        setEditingFood(null);
+    }
 
-                        /*
-                           Soporta:
+    function resetAll() {
+        showConfirm(
+            "Destruir Pergaminos", 
+            "¿Seguro que quieres quemar todos tus registros y empezar de cero? Esta acción no se puede deshacer.",
+            () => {
+                setEntries([]);
+                setStepsData({});
+                localStorage.removeItem("nutrition_entries");
+                localStorage.removeItem("nutrition_steps");
+                showAlert("Victoria", "Tus antiguas gestas han sido borradas de la historia.");
+            }
+        );
+    }
 
-                           {
-                              stats: [...],
-                              partnerships: {...}
-                           }
-
-                           y también backups
-                           antiguos que eran
-                           directamente un array.
-                        */
-
-                        if (
-                            Array.isArray(data)
-                        ) {
-
-                            stats =
-                                data;
-
-                            partnerships =
-                                {};
-
-                        }
-
-                        else {
-
-                            stats =
-                                data.stats ||
-                                [];
-
-                            partnerships =
-                                data.partnerships ||
-                                {};
-
-                            if (
-                                data.title
-                            ) {
-
-                                localStorage.setItem(
-                                    'torneo_titulo',
-                                    data.title
-                                );
-                            }
-                        }
-
-
-                        normalizeStats();
-
-
-                        /*
-                           Eliminamos undo anterior
-                           para evitar volver a un
-                           estado incompatible.
-                        */
-
-                        undoStack =
-                            [];
-
-
-                        saveLocalData();
-
-
-                        const savedTitle =
-                            localStorage.getItem(
-                                'torneo_titulo'
-                            ) ||
-                            'Clausura Truco 2026';
-
-
-                        document.getElementById(
-                            'displayTitle'
-                        ).innerText =
-                            savedTitle;
-
-
-                        document.getElementById(
-                            'editTitle'
-                        ).value =
-                            savedTitle;
-
-
-                        render();
-
-
-                        alert(
-                            'Backup cargado correctamente.'
-                        );
-
-                    }
-
-                    catch (error) {
-
-                        console.error(
-                            error
-                        );
-
-                        alert(
-                            'El archivo no es un backup válido.'
-                        );
-                    }
-                };
-
-
-            reader.readAsText(
-                file
-            );
+    function saveBackup() {
+        const backup = {
+            app: "El Camino del Heroe",
+            version: 14,
+            exportedAt: new Date().toISOString(),
+            settings: settings,
+            entries: entries,
+            savedFoods: savedFoods,
+            steps: stepsData,
+            weight: weightEntries
         };
 
+        const json = JSON.stringify(backup, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        const today = new Date().toISOString().slice(0, 10);
+        link.download = `cronicas-heroe-${today}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
 
-    input.click();
+    function loadBackup(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const backup = JSON.parse(e.target.result);
+                if (!backup || !backup.settings || !Array.isArray(backup.entries)) {
+                    throw new Error("Formato inválido");
+                }
+
+                showConfirm(
+                    "Restaurar Crónicas",
+                    "Leer este pergamino antiguo reemplazará tus recuerdos actuales. ¿Continuar?",
+                    () => {
+                        const importedSettings = {
+                            ...DEFAULT_SETTINGS,
+                            ...backup.settings,
+                            caloriesWeekly: Number(backup.settings.caloriesWeekly) || 16590,
+                            proteinWeekly: Number(backup.settings.proteinWeekly) || 1190,
+                            stepsWeekly: Number(backup.settings.stepsWeekly) || 70000
+                        };
+
+                        const importedEntries = backup.entries
+                            .filter(entry => entry && entry.date && entry.name)
+                            .map(entry => ({
+                                id: entry.id || Date.now() + Math.random(),
+                                date: String(entry.date),
+                                name: String(entry.name),
+                                calories: Number(entry.calories) || 0,
+                                protein: Number(entry.protein) || 0,
+                                mealType: String(entry.mealType || "Desayuno")
+                            }));
+                        
+                        const importedSavedFoods = Array.isArray(backup.savedFoods) ? backup.savedFoods : [];
+                        const importedSteps = backup.steps && typeof backup.steps === 'object' ? backup.steps : {};
+                        const importedWeight = Array.isArray(backup.weight) ? backup.weight : [];
+
+                        setSettings(importedSettings);
+                        setEntries(importedEntries);
+                        setSavedFoods(importedSavedFoods);
+                        setStepsData(importedSteps);
+                        setWeightEntries(importedWeight);
+
+                        showAlert("Magia Completada", " Las crónicas han sido restauradas.");
+                    }
+                );
+            } catch {
+                showAlert("Magia Fallida", "El pergamino está corrupto (Formato no válido).");
+            }
+            event.target.value = "";
+        };
+        reader.readAsText(file);
+    }
+
+    return (
+        <div className="app">
+            <CustomDialog config={dialogConfig} onClose={closeDialog} />
+
+            {showInstallBanner && (
+                <div className="bg-amber-500 text-slate-950 px-4 py-3 flex justify-between items-center text-xs font-bold shadow-lg z-50 sticky top-0">
+                    <span className="flex items-center gap-2">📱 ¡Instala El Camino del Héroe en tu dispositivo!</span>
+                    <button 
+                        onClick={handleInstallClick}
+                        className="bg-slate-950 text-amber-400 px-3 py-1.5 rounded-lg uppercase tracking-wider text-[10px] shadow"
+                    >
+                        Instalar
+                    </button>
+                </div>
+            )}
+
+            {activeTab === "home" && (
+                <Home
+                    settings={settings}
+                    weekDates={weekDates}
+                    weekKeys={weekKeys}
+                    todayKey={todayKey}
+                    todayBudget={todayBudget}
+                    todayCalories={todayCalories}
+                    todayProtein={todayProtein}
+                    todayProteinBudget={todayProteinBudget}
+                    todaySteps={todaySteps}
+                    todayStepsBudget={todayStepsBudget}
+                    todayRemaining={todayRemaining}
+                    weeklyCaloriesConsumed={weeklyCaloriesConsumed}
+                    weeklyCaloriesRemaining={weeklyCaloriesRemaining}
+                    weeklyProteinConsumed={weeklyProteinConsumed}
+                    weeklyProteinRemaining={Math.max(0, Number(settings.proteinWeekly) - weeklyProteinConsumed)}
+                    weeklyStepsConsumed={weeklyStepsConsumed}
+                    weeklyStepsRemaining={Math.max(0, Number(settings.stepsWeekly) - weeklyStepsConsumed)}
+                    getDayCalories={getDayCalories}
+                    getDayProtein={getDayProtein}
+                    getDaySteps={getDaySteps}
+                    setDaySteps={setDaySteps}
+                    getDynamicDailyBudget={getDynamicDailyBudget}
+                    currentWeekReference={currentWeekReference}
+                    setCurrentWeekReference={setCurrentWeekReference}
+                    onAdd={(targetDate, mealType = "Desayuno") => { 
+                        setSelectedDate(targetDate || todayKey); 
+                        setSelectedMealType(mealType);
+                        setEditingEntry(null); 
+                        setShowAdd(true); 
+                    }}
+                    onSelectDay={key => { setSelectedDate(key); setSelectedMealType("Desayuno"); setEditingEntry(null); setShowAdd(true); }}
+                    onEdit={entry => { setEditingEntry(entry); setSelectedDate(entry.date); setSelectedMealType(entry.mealType || "Desayuno"); setShowAdd(true); }}
+                    entries={entries}
+                    onDelete={deleteEntry}
+                />
+            )}
+
+            {activeTab === "history" && (
+                <History
+                    entries={entries}
+                    settings={settings}
+                    stepsData={stepsData}
+                    weightEntries={weightEntries}
+                    setWeightEntries={setWeightEntries}
+                    getDayCalories={getDayCalories}
+                    getDayProtein={getDayProtein}
+                    getDaySteps={getDaySteps}
+                    getDynamicDailyBudget={getDynamicDailyBudget}
+                    onSelectDay={key => { setSelectedDate(key); setSelectedMealType("Desayuno"); setShowAdd(true); }}
+                    showAlert={showAlert}
+                    showConfirm={showConfirm}
+                />
+            )}
+            
+            {activeTab === "foods" && (
+                <FoodLibrary 
+                    savedFoods={savedFoods}
+                    onDelete={deleteSavedFood}
+                    onEdit={food => setEditingFood(food)}
+                />
+            )}
+
+            {activeTab === "settings" && (
+                <Settings
+                    settings={settings}
+                    setSettings={setSettings}
+                    resetAll={resetAll}
+                    saveBackup={saveBackup}
+                    loadBackup={loadBackup}
+                    showAlert={showAlert}
+                    onInstallClick={handleInstallClick}
+                />
+            )}
+
+            <div className="fixed bottom-0 left-0 right-0 bg-[#0b0f19] border-t border-slate-800 nav-bottom z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
+                <div className="max-w-[480px] mx-auto h-[82px] flex items-center justify-around px-2">
+                    <NavButton
+                        active={activeTab === "home"}
+                        icon="🏕️"
+                        label="Campamento"
+                        onClick={() => setActiveTab("home")}
+                    />
+                    <NavButton
+                        active={activeTab === "history"}
+                        icon="📜"
+                        label="Crónicas"
+                        onClick={() => setActiveTab("history")}
+                    />
+                    <NavButton
+                        active={activeTab === "foods"}
+                        icon="🎒"
+                        label="Botica"
+                        onClick={() => setActiveTab("foods")}
+                    />
+                    <NavButton
+                        active={activeTab === "settings"}
+                        icon="⚔️"
+                        label="Pactos"
+                        onClick={() => setActiveTab("settings")}
+                    />
+                </div>
+            </div>
+
+            {showAdd && (
+                <AddModal
+                    date={selectedDate}
+                    initialMealType={selectedMealType}
+                    onClose={() => { setShowAdd(false); setEditingEntry(null); }}
+                    onSave={saveEntry}
+                    savedFoods={savedFoods}
+                    showAlert={showAlert}
+                    initialData={editingEntry}
+                    settings={settings}
+                />
+            )}
+
+            {editingFood && (
+                <EditFoodModal
+                    food={editingFood}
+                    onClose={() => setEditingFood(null)}
+                    onSave={updateSavedFood}
+                    showAlert={showAlert}
+                />
+            )}
+        </div>
+    );
 }
 
-
-/* =========================================================
-   AÑADIR JUGADOR
-========================================================= */
-
-function addNewPlayer() {
-
-    const input =
-        document.getElementById(
-            'newPlayerName'
-        );
-
-
-    const name =
-        input.value.trim();
-
-
-    if (!name) {
-        return;
+function Home({
+    settings, weekDates, weekKeys, todayKey, todayBudget, todayCalories, todayProtein,
+    todayProteinBudget, todaySteps, todayStepsBudget, todayRemaining, weeklyCaloriesConsumed,
+    weeklyCaloriesRemaining, weeklyProteinConsumed, weeklyProteinRemaining, weeklyStepsConsumed,
+    weeklyStepsRemaining, getDayCalories, getDayProtein, getDaySteps, setDaySteps, getDynamicDailyBudget,
+    currentWeekReference, setCurrentWeekReference, onAdd, onSelectDay, onEdit, entries, onDelete
+}) {
+    function changeWeek(direction) {
+        const newRef = new Date(currentWeekReference);
+        newRef.setDate(newRef.getDate() + (direction * 7));
+        setCurrentWeekReference(newRef);
     }
 
+    return (
+        <main className="safe-bottom p-5">
+            <header className="flex justify-between items-center mb-6 mt-2">
+                <div>
+                    <div className="text-xs font-bold tracking-widest text-gold-accent uppercase">Ciclo Actual</div>
+                    <h1 className="text-[22px] font-extrabold text-white flex items-center gap-2 hero-font mt-1">
+                        {formatWeekDate(weekDates[0])} {" - "} {formatWeekDate(weekDates[6])}
+                    </h1>
+                </div>
+                <div className="flex gap-2">
+                    <button 
+                        onClick={() => changeWeek(-1)} 
+                        className="w-10 h-10 rounded-xl bg-surface border border-slate-700 flex items-center justify-center text-lg text-slate-300 hover:bg-slate-700 active:scale-95 transition-all"
+                    >
+                        ←
+                    </button>
+                    <button 
+                        onClick={() => setCurrentWeekReference(new Date())} 
+                        className="px-3 h-10 rounded-xl bg-surface border border-slate-700 flex items-center justify-center text-xs font-bold gold-accent uppercase tracking-widest hover:bg-slate-700 active:scale-95 transition-all"
+                    >
+                        Hoy
+                    </button>
+                    <button 
+                        onClick={() => changeWeek(1)} 
+                        className="w-10 h-10 rounded-xl bg-surface border border-slate-700 flex items-center justify-center text-lg text-slate-300 hover:bg-slate-700 active:scale-95 transition-all"
+                    >
+                        →
+                    </button>
+                </div>
+            </header>
 
-    /*
-       Evitar nombres duplicados.
-    */
+            <section className="card p-6 mb-6">
+                <div className="flex items-center gap-6">
+                    <ProgressCircle
+                        value={weeklyCaloriesConsumed}
+                        max={settings.caloriesWeekly}
+                        size={160}
+                        label="Energía (S)"
+                    />
+                    <div className="flex-1 space-y-5">
+                        <MiniProgress
+                            value={weeklyProteinConsumed}
+                            max={settings.proteinWeekly}
+                            label="Fuerza (P)"
+                            suffix="g"
+                            color="#3b82f6"
+                        />
+                        <MiniProgress
+                            value={weeklyStepsConsumed}
+                            max={settings.stepsWeekly}
+                            label="Exploración"
+                            suffix=""
+                            color="#10b981"
+                        />
+                        <div className="pt-2 border-t border-slate-700/50">
+                            <div className="flex justify-between text-xs mb-1">
+                                <span className="text-slate-400">Reserva Mágica</span>
+                                <span className="font-bold gold-accent">
+                                    {Math.round(weeklyCaloriesRemaining).toLocaleString("es-ES")}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    const exists =
-        stats.some(
-            player =>
-                player.name
-                    .toLowerCase() ===
-                name.toLowerCase()
-        );
+            <section className="card p-5 mb-6 relative overflow-hidden border-t-2 border-t-amber-500/50">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <div className="text-xs font-bold tracking-widest text-gold-accent uppercase">Recursos del Día</div>
+                        <div className="text-3xl font-extrabold mt-1 text-white hero-font">
+                            {Math.round(todayBudget).toLocaleString("es-ES")}
+                            <span className="text-sm font-medium text-slate-400 ml-1 font-sans">Kcal</span>
+                        </div>
+                        <div className="text-xs text-slate-400 mt-2">
+                            {Math.round(todayCalories).toLocaleString("es-ES")} Consumidas · <span className="font-bold text-white">{Math.round(todayRemaining).toLocaleString("es-ES")} Restantes</span>
+                        </div>
+                    </div>
+                    <button onClick={() => onAdd(todayKey, "Desayuno")} className="bg-gold text-slate-900 w-12 h-12 rounded-xl text-2xl font-black shadow-[0_0_15px_rgba(251,191,36,0.3)] hover:scale-105 active:scale-95 transition-transform flex items-center justify-center pb-1">
+                        +
+                    </button>
+                </div>
 
+                <div className="mt-5">
+                    <div className="flex justify-between text-xs mb-2 font-bold text-slate-300 uppercase tracking-widest">
+                        <span>Energía Vital</span>
+                        <span className={todayCalories > todayBudget ? "text-red-400" : "text-amber-400"}>{Math.round(todayCalories)} / {Math.round(todayBudget)}</span>
+                    </div>
+                    <div className="h-2.5 rounded-full progress-track overflow-hidden">
+                        <div
+                            className={`h-full rounded-full transition-all duration-500 ${todayCalories > todayBudget ? "progress-red" : "progress-gold"}`}
+                            style={{ width: `${clamp(todayCalories / Math.max(todayBudget, 1) * 100, 0, 100)}%` }}
+                        />
+                    </div>
+                </div>
 
-    if (exists) {
+                <div className="mt-4">
+                    <div className="flex justify-between text-[10px] mb-2 font-bold text-slate-300 uppercase tracking-widest">
+                        <span>Fuerza (Meta hoy: {Math.round(todayProteinBudget)}g)</span>
+                        <span className="text-blue-400">{Math.round(todayProtein)} / {Math.round(todayProteinBudget)}</span>
+                    </div>
+                    <div className="h-2.5 rounded-full progress-track overflow-hidden">
+                        <div
+                            className="h-full rounded-full transition-all duration-500 progress-blue"
+                            style={{ width: `${clamp(todayProtein / Math.max(todayProteinBudget, 1) * 100, 0, 100)}%`}}
+                        />
+                    </div>
+                </div>
 
-        alert(
-            'Ya existe un jugador con ese nombre.'
-        );
+                <div className="mt-5 pt-4 border-t border-slate-700/50 flex items-center justify-between">
+                    <div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Distancia Recorrida</div>
+                        <div className="text-lg font-bold text-white mt-0.5 hero-font">
+                            {todaySteps.toLocaleString("es-ES")} <span className="text-[10px] font-medium text-slate-500 font-sans tracking-normal uppercase">/ Obj: ~{Math.round(todayStepsBudget).toLocaleString("es-ES")}</span>
+                        </div>
+                    </div>
+                    <input
+                        type="number"
+                        inputMode="numeric"
+                        value={todaySteps === 0 ? "" : todaySteps}
+                        onChange={e => setDaySteps(todayKey, e.target.value)}
+                        placeholder="Pasos..."
+                        className="w-28 border border-slate-600 bg-slate-800 focus:bg-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-white transition-colors text-right outline-none"
+                    />
+                </div>
+            </section>
 
-        return;
+            <div className="flex items-center justify-between mb-4 px-1 mt-6">
+                <h2 className="text-lg font-bold text-white hero-font tracking-wide">Diario de Expedición</h2>
+                <span className="text-xs font-bold text-slate-400">
+                    Suministros: <span className="text-amber-400">{weeklyCaloriesConsumed.toLocaleString("es-ES")}</span> / {Number(settings.caloriesWeekly).toLocaleString("es-ES")}
+                </span>
+            </div>
+
+            <div className="space-y-4">
+                {weekDates.map((date, index) => {
+                    const key = weekKeys[index];
+                    const calories = getDayCalories(key);
+                    const protein = getDayProtein(key);
+                    const steps = getDaySteps(key);
+                    const budget = getDynamicDailyBudget(index, settings.caloriesWeekly, getDayCalories);
+                    const proteinBudget = getDynamicDailyBudget(index, settings.proteinWeekly, getDayProtein);
+                    const stepsBudget = getDynamicDailyBudget(index, settings.stepsWeekly, getDaySteps);
+                    const isToday = key === todayKey;
+                    const isPast = isPastDate(key);
+                    const dayEntries = entries.filter(e => e.date === key);
+
+                    return (
+                        <div key={key} className={`card day-row ${isToday ? "today-day p-4 relative" : ""} ${isPast ? "past-day" : "p-4"}`}>
+                            {isToday && <div className="absolute top-0 right-4 px-3 py-1 bg-gold text-[#0b0f19] text-[9px] font-black tracking-widest uppercase rounded-b-md">Día Actual</div>}
+                            
+                            <div className="flex justify-between items-center cursor-pointer" onClick={() => onSelectDay(key)}>
+                                <div>
+                                    <h3 className="font-bold text-white hero-font text-lg tracking-wide">{DAYS[index]}</h3>
+                                    <div className="text-[10px] font-medium text-slate-500 mt-1 uppercase tracking-widest">{formatDate(date)}</div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="text-right">
+                                        <div className="font-black text-white text-lg">
+                                            {Math.round(calories).toLocaleString("es-ES")} <span className="text-slate-500 font-medium text-sm">/ {Math.round(budget).toLocaleString("es-ES")}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-3">
+                                <div className="h-1.5 progress-track rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-500 ${calories > budget ? "progress-red" : "progress-gold"}`}
+                                        style={{ width: `${clamp(calories / Math.max(budget, 1) * 100, 0, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between mt-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest items-center">
+                                <span className="text-blue-400">P {Math.round(protein)} / {Math.round(proteinBudget)} g</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-emerald-500 text-sm">👣</span>
+                                    <input
+                                        type="number"
+                                        inputMode="numeric"
+                                        value={steps === 0 ? "" : steps}
+                                        onChange={e => setDaySteps(key, e.target.value)}
+                                        onClick={e => e.stopPropagation()}
+                                        placeholder="Pasos"
+                                        className="w-20 border border-slate-700 bg-slate-900 rounded-md px-2 py-1 text-xs font-bold text-white text-right outline-none focus:border-emerald-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {(!isPast || dayEntries.length > 0) && (
+                                <div className="mt-4 space-y-3 border-t border-slate-700/50 pt-3">
+                                    {MEAL_TYPES.map(mealType => {
+                                        const slotEntries = dayEntries.filter(e => e.mealType === mealType);
+                                        return (
+                                            <div key={mealType} className="bg-slate-900/50 rounded-xl p-3 border border-slate-800/50 shadow-inner">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest ${slotEntries.length > 0 ? 'bg-amber-900/30 text-amber-400 border border-amber-500/20' : 'bg-slate-800 text-slate-500'}`}>
+                                                        {MEAL_LABELS[mealType]}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => onAdd(key, mealType)}
+                                                        className="px-3 py-1 rounded-lg bg-slate-800 text-amber-500 border border-amber-500/30 text-[10px] font-bold hover:bg-amber-500 hover:text-slate-900 transition-all uppercase tracking-wider"
+                                                    >
+                                                        + Añadir
+                                                    </button>
+                                                </div>
+
+                                                {slotEntries.length > 0 ? (
+                                                    <div className="space-y-1.5">
+                                                        {slotEntries.map(entry => (
+                                                            <div key={entry.id} className="flex justify-between items-center bg-slate-800/80 p-2.5 rounded-lg border border-slate-700/50">
+                                                                <div>
+                                                                    <div className="font-bold text-xs text-white cursor-pointer hover:text-amber-400 transition-colors" onClick={() => onEdit(entry)}>{entry.name}</div>
+                                                                    <div className="text-[10px] font-medium text-blue-400/80 mt-0.5">Fuerza +{entry.protein}g</div>
+                                                                </div>
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className="font-bold text-xs text-amber-400">{entry.calories} kcal</span>
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); onDelete(entry.id); }}
+                                                                        className="w-6 h-6 flex items-center justify-center rounded-md bg-slate-700 text-slate-400 hover:text-red-400 hover:bg-red-900/30 transition-colors text-sm"
+                                                                        title="Descartar provisión"
+                                                                    >
+                                                                        ×
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-[10px] text-slate-600 italic font-medium px-1 uppercase tracking-wide">Ranura vacía</div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </main>
+    );
+}
+
+function AddModal({ date, initialMealType, onClose, onSave, savedFoods, showAlert, initialData, settings }) {
+    const [name, setName] = useState(initialData ? initialData.name : "");
+    const [calories, setCalories] = useState(initialData ? initialData.calories.toString() : "");
+    const [protein, setProtein] = useState(initialData ? initialData.protein.toString() : "");
+    const [mealType, setMealType] = useState(initialData ? initialData.mealType : initialMealType);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    const filteredFoods = name.trim() === "" 
+        ? [] 
+        : savedFoods.filter(f => f.name.toLowerCase().includes(name.toLowerCase()));
+
+    const exactMatch = filteredFoods.length === 1 && filteredFoods[0].name.toLowerCase() === name.toLowerCase();
+    const displaySuggestions = showSuggestions && filteredFoods.length > 0 && !exactMatch;
+
+    function submit(e) {
+        e.preventDefault();
+
+        if (!name.trim()) {
+            showAlert("Rúnica Incompleta", "El nombre de la provisión no puede estar vacío.");
+            return;
+        }
+
+        if (calories === "" || Number(calories) < 0) {
+            showAlert("Magia Inestable", "La energía vital (calorías) debe ser válida.");
+            return;
+        }
+
+        onSave({
+            name: name.trim(),
+            calories: Number(calories),
+            protein: Number(protein || 0),
+            mealType: mealType
+        });
     }
 
+    function selectFood(food) {
+        setName(food.name);
+        setCalories(food.calories.toString());
+        setProtein(food.protein.toString());
+        setShowSuggestions(false);
+    }
 
-    saveUndoState();
+    return (
+        <div className="fixed inset-0 z-[60] modal-backdrop flex items-end justify-center animate-[fadeIn_0.2s_ease-out]">
+            <div className="bg-surface border-t border-x border-slate-700 w-full max-w-[480px] rounded-t-[32px] p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.8)] relative flex flex-col max-h-[90vh]">
+                <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-6 absolute top-3 left-1/2 -translate-x-1/2"></div>
+                
+                <div className="flex justify-between items-center mb-6 mt-2">
+                    <div>
+                        <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">
+                            {formatDate(new Date(date + "T00:00:00"))}
+                        </div>
+                        <h2 className="text-xl font-bold text-white hero-font">
+                            {initialData ? "Modificar Provisión" : `Forjar para ${mealType}`}
+                        </h2>
+                    </div>
+                    <button onClick={onClose} className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
 
+                <form onSubmit={submit} className="flex flex-col gap-5 overflow-y-auto custom-scrollbar pb-4">
+                    <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Momento del Día</label>
+                        <select
+                            value={mealType}
+                            onChange={e => setMealType(e.target.value)}
+                            className="w-full border border-slate-700 bg-slate-900 rounded-xl px-4 py-3 text-white font-medium focus:border-amber-500 outline-none transition-colors appearance-none"
+                        >
+                            {MEAL_TYPES.map(meal => (
+                                <option key={meal} value={meal}>
+                                    {MEAL_LABELS[meal]}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-    stats.push({
+                    <div className="relative">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nombre del objeto</label>
+                        <input
+                            autoFocus
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            onFocus={() => setShowSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                            placeholder="Ej. Poción Menor de Manzana..."
+                            className="w-full border border-slate-700 bg-slate-900 rounded-xl px-4 py-3 text-white font-bold focus:border-amber-500 outline-none transition-colors placeholder:text-slate-600"
+                            autoComplete="off"
+                        />
+                        
+                        {displaySuggestions && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 shadow-[0_10px_25px_rgba(0,0,0,0.5)] rounded-xl z-50 max-h-56 overflow-y-auto custom-scrollbar overflow-hidden">
+                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 py-2 bg-slate-900/80 border-b border-slate-700">Conocimiento Previo</div>
+                                {filteredFoods.map(f => (
+                                    <div 
+                                        key={f.id} 
+                                        onClick={() => selectFood(f)} 
+                                        className="p-3 border-b border-slate-700/50 last:border-0 hover:bg-slate-700 active:bg-slate-600 cursor-pointer flex justify-between items-center transition-colors"
+                                    >
+                                        <div className="font-bold text-sm text-white">{f.name}</div>
+                                        <div className="flex gap-2">
+                                            <span className="text-[10px] font-black text-amber-400 bg-amber-900/30 px-2 py-1 rounded uppercase tracking-wider">{f.calories} E</span>
+                                            <span className="text-[10px] font-black text-blue-400 bg-blue-900/30 px-2 py-1 rounded uppercase tracking-wider">{f.protein} F</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
-        name,
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Energía Vital (Kcal)</label>
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    inputMode="decimal"
+                                    min="0"
+                                    value={calories}
+                                    onChange={e => setCalories(e.target.value)}
+                                    placeholder="0"
+                                    className="w-full border border-slate-700 bg-slate-900 rounded-xl pl-4 pr-12 py-3 text-lg font-black text-amber-400 focus:border-amber-500 outline-none transition-colors"
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">Kcal</span>
+                            </div>
+                        </div>
 
-        p: 0,
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Atributo Fuerza (g)</label>
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    inputMode="decimal"
+                                    min="0"
+                                    value={protein}
+                                    onChange={e => setProtein(e.target.value)}
+                                    placeholder="0"
+                                    className="w-full border border-slate-700 bg-slate-900 rounded-xl pl-4 pr-12 py-3 text-lg font-black text-blue-400 focus:border-blue-500 outline-none transition-colors"
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">g</span>
+                            </div>
+                        </div>
+                    </div>
 
-        g: 0,
+                    <button
+                        type="submit"
+                        className="w-full bg-gold text-[#0b0f19] py-4 rounded-xl font-black text-lg mt-4 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:bg-amber-400 active:scale-[0.98] transition-all hero-font tracking-wide"
+                    >
+                        {initialData ? "Actualizar Pergamino" : "Sellar Provisión"}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+}
 
-        food: 0,
+function EditFoodModal({ food, onClose, onSave, showAlert }) {
+    const [name, setName] = useState(food.name);
+    const [calories, setCalories] = useState(food.calories.toString());
+    const [protein, setProtein] = useState(food.protein.toString());
 
-        history: [],
+    function submit(e) {
+        e.preventDefault();
+        if (!name.trim()) { showAlert("Error mágico", "Debe tener un nombre."); return; }
+        if (calories === "" || Number(calories) < 0) { showAlert("Error mágico", "La energía vital es incorrecta."); return; }
+        onSave({ ...food, name: name.trim(), calories: Number(calories), protein: Number(protein || 0) });
+    }
 
-        isChampion: false
+    return (
+        <div className="fixed inset-0 z-[70] modal-backdrop flex items-end justify-center animate-[fadeIn_0.2s_ease-out]">
+            <div className="bg-surface border-t border-x border-slate-700 w-full max-w-[480px] rounded-t-[32px] p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.8)] relative flex flex-col max-h-[90vh]">
+                <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-6 absolute top-3 left-1/2 -translate-x-1/2"></div>
+                <div className="flex justify-between items-center mb-6 mt-2">
+                    <div>
+                        <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">ARSENAL NUTRICIONAL</div>
+                        <h2 className="text-xl font-bold text-white hero-font">Alterar Provisión</h2>
+                    </div>
+                    <button onClick={onClose} className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                        ×
+                    </button>
+                </div>
+                <form onSubmit={submit} className="flex flex-col gap-5 overflow-y-auto custom-scrollbar pb-4">
+                    <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nombre</label>
+                        <input autoFocus value={name} onChange={e => setName(e.target.value)} className="w-full border border-slate-700 bg-slate-900 rounded-xl px-4 py-3 text-white font-bold focus:border-amber-500 outline-none" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Energía</label>
+                            <input type="number" value={calories} onChange={e => setCalories(e.target.value)} className="w-full border border-slate-700 bg-slate-900 rounded-xl px-4 py-3 text-lg font-black text-amber-400 focus:border-amber-500 outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Fuerza (Prot)</label>
+                            <input type="number" value={protein} onChange={e => setProtein(e.target.value)} className="w-full border border-slate-700 bg-slate-900 rounded-xl px-4 py-3 text-lg font-black text-blue-400 focus:border-blue-500 outline-none" />
+                        </div>
+                    </div>
+                    <button type="submit" className="w-full bg-gold text-[#0b0f19] py-4 rounded-xl font-black text-lg mt-4 hero-font shadow-[0_0_20px_rgba(251,191,36,0.3)]">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    );
+}
 
+function FoodLibrary({ savedFoods, onDelete, onEdit }) {
+    const [searchTerm, setSearchTerm] = useState("");
+    const filtered = savedFoods.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    return (
+        <main className="safe-bottom p-5 animate-[fadeIn_0.2s_ease-out]">
+            <header className="mb-6 mt-2">
+                <div className="text-xs font-bold tracking-widest text-gold-accent uppercase">Inventario</div>
+                <h1 className="text-3xl font-extrabold text-white hero-font mt-1">Tu Arsenal</h1>
+            </header>
+            <div className="mb-6 relative">
+                <input
+                    type="text"
+                    placeholder="Buscar conocimiento antiguo..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="w-full border border-slate-700 bg-slate-800 rounded-xl px-4 py-3.5 text-white focus:bg-slate-900 focus:border-amber-500 transition-all outline-none placeholder:text-slate-500 font-medium shadow-inner"
+                />
+            </div>
+            {savedFoods.length === 0 ? (
+                <div className="card p-8 text-center">
+                    <div className="text-4xl mb-4 opacity-50">🎒</div>
+                    <h3 className="font-bold text-white mb-2 hero-font">Morral Vacío</h3>
+                    <p className="text-xs font-medium text-slate-400 leading-relaxed">Forja provisiones en tu campamento y se guardarán aquí para futuras misiones.</p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {filtered.map(food => (
+                        <div key={food.id} onClick={() => onEdit(food)} className="card p-4 flex justify-between items-center hover:border-amber-500/50 transition-colors cursor-pointer group">
+                            <div>
+                                <div className="font-bold text-white group-hover:text-amber-400 transition-colors">{food.name}</div>
+                                <div className="flex gap-2 mt-2">
+                                    <span className="text-[10px] font-black text-amber-400 bg-amber-900/30 border border-amber-700/50 px-2 py-0.5 rounded uppercase tracking-wider">{food.calories} E</span>
+                                    <span className="text-[10px] font-black text-blue-400 bg-blue-900/30 border border-blue-700/50 px-2 py-0.5 rounded uppercase tracking-wider">{food.protein} F</span>
+                                </div>
+                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); onDelete(food.id); }} className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-red-400 hover:border-red-500/50 flex items-center justify-center transition-colors">
+                                ×
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </main>
+    );
+}
+
+function History({ entries, settings, stepsData, weightEntries, setWeightEntries, getDayCalories, getDayProtein, getDaySteps, getDynamicDailyBudget, onSelectDay, showAlert, showConfirm }) {
+    const [period, setPeriod] = useState("week");
+    const [historyTab, setHistoryTab] = useState("nutrition");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    function getHistoryDates() {
+        const dates = [];
+        if (period === "week") {
+            const monday = getMonday(today);
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                dates.push(d);
+            }
+        } else if (period === "month") {
+            const start = new Date(today.getFullYear(), today.getMonth(), 1);
+            const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) dates.push(new Date(d));
+        } else {
+            if (entries.length === 0) return [];
+            const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+            const start = new Date(sorted[0].date + "T00:00:00");
+            for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) dates.push(new Date(d));
+        }
+        return dates;
+    }
+
+    const dates = getHistoryDates();
+    const chartData = dates.map((date, index) => {
+        const key = dateKey(date);
+        const calories = getDayCalories(key);
+        const budget = period === "week" ? getDynamicDailyBudget(index, settings.caloriesWeekly, getDayCalories) : Number(settings.caloriesWeekly || 0) / 7;
+        return { date, key, calories, budget };
     });
 
+    const totalCalories = chartData.reduce((sum, item) => sum + item.calories, 0);
+    const totalProtein = chartData.reduce((sum, item) => sum + getDayProtein(item.key), 0);
+    const totalSteps = chartData.reduce((sum, item) => sum + getDaySteps(item.key), 0);
+    const daysWithData = chartData.filter(item => item.calories > 0 || getDaySteps(item.key) > 0).length;
+    const averageCalories = daysWithData > 0 ? totalCalories / daysWithData : 0;
+    
+    const dailyBaseline = Number(settings.caloriesWeekly || 0) / 7;
+    const maxChartValue = Math.max(...chartData.map(item => Math.max(item.calories, item.budget)), dailyBaseline, 1) * 1.15; 
+    
+    function periodTitle() {
+        if (period === "week") return "Cruzada Actual";
+        if (period === "month") return today.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+        return "Toda la Leyenda";
+    }
 
-    input.value =
-        '';
+    return (
+        <main className="safe-bottom p-5 animate-[fadeIn_0.2s_ease-out]">
+            <header className="mb-5 mt-2">
+                <div className="text-xs font-bold tracking-widest text-gold-accent uppercase">Registros Antiguos</div>
+                <h1 className="text-3xl font-extrabold text-white hero-font mt-1">Tus Hazañas</h1>
+            </header>
 
+            <div className="flex gap-2 mb-6 p-1 bg-slate-900 rounded-2xl border border-slate-700">
+                <button onClick={() => setHistoryTab("nutrition")} className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${historyTab === "nutrition" ? "bg-slate-700 text-white shadow-md border border-slate-600" : "text-slate-500 hover:text-slate-300"}`}>Supervivencia</button>
+                <button onClick={() => setHistoryTab("weight")} className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${historyTab === "weight" ? "bg-slate-700 text-white shadow-md border border-slate-600" : "text-slate-500 hover:text-slate-300"}`}>Evolución Física</button>
+            </div>
 
-    saveTableData();
+            {historyTab === "nutrition" ? (
+                <>
+                    <div className="flex gap-1 mb-6">
+                        {[["week", "Semanal"], ["month", "Mensual"], ["all", "Total"]].map(([value, label]) => (
+                            <button
+                                key={value}
+                                onClick={() => setPeriod(value)}
+                                className={`flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${period === value ? "bg-gold text-slate-900 border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.2)]" : "bg-transparent text-slate-500 border-slate-700 hover:text-slate-300 hover:bg-slate-800"}`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="card p-4 text-center">
+                            <div className="text-[10px] font-bold text-amber-500/70 uppercase tracking-widest">Energía Total</div>
+                            <div className="text-2xl font-black mt-1 text-amber-400 hero-font">{Math.round(totalCalories).toLocaleString("es-ES")}</div>
+                            <div className="text-[10px] font-medium text-slate-500 mt-1 uppercase tracking-wider">
+                                {daysWithData > 0 ? `~${Math.round(averageCalories).toLocaleString("es-ES")} E/día` : "Sin batallas"}
+                            </div>
+                        </div>
+                        <div className="card p-4 text-center">
+                            <div className="text-[10px] font-bold text-blue-500/70 uppercase tracking-widest">Fuerza Generada</div>
+                            <div className="text-2xl font-black mt-1 text-blue-400 hero-font">{Math.round(totalProtein).toLocaleString("es-ES")}</div>
+                            <div className="text-[10px] font-medium text-slate-500 mt-1 uppercase tracking-wider">
+                                {daysWithData > 0 ? `~${Math.round(totalProtein / daysWithData)} F/día` : "Sin batallas"}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card p-4 mb-6 flex items-center justify-between">
+                        <div>
+                            <div className="text-[10px] font-bold text-emerald-500/70 uppercase tracking-widest">Ruta Total</div>
+                            <div className="text-xl font-black mt-1 text-emerald-400 hero-font">{totalSteps.toLocaleString("es-ES")} <span className="text-xs text-slate-500 font-sans">Pasos</span></div>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Media por Jornada</div>
+                            <div className="text-xl font-black mt-1 text-white hero-font">{daysWithData > 0 ? Math.round(totalSteps / daysWithData).toLocaleString("es-ES") : 0}</div>
+                        </div>
+                    </div>
+
+                    <section className="card p-5 mb-5 border-t-2 border-t-slate-600">
+                        <div className="mb-4">
+                            <h2 className="font-bold text-lg text-white capitalize hero-font">{periodTitle()}</h2>
+                            <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">Energía Consumida vs Límite del Reino</p>
+                        </div>
+
+                        <div className="flex items-center gap-4 mb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <div className="flex items-center gap-1.5"><span className="legend-dot" style={{ background: '#fbbf24', color: '#fbbf24' }}></span>Consumo</div>
+                            <div className="flex items-center gap-1.5"><span className="legend-dot" style={{ background: '#ef4444', color: '#ef4444' }}></span>Límite Mortal</div>
+                        </div>
+
+                        {chartData.length === 0 ? (
+                            <div className="py-12 text-center text-slate-600 text-xs font-bold uppercase tracking-widest">No hay pergaminos escritos aún.</div>
+                        ) : (
+                            <div className="chart-scroll pb-2">
+                                <div className="chart-inner" style={{ minWidth: period === "month" ? "760px" : period === "all" ? `${Math.max(chartData.length * 48, 100)}px` : "100%" }}>
+                                    <div className="relative h-[220px] w-full mt-6">
+                                        {[0, 25, 50, 75, 100].map(percentage => (
+                                            <div key={percentage} className="absolute left-0 right-0 border-t border-dashed border-slate-700/50 pointer-events-none" style={{ top: `${100 - percentage}%` }} />
+                                        ))}
+                                        
+                                        <div 
+                                            className="absolute left-0 right-0 border-t-[2px] border-dashed border-red-500/80 z-10 pointer-events-none" 
+                                            style={{ bottom: `${(dailyBaseline / maxChartValue) * 100}%` }}
+                                        >
+                                            <div className="absolute -top-[20px] right-0 text-[9px] font-black text-red-400 bg-red-950/80 px-2 py-0.5 rounded border border-red-900 uppercase tracking-widest shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+                                                LÍMITE {Math.round(dailyBaseline)}
+                                            </div>
+                                        </div>
+
+                                        <div className="absolute inset-0 flex items-end justify-between gap-1 px-1">
+                                            {chartData.map(item => {
+                                                const heightPercent = Math.max((item.calories / maxChartValue) * 100, 0);
+                                                const isOverBaseline = item.calories > dailyBaseline;
+
+                                                return (
+                                                    <div key={item.key} className="flex-1 flex flex-col justify-end items-center h-full group relative">
+                                                        <div className="w-full flex items-end justify-center h-full relative">
+                                                            {item.calories > 0 && (
+                                                                <div className="absolute -top-6 text-[9px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 px-1.5 py-0.5 rounded shadow-lg border border-slate-600 whitespace-nowrap z-20">
+                                                                    {Math.round(item.calories)}
+                                                                </div>
+                                                            )}
+                                                            <div 
+                                                                className={`w-full max-w-[32px] rounded-t-sm transition-all duration-300 z-10 ${isOverBaseline ? 'bg-red-600/90 shadow-[0_0_10px_rgba(220,38,38,0.5)]' : 'bg-amber-500/90 shadow-[0_0_10px_rgba(245,158,11,0.3)]'}`} 
+                                                                style={{ height: `${item.calories > 0 ? Math.max(heightPercent, 1.5) : 0}%`, borderTop: '2px solid rgba(255,255,255,0.2)' }} 
+                                                            />
+                                                        </div>
+                                                        <div className="absolute -bottom-7 chart-label text-slate-500 text-[9px]">
+                                                            {period === "week" ? DAYS[item.date.getDay() === 0 ? 6 : item.date.getDay() - 1].slice(0, 2) : formatShortDate(item.key)}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div className="h-10"></div>
+                                </div>
+                            </div>
+                        )}
+                    </section>
+                </>
+            ) : (
+                <WeightDashboard 
+                    weightEntries={weightEntries} 
+                    setWeightEntries={setWeightEntries} 
+                    settings={settings}
+                    showAlert={showAlert}
+                    showConfirm={showConfirm}
+                />
+            )}
+        </main>
+    );
 }
 
+function WeightDashboard({ weightEntries, setWeightEntries, settings, showAlert, showConfirm }) {
+    const [newWeight, setNewWeight] = useState("");
+    const [newDate, setNewDate] = useState(dateKey(new Date()));
 
-/* =========================================================
-   ENTER PARA AÑADIR JUGADOR
-========================================================= */
+    const sortedEntries = [...weightEntries].sort((a, b) => a.date.localeCompare(b.date));
+    const currentWeight = sortedEntries.length > 0 ? sortedEntries[sortedEntries.length - 1].weight : Number(settings.initialWeight);
+    const initialWeight = Number(settings.initialWeight);
+    const targetWeight = Number(settings.targetWeight);
 
-document.getElementById(
-    'newPlayerName'
-).addEventListener(
-    'keydown',
-    event => {
+    const isLosing = initialWeight >= targetWeight;
+    let progress = 0;
+    let weightDiff = 0;
 
-        if (
-            event.key === 'Enter'
-        ) {
+    if (isLosing) {
+        weightDiff = initialWeight - currentWeight;
+        const totalToLose = initialWeight - targetWeight;
+        progress = totalToLose > 0 ? (weightDiff / totalToLose) * 100 : 0;
+    } else {
+        weightDiff = currentWeight - initialWeight;
+        const totalToGain = targetWeight - initialWeight;
+        progress = totalToGain > 0 ? (weightDiff / totalToGain) * 100 : 0;
+    }
 
-            addNewPlayer();
+    progress = Math.max(0, Math.min(100, progress));
+    const isGoalReached = progress >= 100;
+
+    const daysElapsed = sortedEntries.length > 1 ? (new Date(sortedEntries[sortedEntries.length - 1].date) - new Date(sortedEntries[0].date)) / (1000 * 60 * 60 * 24) : 0;
+    const weeksElapsed = daysElapsed / 7;
+    const avgPerWeek = weeksElapsed > 0 ? (weightDiff / weeksElapsed) : 0;
+
+    const minW = Math.min(...sortedEntries.map(e => e.weight), initialWeight, targetWeight) - 2;
+    const maxW = Math.max(...sortedEntries.map(e => e.weight), initialWeight, targetWeight) + 2;
+    const range = maxW - minW;
+
+    function handleAddWeight(e) {
+        e.preventDefault();
+        const weightVal = Number(newWeight);
+        if (!weightVal || weightVal <= 0) { showAlert("Error", "Carga inválida."); return; }
+        const newEntry = { id: Date.now(), date: newDate, weight: weightVal };
+        const filtered = weightEntries.filter(e => e.date !== newDate);
+        setWeightEntries([...filtered, newEntry]);
+        setNewWeight("");
+        showAlert("¡Victoria!", "Nuevos atributos registrados.");
+    }
+
+    function deleteEntry(id) {
+        if (showConfirm) {
+            showConfirm("Borrar Registro", "¿Destruir este recuerdo de tu evolución?", () => {
+                setWeightEntries(weightEntries.filter(e => e.id !== id));
+            });
         }
     }
-);
 
+    return (
+        <div className="space-y-5 animate-[fadeIn_0.2s_ease-out]">
+            <div className="card p-6 flex flex-col items-center justify-center relative overflow-hidden border-t-2 border-t-amber-500/50">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/20 to-transparent"></div>
+                <div className="text-[10px] font-bold text-amber-500 z-10 mb-2 uppercase tracking-widest">Nivel de Carga Actual</div>
+                <div className="text-[44px] font-black text-white z-10 mb-6 leading-none hero-font drop-shadow-[0_0_15px_rgba(251,191,36,0.3)]">{currentWeight.toFixed(1)} <span className="text-xl text-slate-500 font-sans">kg</span></div>
+                
+                <div className="w-full relative z-10 mt-2">
+                    <div className="flex justify-between text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">
+                        <span>{initialWeight} kg (Base)</span>
+                        <span className={isGoalReached ? "text-amber-400 font-black" : ""}>{targetWeight} kg (Destino)</span>
+                    </div>
+                    <div className="h-3 bg-slate-800 border border-slate-700 rounded-full overflow-hidden shadow-inner relative">
+                        <div className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full transition-all duration-1000 relative shadow-[0_0_10px_rgba(251,191,36,0.5)]" style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <div className="text-center text-[10px] font-black text-amber-500 mt-3 uppercase tracking-widest">
+                        {progress.toFixed(1)}% Hacia la Trascendencia
+                    </div>
+                </div>
+            </div>
 
-/* =========================================================
-   CARGAR TÍTULO
-========================================================= */
+            <div className="grid grid-cols-2 gap-3">
+                <div className="card p-4 text-center">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total {isLosing ? 'Liberado' : 'Asimilado'}</div>
+                    <div className="text-2xl font-black mt-1 text-white hero-font">{Math.abs(weightDiff).toFixed(1)} <span className="text-xs text-slate-500 font-sans">kg</span></div>
+                </div>
+                <div className="card p-4 text-center">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Media por Ciclo</div>
+                    <div className="text-2xl font-black mt-1 text-white hero-font">{Math.abs(avgPerWeek).toFixed(2)} <span className="text-xs text-slate-500 font-sans">kg</span></div>
+                </div>
+            </div>
 
-const savedTitle =
-    localStorage.getItem(
-        'torneo_titulo'
-    ) ||
-    'Clausura Truco 2026';
+            <section className="card p-5">
+                <h3 className="font-bold text-white mb-4 hero-font">Ritual de Pesaje</h3>
+                <form onSubmit={handleAddWeight} className="flex gap-2">
+                    <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="w-[140px] border border-slate-700 rounded-xl px-3 py-2 text-[11px] uppercase tracking-widest font-black text-slate-300 bg-slate-900 outline-none focus:border-amber-500" required />
+                    <input type="number" step="0.1" value={newWeight} onChange={e => setNewWeight(e.target.value)} placeholder="Ej. 74.5" className="flex-1 border border-slate-700 rounded-xl px-4 py-2 text-sm font-black text-white bg-slate-900 outline-none focus:border-amber-500" required />
+                    <button type="submit" className="bg-gold text-slate-900 px-5 rounded-xl font-black shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:bg-amber-400 active:scale-95 transition-transform text-lg">+</button>
+                </form>
+            </section>
 
+            <section className="card p-5">
+                <div className="flex justify-between items-end mb-4">
+                    <h3 className="font-bold text-white hero-font">Mapa de Transformación</h3>
+                </div>
+                
+                {sortedEntries.length === 0 ? (
+                    <div className="text-center py-6 text-slate-500 text-xs font-bold uppercase tracking-widest">Comienza tu viaje para revelar el mapa.</div>
+                ) : (
+                    <div className="relative w-full h-[180px] mt-4 mb-2 pl-6">
+                        <div className="absolute left-0 top-0 bottom-0 w-6 flex flex-col justify-between text-[9px] font-bold text-slate-500 text-right pr-2 font-sans">
+                            <span>{Math.round(maxW)}</span>
+                            <span>{Math.round(maxW - (range/2))}</span>
+                            <span>{Math.round(minW)}</span>
+                        </div>
+                        
+                        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+                            <line x1="0" y1="0" x2="100" y2="0" stroke="#1e293b" strokeWidth="1" />
+                            <line x1="0" y1="50" x2="100" y2="50" stroke="#1e293b" strokeWidth="1" />
+                            <line x1="0" y1="100" x2="100" y2="100" stroke="#1e293b" strokeWidth="1" />
 
-document.getElementById(
-    'displayTitle'
-).innerText =
-    savedTitle;
+                            <line 
+                                x1="0" y1={Math.max(0, Math.min(100, 100 - ((targetWeight - minW) / range) * 100))} 
+                                x2="100" y2={Math.max(0, Math.min(100, 100 - ((targetWeight - minW) / range) * 100))} 
+                                stroke="#10b981" strokeWidth="1.5" strokeDasharray="4 4" 
+                            />
 
+                            <polyline 
+                                points={sortedEntries.map((e, i) => `${sortedEntries.length === 1 ? 50 : (i / (sortedEntries.length - 1)) * 100},${100 - ((e.weight - minW) / range) * 100}`).join(" ")}
+                                fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                            />
+                            
+                            {sortedEntries.map((e, i) => (
+                                <circle 
+                                    key={e.id}
+                                    cx={sortedEntries.length === 1 ? 50 : (i / (sortedEntries.length - 1)) * 100}
+                                    cy={100 - ((e.weight - minW) / range) * 100}
+                                    r="4" fill="#0b0f19" stroke="#fbbf24" strokeWidth="2"
+                                />
+                            ))}
+                        </svg>
+                        <div className="absolute right-0 text-[8px] font-black text-emerald-400 bg-emerald-950/80 border border-emerald-900 px-1.5 py-0.5 rounded shadow-lg z-10 uppercase tracking-widest" style={{ top: `calc(${Math.max(0, Math.min(100, 100 - ((targetWeight - minW) / range) * 100))}% - 8px)` }}>
+                            DESTINO
+                        </div>
+                    </div>
+                )}
+            </section>
 
-document.getElementById(
-    'editTitle'
-).value =
-    savedTitle;
+            <section className="card p-5">
+                <h3 className="font-bold text-white mb-4 hero-font">Bitácora de Carga</h3>
+                <div className="space-y-2">
+                    {sortedEntries.slice().reverse().map((entry, idx, arr) => {
+                        const prevEntry = arr[idx + 1];
+                        const diff = prevEntry ? entry.weight - prevEntry.weight : 0;
+                        return (
+                            <div key={entry.id} className="flex justify-between items-center p-4 bg-slate-800/50 hover:bg-slate-800 transition-colors rounded-xl border border-slate-700/50">
+                                <div>
+                                    <div className="font-black text-white text-lg hero-font">{entry.weight} <span className="text-xs text-slate-500 font-sans font-medium">kg</span></div>
+                                    <div className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">{formatShortDate(entry.date)}</div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {diff !== 0 && (
+                                        <div className={`text-[10px] font-black px-2 py-1 rounded border uppercase tracking-wider ${diff > 0 ? 'bg-red-900/30 text-red-400 border-red-800' : 'bg-emerald-900/30 text-emerald-400 border-emerald-800'}`}>
+                                            {diff > 0 ? '+' : ''}{diff.toFixed(1)}
+                                        </div>
+                                    )}
+                                    <button onClick={() => deleteEntry(entry.id)} className="w-8 h-8 rounded-lg bg-slate-700 border border-slate-600 text-slate-400 hover:text-red-400 hover:bg-red-900/30 hover:border-red-800 flex items-center justify-center font-bold text-lg leading-none transition-colors">×</button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {sortedEntries.length === 0 && <div className="text-center py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Sin bitácora</div>}
+                </div>
+            </section>
+        </div>
+    );
+}
 
+function Settings({ settings, setSettings, resetAll, saveBackup, loadBackup, showAlert, onInstallClick }) {
+    const [local, setLocal] = useState(settings);
 
-/* =========================================================
-   INICIALIZACIÓN
-========================================================= */
+    useEffect(() => setLocal(settings), [settings]);
 
-normalizeStats();
+    function save() {
+        const calories = Number(local.caloriesWeekly);
+        const protein = Number(local.proteinWeekly);
+        const steps = Number(local.stepsWeekly);
+        const iWeight = Number(local.initialWeight);
+        const tWeight = Number(local.targetWeight);
 
-render();
+        if (!Number.isFinite(calories) || calories <= 0) return showAlert("Error", "La Energía Vital debe ser válida.");
+        if (!Number.isFinite(protein) || protein < 0) return showAlert("Error", "La Fuerza debe ser válida.");
+        if (!Number.isFinite(steps) || steps < 0) return showAlert("Error", "La Misión de Exploración debe ser válida.");
+        if (!Number.isFinite(iWeight) || iWeight <= 0 || !Number.isFinite(tWeight) || tWeight <= 0) return showAlert("Error", "Las Cargas Base y Destino deben ser válidas.");
+        
+        setSettings({ ...local, caloriesWeekly: calories, proteinWeekly: protein, stepsWeekly: steps, initialWeight: iWeight, targetWeight: tWeight });
+        showAlert("Pacto Sellado", "Tus nuevos juramentos han sido grabados en piedra.");
+    }
+
+    return (
+        <main className="safe-bottom p-5">
+            <header className="mb-6 mt-2">
+                <div className="text-xs font-bold tracking-widest text-gold-accent uppercase">Reglas del Reino</div>
+                <h1 className="text-3xl font-extrabold text-white hero-font mt-1">Tus Pactos</h1>
+            </header>
+
+            <section className="card p-5 mb-5 border-t-2 border-t-amber-500">
+                <h2 className="font-bold text-lg mb-2 text-white hero-font">Instalar Aplicación PWA</h2>
+                <p className="text-xs text-slate-400 mb-4">Lleva la app contigo en la pantalla de inicio de tu dispositivo móvil o computadora.</p>
+                <button 
+                    onClick={onInstallClick}
+                    className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest bg-amber-500 text-slate-950 shadow-[0_0_15px_rgba(251,191,36,0.3)] hover:bg-amber-400 transition-all"
+                >
+                    📱 Instalar como App
+                </button>
+            </section>
+
+            <section className="card p-5 mb-5">
+                <h2 className="font-bold text-lg mb-5 text-white hero-font border-b border-slate-700 pb-3">Misiones de Ciclo (Semanales)</h2>
+                
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Energía Vital (Kcal / Semana)</label>
+                <div className="relative mb-5">
+                    <input 
+                        type="number" inputMode="numeric" value={local.caloriesWeekly} onChange={e => setLocal({ ...local, caloriesWeekly: e.target.value })} 
+                        className="w-full border border-slate-700 bg-slate-900 focus:border-amber-500 rounded-xl pl-4 pr-12 py-3 text-lg font-black text-amber-400 outline-none transition-colors" 
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">kcal</span>
+                </div>
+
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Atributo Fuerza (Prot / Semana)</label>
+                <div className="relative mb-5">
+                    <input 
+                        type="number" inputMode="numeric" value={local.proteinWeekly} onChange={e => setLocal({ ...local, proteinWeekly: e.target.value })} 
+                        className="w-full border border-slate-700 bg-slate-900 focus:border-blue-500 rounded-xl pl-4 pr-10 py-3 text-lg font-black text-blue-400 outline-none transition-colors" 
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">g</span>
+                </div>
+
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Exploración (Pasos / Semana)</label>
+                <div className="relative mb-6">
+                    <input 
+                        type="number" inputMode="numeric" value={local.stepsWeekly} onChange={e => setLocal({ ...local, stepsWeekly: e.target.value })} 
+                        className="w-full border border-slate-700 bg-slate-900 focus:border-emerald-500 rounded-xl pl-4 pr-16 py-3 text-lg font-black text-emerald-400 outline-none transition-colors" 
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-widest text-slate-500">Pasos</span>
+                </div>
+
+                <h2 className="font-bold text-lg mb-5 text-white hero-font border-b border-slate-700 pb-3 mt-8">Carga Física (Evolución)</h2>
+                <div className="grid grid-cols-2 gap-4 mb-2">
+                    <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Carga Base</label>
+                        <div className="relative">
+                            <input type="number" step="0.1" inputMode="decimal" value={local.initialWeight} onChange={e => setLocal({ ...local, initialWeight: e.target.value })} className="w-full border border-slate-700 bg-slate-900 focus:border-amber-500 rounded-xl pl-4 pr-10 py-3 text-lg font-black text-white outline-none" />
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">kg</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Carga Destino</label>
+                        <div className="relative">
+                            <input type="number" step="0.1" inputMode="decimal" value={local.targetWeight} onChange={e => setLocal({ ...local, targetWeight: e.target.value })} className="w-full border border-slate-700 bg-slate-900 focus:border-amber-500 rounded-xl pl-4 pr-10 py-3 text-lg font-black text-emerald-400 outline-none" />
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">kg</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="card p-5 mb-5">
+                <div className="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+                    <div>
+                        <h2 className="font-bold text-lg text-white hero-font">Ritual del Tiempo</h2>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Limita tu forja a horas sagradas</p>
+                    </div>
+                    <input
+                        type="checkbox"
+                        checked={local.strictWindowsEnabled}
+                        onChange={e => setLocal({ ...local, strictWindowsEnabled: e.target.checked })}
+                        className="w-5 h-5 accent-amber-500 cursor-pointer"
+                    />
+                </div>
+
+                {local.strictWindowsEnabled && (
+                    <div className="space-y-4 mt-4">
+                        <div className="grid grid-cols-2 gap-3 items-center">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Alba</span>
+                            <div className="flex gap-2 items-center">
+                                <input type="time" value={local.breakfastStart} onChange={e => setLocal({ ...local, breakfastStart: e.target.value })} className="border border-slate-700 bg-slate-900 text-white rounded-lg p-2 text-xs w-full focus:border-amber-500 outline-none" />
+                                <span className="text-slate-500 font-bold">-</span>
+                                <input type="time" value={local.breakfastEnd} onChange={e => setLocal({ ...local, breakfastEnd: e.target.value })} className="border border-slate-700 bg-slate-900 text-white rounded-lg p-2 text-xs w-full focus:border-amber-500 outline-none" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 items-center">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Cenit</span>
+                            <div className="flex gap-2 items-center">
+                                <input type="time" value={local.lunchStart} onChange={e => setLocal({ ...local, lunchStart: e.target.value })} className="border border-slate-700 bg-slate-900 text-white rounded-lg p-2 text-xs w-full focus:border-amber-500 outline-none" />
+                                <span className="text-slate-500 font-bold">-</span>
+                                <input type="time" value={local.lunchEnd} onChange={e => setLocal({ ...local, lunchEnd: e.target.value })} className="border border-slate-700 bg-slate-900 text-white rounded-lg p-2 text-xs w-full focus:border-amber-500 outline-none" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 items-center">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Ocaso</span>
+                            <div className="flex gap-2 items-center">
+                                <input type="time" value={local.dinnerStart} onChange={e => setLocal({ ...local, dinnerStart: e.target.value })} className="border border-slate-700 bg-slate-900 text-white rounded-lg p-2 text-xs w-full focus:border-amber-500 outline-none" />
+                                <span className="text-slate-500 font-bold">-</span>
+                                <input type="time" value={local.dinnerEnd} onChange={e => setLocal({ ...local, dinnerEnd: e.target.value })} className="border border-slate-700 bg-slate-900 text-white rounded-lg p-2 text-xs w-full focus:border-amber-500 outline-none" />
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
+                <button 
+                    onClick={save} 
+                    className="w-full bg-gold text-[#0b0f19] py-4 rounded-xl font-black text-lg mt-6 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:bg-amber-400 active:scale-[0.98] transition-all hero-font tracking-wide"
+                >
+                    Sellar Pactos
+                </button>
+            </section>
+
+            <section className="card p-5 mb-5 border-t-2 border-t-red-900/50">
+                <h2 className="font-bold text-lg mb-4 text-red-500 hero-font">Magia Prohibida</h2>
+                <div className="space-y-3">
+                    <button onClick={resetAll} className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest bg-red-950/40 text-red-500 border border-red-900 hover:bg-red-900/60 transition-colors">
+                        Quemar todas las Crónicas
+                    </button>
+                </div>
+            </section>
+
+            <section className="card p-5">
+                <h2 className="font-bold text-lg mb-4 text-white hero-font">Reliquias de Memoria</h2>
+                <div className="space-y-3">
+                    <button onClick={saveBackup} className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition-colors">
+                        Inscribir Pergamino (Exportar)
+                    </button>
+                    <label className="w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition-colors flex items-center justify-center cursor-pointer">
+                        Leer Pergamino Antiguo (Importar)
+                        <input type="file" accept=".json" onChange={loadBackup} className="hidden" />
+                    </label>
+                </div>
+                <p className="text-[10px] text-slate-600 mt-5 text-center font-bold uppercase tracking-widest">Edición de Fantasía (v2.0 PWA)</p>
+            </section>
+        </main>
+    );
+}
+
+function NavButton({ active, icon, label, onClick }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`flex flex-col items-center justify-center gap-1 w-20 transition-all duration-300 ${active ? "text-amber-400 scale-110 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" : "text-slate-500 hover:text-slate-300 hover:scale-105"}`}
+        >
+            <span className="text-2xl leading-none">{icon}</span>
+            <span className="text-[9px] font-black tracking-widest uppercase mt-1">{label}</span>
+        </button>
+    );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
 
 </script>
 
