@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="es-AR">
 <head>
     <meta charset="UTF-8">
@@ -7,209 +6,496 @@
     <title>Tabla Campeonato de Truco</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a472a">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<style>
-    :root {
-        --verde-mesa: #1a472a;
-        --header-table: #000000;
-        --azul-oscuro: #002060;
-        --blanco-marfil: #FFFFFF;
-        --rojo-delete: #ef4444;
-        --win-dot: #22c55e;
-        --loss-dot: #ef4444;
-        --dorado-campeon: #ffd700;
-    }
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a472a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    body { 
-        font-family: 'Segoe UI', Roboto, sans-serif; 
-        background: var(--verde-mesa); 
-        color: #f3f4f6; 
-        margin: 0; padding: 5px; 
-        -webkit-tap-highlight-color: transparent;
-    }
+    <style>
+        :root {
+            --verde-mesa: #1a472a;
+            --header-table: #000000;
+            --azul-oscuro: #002060;
+            --blanco-marfil: #FFFFFF;
+            --rojo-delete: #ef4444;
+            --win-dot: #22c55e;
+            --loss-dot: #ef4444;
+            --dorado-campeon: #ffd700;
+        }
 
-    .container { max-width: 100%; margin: auto; }
-    
-    #captureArea {
-        background: var(--verde-mesa);
-        padding: 0;
-        display: block;
-        width: 100%;
-        box-sizing: border-box;
-    }
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: var(--verde-mesa); 
+            color: #f3f4f6; 
+            margin: 0; padding: 5px; 
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    .table-container { 
-        background: transparent; 
-        width: 100%; 
-        display: block; 
-        overflow: hidden; 
-        border: none;
-    }
+        .container { max-width: 100%; margin: auto; }
+        
+        #captureArea {
+            background: var(--verde-mesa);
+            padding: 0;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
 
-    table { width: 100%; border-collapse: collapse; color: #000; table-layout: fixed; border: none; }
-    
-    th { background: var(--header-table); color: #ffffff; padding: 3px 1px; font-size: 0.6rem; border: 1px solid #444; }
-    #displayTitle { font-size: 0.6rem; font-weight: 800; margin: 0; display: block; }
+        .table-container { 
+            background: transparent; 
+            width: 100%; 
+            display: block; 
+            overflow: hidden; 
+            border: none;
+        }
 
-    td { padding: 0; text-align: center; border: 1px solid #000000; font-size: 0.85rem; font-weight: 700; height: 32px; vertical-align: middle; transition: background 0.3s; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            color: #000; 
+            table-layout: fixed; 
+            border: none; 
+        }
+        
+        th { 
+            background: var(--header-table); 
+            color: #ffffff; 
+            padding: 3px 1px; 
+            font-size: 0.6rem; 
+            border: 1px solid #444; 
+        }
 
-    .fila-campeon td {
-        background: var(--dorado-campeon) !important;
-        color: #000 !important;
-        border-color: #b8860b !important;
-    }
-    .fila-campeon .col-pos, .fila-campeon .col-g {
-        background: #b8860b !important;
-        color: #fff !important;
-    }
+        #displayTitle { 
+            font-size: 0.6rem; 
+            font-weight: 800; 
+            margin: 0; 
+            display: block; 
+        }
 
-    .table-input { 
-        width: 100%; height: 32px; background: transparent; border: none; 
-        text-align: center; font-size: 0.7rem; font-weight: 800; color: inherit; outline: none;
-        padding: 0; margin: 0; line-height: 32px;
-        cursor: pointer;
-    }
+        td { 
+            padding: 0; 
+            text-align: center; 
+            border: 1px solid #000000; 
+            font-size: 0.85rem; 
+            font-weight: 700; 
+            height: 32px; 
+            vertical-align: middle; 
+            transition: background 0.3s; 
+        }
 
-    .input-snapshot { display: none; font-size: 0.7rem; font-weight: 800; line-height: 32px; text-align: center; }
+        .fila-campeon td {
+            background: var(--dorado-campeon) !important;
+            color: #000 !important;
+            border-color: #b8860b !important;
+        }
 
-    .exporting .table-input, .exporting .btn-delete, .exporting .btn-undo-ui, .exporting .btn-edit-ui, .exporting .btn-record-match { display: none !important; }
-    .exporting .input-snapshot { display: block !important; }
+        .fila-campeon .col-pos, 
+        .fila-campeon .col-g {
+            background: #b8860b !important;
+            color: #fff !important;
+        }
 
-    .col-pos { background: var(--azul-oscuro); color: white; width: 28px; font-size: 0.8rem; }
-    .name-col { text-align: left; padding: 0 5px; background: var(--blanco-marfil); width: auto; font-size: 0.85rem; font-weight: 800; position: relative; user-select: none; -webkit-user-select: none; }
-    
-    .name-wrapper { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        width: 100%;
-        height: 100%;
-    }
+        .table-input { 
+            width: 100%; 
+            height: 32px; 
+            background: transparent; 
+            border: none; 
+            text-align: center; 
+            font-size: 0.7rem; 
+            font-weight: 800; 
+            color: inherit; 
+            outline: none;
+            padding: 0; 
+            margin: 0; 
+            line-height: 32px;
+            cursor: pointer;
+        }
 
-    .dots-container { 
-        display: flex; 
-        gap: 1px; 
-        margin-left: 4px;
-        flex-shrink: 0; 
-        flex-wrap: nowrap; 
-        justify-content: flex-end;
-    }
-    
-    .dot { width: 4.3px; height: 4.3px; border-radius: 50%; display: inline-block; }
-    .dot-g { background-color: var(--win-dot); }
-    .dot-p { background-color: var(--loss-dot); }
+        .input-snapshot { 
+            display: none; 
+            font-size: 0.7rem; 
+            font-weight: 800; 
+            line-height: 32px; 
+            text-align: center; 
+        }
 
-    .col-pj { background: var(--blanco-marfil); width: 30px; font-size: 0.85rem; }
+        .exporting .table-input, 
+        .exporting .btn-delete, 
+        .exporting .btn-undo-ui, 
+        .exporting .btn-edit-ui, 
+        .exporting .btn-record-match { 
+            display: none !important; 
+        }
 
-.col-p { background: var(--blanco-marfil); color: #dc2626; width: 32px; font-size: 0.85rem; }
+        .exporting .input-snapshot { 
+            display: block !important; 
+        }
 
-    .col-g { background: var(--azul-oscuro); color: white; width: 32px; }
-    .col-g .table-input, .col-g .input-snapshot { font-size: 1rem; font-weight: 900; }
-    .col-food { background: var(--blanco-marfil); width: 32px; }
-    .perc-cell { font-size: 0.65rem; color: #000; width: 42px; }
+        .col-pos { 
+            background: var(--azul-oscuro); 
+            color: white; 
+            width: 28px; 
+            font-size: 0.8rem; 
+        }
 
-    .racha { font-size: 0.8rem; margin-left: 3px; font-weight: bold; }
-    .sube { color: #15803d; }
-    .baja { color: #dc2626; }
+        .name-col { 
+            text-align: left; 
+            padding: 0 5px; 
+            background: var(--blanco-marfil); 
+            width: auto; 
+            font-size: 0.85rem; 
+            font-weight: 800; 
+            position: relative; 
+            user-select: none; 
+            -webkit-user-select: none; 
+        }
+        
+        .name-wrapper { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%;
+            height: 100%;
+        }
 
-    #resumenCompacto {
-        background: #111;
-        color: #fff;
-        padding: 8px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        border-top: 1px solid #333;
-    }
-    .resumen-section { font-size: 0.65rem; }
-    .resumen-section h4 { 
-        margin: 0 0 4px 0; 
-        font-size: 0.6rem; 
-        text-transform: uppercase; 
-        color: #888; 
-        border-bottom: 1px solid #222;
-    }
-    .resumen-full-width { grid-column: span 2; border-top: 1px solid #222; padding-top: 4px; margin-top: 2px; }
-    .resumen-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
-    .val-win { color: #22c55e; font-weight: bold; }
-    .val-loss { color: #ef4444; font-weight: bold; }
-    .val-prob { color: var(--dorado-campeon); font-weight: bold; }
+        .dots-container { 
+            display: flex; 
+            gap: 1px; 
+            margin-left: 4px;
+            flex-shrink: 0; 
+            flex-wrap: nowrap; 
+            justify-content: flex-end;
+        }
+        
+        .dot { 
+            width: 4.3px; 
+            height: 4.3px; 
+            border-radius: 50%; 
+            display: inline-block; 
+        }
 
-    .card { background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,0.2); }
-    .btn { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: none; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; }
-    .btn-update { background: #22c55e; color: #000; }
-    .btn-share { background: #25d366; color: white; }
-    .btn-record-match { background: #a855f7; color: white; }
-    
-    .btn-undo-ui { 
-        background: #facc15; 
-        color: #000; 
-        padding: 4px 10px; 
-        font-size: 0.65rem; 
-        border-radius: 4px; 
-        border: none;
-        font-weight: bold; 
-        cursor: pointer; 
-        float: right; 
-        margin: 8px 5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
+        .dot-g { background-color: var(--win-dot); }
+        .dot-p { background-color: var(--loss-dot); }
 
-    .btn-edit-ui {
-        background: #6b7280; 
-        color: #fff; 
-        padding: 4px 10px; 
-        font-size: 0.65rem; 
-        border-radius: 4px; 
-        border: none;
-        font-weight: bold; 
-        cursor: pointer; 
-        float: left; 
-        margin: 8px 5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        transition: all 0.2s;
-    }
-    .btn-edit-ui.active { background: #ef4444; color: #fff; }
+        .col-pj { 
+            background: var(--blanco-marfil); 
+            width: 30px; 
+            font-size: 0.85rem; 
+        }
 
-    .btn-add { background: #3b82f6; color: white; margin-top: 0; }
-    .btn-backup { background: #6b7280; color: white; font-size: 0.7rem; margin-top: 5px; }
-    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px; }
-    
-    .input-group { display: flex; gap: 5px; margin-top: 5px; }
-    input[type="text"] { flex: 1; background: #fff; border: 1px solid #3b82f6; padding: 6px; border-radius: 4px; font-size: 0.85rem; color: #000; }
+        .col-p { 
+            background: var(--blanco-marfil); 
+            color: #dc2626; 
+            width: 32px; 
+            font-size: 0.85rem; 
+        }
 
-    .modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000;
-    }
-    .modal-content {
-        background: #1a1a1a; padding: 20px; border-radius: 12px; width: 90%; max-width: 320px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.6); border: 1px solid #333; max-height: 90vh; overflow-y: auto;
-    }
-    .modal-title { margin-top: 0; color: #fff; font-size: 1.1rem; text-align: center; margin-bottom: 20px; font-weight: 800; border-bottom: 1px solid #333; padding-bottom: 10px; }
-    .modal-btn {
-        width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 8px; border: none;
-        font-weight: 900; cursor: pointer; font-size: 0.85rem; text-transform: uppercase;
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-    .btn-modal-cancel { background: #333; color: #aaa; margin-top: 5px; }
-    .team-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid #444; margin-bottom: 10px; }
-    .team-box h5 { margin: 0 0 8px 0; font-size: 0.7rem; text-transform: uppercase; color: #aaa; }
-    .player-select-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #222; margin-bottom: 4px; border-radius: 4px; font-size: 0.8rem; }
-    .player-select-item.disabled { opacity: 0.2; pointer-events: none; background: #111; }
-</style>
+        .col-g { 
+            background: var(--azul-oscuro); 
+            color: white; 
+            width: 32px; 
+        }
 
+        .col-g .table-input, 
+        .col-g .input-snapshot { 
+            font-size: 1rem; 
+            font-weight: 900; 
+        }
+
+        .col-food { 
+            background: var(--blanco-marfil); 
+            width: 32px; 
+        }
+
+        .perc-cell { 
+            font-size: 0.65rem; 
+            color: #000; 
+            width: 42px; 
+        }
+
+        .racha { 
+            font-size: 0.8rem; 
+            margin-left: 3px; 
+            font-weight: bold; 
+        }
+
+        .sube { color: #15803d; }
+        .baja { color: #dc2626; }
+
+        /* NUEVO:
+           Los emojis se pueden pulsar únicamente en EDIT ON.
+           Se añade un pequeño efecto visual para indicar que son editables. */
+        .editable-emoji {
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .editable-emoji:hover {
+            opacity: 0.45;
+        }
+
+        .editable-emoji:active {
+            opacity: 0.2;
+            transform: scale(0.8);
+        }
+
+        #resumenCompacto {
+            background: #111;
+            color: #fff;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            border-top: 1px solid #333;
+        }
+
+        .resumen-section { 
+            font-size: 0.65rem; 
+        }
+
+        .resumen-section h4 { 
+            margin: 0 0 4px 0; 
+            font-size: 0.6rem; 
+            text-transform: uppercase; 
+            color: #888; 
+            border-bottom: 1px solid #222;
+        }
+
+        .resumen-full-width { 
+            grid-column: span 2; 
+            border-top: 1px solid #222; 
+            padding-top: 4px; 
+            margin-top: 2px; 
+        }
+
+        .resumen-item { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 2px; 
+        }
+
+        .val-win { 
+            color: #22c55e; 
+            font-weight: bold; 
+        }
+
+        .val-loss { 
+            color: #ef4444; 
+            font-weight: bold; 
+        }
+
+        .val-prob { 
+            color: var(--dorado-campeon); 
+            font-weight: bold; 
+        }
+
+        .card { 
+            background: rgba(0, 0, 0, 0.4); 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin-top: 10px; 
+            border: 1px solid rgba(255,255,255,0.2); 
+        }
+
+        .btn { 
+            width: 100%; 
+            padding: 10px; 
+            margin-top: 8px; 
+            border-radius: 6px; 
+            border: none; 
+            font-weight: bold; 
+            font-size: 0.85rem; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+        }
+
+        .btn-update { 
+            background: #22c55e; 
+            color: #000; 
+        }
+
+        .btn-share { 
+            background: #25d366; 
+            color: white; 
+        }
+
+        .btn-record-match { 
+            background: #a855f7; 
+            color: white; 
+        }
+        
+        .btn-undo-ui { 
+            background: #facc15; 
+            color: #000; 
+            padding: 4px 10px; 
+            font-size: 0.65rem; 
+            border-radius: 4px; 
+            border: none;
+            font-weight: bold; 
+            cursor: pointer; 
+            float: right; 
+            margin: 8px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .btn-edit-ui {
+            background: #6b7280; 
+            color: #fff; 
+            padding: 4px 10px; 
+            font-size: 0.65rem; 
+            border-radius: 4px; 
+            border: none;
+            font-weight: bold; 
+            cursor: pointer; 
+            float: left; 
+            margin: 8px 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+
+        .btn-edit-ui.active { 
+            background: #ef4444; 
+            color: #fff; 
+        }
+
+        .btn-add { 
+            background: #3b82f6; 
+            color: white; 
+            margin-top: 0; 
+        }
+
+        .btn-backup { 
+            background: #6b7280; 
+            color: white; 
+            font-size: 0.7rem; 
+            margin-top: 5px; 
+        }
+
+        .actions-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 5px; 
+            margin-top: 5px; 
+        }
+        
+        .input-group { 
+            display: flex; 
+            gap: 5px; 
+            margin-top: 5px; 
+        }
+
+        input[type="text"] { 
+            flex: 1; 
+            background: #fff; 
+            border: 1px solid #3b82f6; 
+            padding: 6px; 
+            border-radius: 4px; 
+            font-size: 0.85rem; 
+            color: #000; 
+        }
+
+        .modal-overlay {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0,0,0,0.85); 
+            display: none; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1a1a1a; 
+            padding: 20px; 
+            border-radius: 12px; 
+            width: 90%; 
+            max-width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
+            border: 1px solid #333; 
+            max-height: 90vh; 
+            overflow-y: auto;
+        }
+
+        .modal-title { 
+            margin-top: 0; 
+            color: #fff; 
+            font-size: 1.1rem; 
+            text-align: center; 
+            margin-bottom: 20px; 
+            font-weight: 800; 
+            border-bottom: 1px solid #333; 
+            padding-bottom: 10px; 
+        }
+
+        .modal-btn {
+            width: 100%; 
+            padding: 14px; 
+            margin-bottom: 10px; 
+            border-radius: 8px; 
+            border: none;
+            font-weight: 900; 
+            cursor: pointer; 
+            font-size: 0.85rem; 
+            text-transform: uppercase;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px;
+        }
+
+        .btn-modal-cancel { 
+            background: #333; 
+            color: #aaa; 
+            margin-top: 5px; 
+        }
+
+        .team-box { 
+            background: rgba(255,255,255,0.05); 
+            padding: 10px; 
+            border-radius: 8px; 
+            border: 1px solid #444; 
+            margin-bottom: 10px; 
+        }
+
+        .team-box h5 { 
+            margin: 0 0 8px 0; 
+            font-size: 0.7rem; 
+            text-transform: uppercase; 
+            color: #aaa; 
+        }
+
+        .player-select-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            padding: 8px; 
+            background: #222; 
+            margin-bottom: 4px; 
+            border-radius: 4px; 
+            font-size: 0.8rem; 
+        }
+
+        .player-select-item.disabled { 
+            opacity: 0.2; 
+            pointer-events: none; 
+            background: #111; 
+        }
+    </style>
 </head>
+
 <body>
 
 <div class="container">
     <div id="captureArea">
         <div class="table-container">
+
             <button class="btn-edit-ui" id="editToggle" onclick="toggleEditMode()">EDIT OFF</button>
             <button class="btn-undo-ui" onclick="undoLastAction()">↩ DESHACER</button>
+
             <table>
                 <thead>
                     <tr>
@@ -222,453 +508,1927 @@
                         <th style="width: 20px;">🏠</th>
                     </tr>
                 </thead>
+
                 <tbody id="tableBody"></tbody>
             </table>
+
             <div id="resumenCompacto"></div>
         </div>
     </div>
 
-<div class="btn-main" style="padding: 0 5px;">
-    <button class="btn btn-record-match" onclick="openMatchModal()">⚔️ Registrar Partida</button>
-    <button class="btn btn-share" onclick="shareAsImage()">Compartir Tabla 📲</button>
+    <div class="btn-main" style="padding: 0 5px;">
 
-    <div class="card">
-        <div class="input-group">
-            <input type="text" id="newPlayerName" placeholder="Nombre...">
-            <button class="btn btn-add" style="width: auto;" onclick="addNewPlayer()">+</button>
-        </div>
-        <input type="text" id="editTitle" style="width: 93%; margin-top: 8px;" placeholder="Título" oninput="updateTitle(this.value)">
-        
-        <div class="actions-grid">
-            <button class="btn btn-backup" onclick="exportData()">💾 Guardar Backup</button>
-            <button class="btn btn-backup" onclick="importData()">📂 Cargar Backup</button>
+        <button class="btn btn-record-match" onclick="openMatchModal()">
+            ⚔️ Registrar Partida
+        </button>
+
+        <button class="btn btn-share" onclick="shareAsImage()">
+            Compartir Tabla 📲
+        </button>
+
+        <div class="card">
+
+            <div class="input-group">
+                <input type="text" id="newPlayerName" placeholder="Nombre...">
+                <button class="btn btn-add" style="width: auto;" onclick="addNewPlayer()">+</button>
+            </div>
+
+            <input 
+                type="text" 
+                id="editTitle" 
+                style="width: 93%; margin-top: 8px;" 
+                placeholder="Título" 
+                oninput="updateTitle(this.value)"
+            >
+
+            <div class="actions-grid">
+                <button class="btn btn-backup" onclick="exportData()">
+                    💾 Guardar Backup
+                </button>
+
+                <button class="btn btn-backup" onclick="importData()">
+                    📂 Cargar Backup
+                </button>
+            </div>
+
         </div>
     </div>
 </div>
 
-</div>
 
 <div id="playerModal" class="modal-overlay">
+
     <div class="modal-content">
-        <h4 id="modalPlayerName" class="modal-title">Opciones</h4>
+
+        <h4 id="modalPlayerName" class="modal-title">
+            Opciones
+        </h4>
+
         <div id="modalMainActions">
-            <button class="modal-btn btn-update" style="background:#3b82f6;color:white" onclick="showEditSection()">✏️ EDITAR NOMBRE</button>
-            <button class="modal-btn btn-update" style="background:var(--dorado-campeon);color:black" onclick="modalAction('champion')">👑 MARCAR CAMPEÓN</button>
-            <button class="modal-btn btn-update" style="background:var(--rojo-delete);color:white" onclick="showDelSection()">🗑️ ELIMINAR</button>
+
+            <button 
+                class="modal-btn btn-update" 
+                style="background:#3b82f6;color:white" 
+                onclick="showEditSection()"
+            >
+                ✏️ EDITAR NOMBRE
+            </button>
+
+            <button 
+                class="modal-btn btn-update" 
+                style="background:var(--dorado-campeon);color:black" 
+                onclick="modalAction('champion')"
+            >
+                👑 MARCAR CAMPEÓN
+            </button>
+
+            <button 
+                class="modal-btn btn-update" 
+                style="background:var(--rojo-delete);color:white" 
+                onclick="showDelSection()"
+            >
+                🗑️ ELIMINAR
+            </button>
+
         </div>
+
+
         <div id="editNameContainer" style="display:none">
-            <input type="text" id="editNameInput" style="width:100%;padding:10px;margin-bottom:10px;border-radius:4px;border:1px solid #333;background:#000;color:#fff;">
+
+            <input 
+                type="text" 
+                id="editNameInput" 
+                style="width:100%;padding:10px;margin-bottom:10px;border-radius:4px;border:1px solid #333;background:#000;color:#fff;"
+            >
+
             <div style="display:flex; gap:5px;">
-                <button class="btn-update" style="flex:1;padding:10px;border:none;border-radius:4px;background:#22c55e" onclick="modalAction('edit')">GUARDAR</button>
-                <button class="btn-modal-cancel" style="flex:1" onclick="resetModalViews()">ATRÁS</button>
+
+                <button 
+                    class="btn-update" 
+                    style="flex:1;padding:10px;border:none;border-radius:4px;background:#22c55e" 
+                    onclick="modalAction('edit')"
+                >
+                    GUARDAR
+                </button>
+
+                <button 
+                    class="btn-modal-cancel" 
+                    style="flex:1" 
+                    onclick="resetModalViews()"
+                >
+                    ATRÁS
+                </button>
+
             </div>
         </div>
+
+
         <div id="confirmDelContainer" style="display:none">
-            <p style="color:#ef4444; font-weight:bold; text-align:center">¿ELIMINAR JUGADOR?</p>
-            <button class="modal-btn btn-update" style="background:#ef4444;color:white" onclick="modalAction('delete')">SÍ, ELIMINAR</button>
-            <button class="btn-modal-cancel" onclick="resetModalViews()">CANCELAR</button>
+
+            <p style="color:#ef4444; font-weight:bold; text-align:center">
+                ¿ELIMINAR JUGADOR?
+            </p>
+
+            <button 
+                class="modal-btn btn-update" 
+                style="background:#ef4444;color:white" 
+                onclick="modalAction('delete')"
+            >
+                SÍ, ELIMINAR
+            </button>
+
+            <button 
+                class="btn-modal-cancel" 
+                onclick="resetModalViews()"
+            >
+                CANCELAR
+            </button>
+
         </div>
-        <button class="modal-btn btn-modal-cancel" onclick="closeModal()">CERRAR</button>
+
+        <button 
+            class="modal-btn btn-modal-cancel" 
+            onclick="closeModal()"
+        >
+            CERRAR
+        </button>
+
     </div>
 </div>
+
 
 <div id="matchModal" class="modal-overlay">
+
     <div class="modal-content">
-        <h4 class="modal-title">REGISTRAR PARTIDA</h4>
+
+        <h4 class="modal-title">
+            REGISTRAR PARTIDA
+        </h4>
+
         <div class="team-box">
+
             <h5>🏆 EQUIPO GANADOR</h5>
+
             <div id="winnersList"></div>
+
         </div>
+
         <div class="team-box">
+
             <h5>💀 EQUIPO PERDEDOR</h5>
+
             <div id="losersList"></div>
+
         </div>
+
         <div class="team-box">
+
             <h5>🏠 ¿QUIÉN PUSO LA CASA?</h5>
+
             <div id="houseList"></div>
+
         </div>
-        <div id="matchConfirmation" class="team-box" style="display:none; border-color:#22c55e;">
+
+        <div 
+            id="matchConfirmation" 
+            class="team-box" 
+            style="display:none; border-color:#22c55e;"
+        >
+
             <h5>✅ CONFIRMAR PARTIDA</h5>
-            <div id="matchConfirmationText" style="font-size:0.85rem; line-height:1.7; text-align:center;"></div>
-            <button class="modal-btn btn-update" style="background:#22c55e;color:#000;margin-top:10px;" onclick="confirmMatch()">✅ SÍ, REGISTRAR PARTIDA</button>
-            <button class="modal-btn btn-modal-cancel" onclick="cancelMatchConfirmation()">↩ VOLVER A EDITAR</button>
+
+            <div 
+                id="matchConfirmationText" 
+                style="font-size:0.85rem; line-height:1.7; text-align:center;"
+            ></div>
+
+            <button 
+                class="modal-btn btn-update" 
+                style="background:#22c55e;color:#000;margin-top:10px;" 
+                onclick="confirmMatch()"
+            >
+                ✅ SÍ, REGISTRAR PARTIDA
+            </button>
+
+            <button 
+                class="modal-btn btn-modal-cancel" 
+                onclick="cancelMatchConfirmation()"
+            >
+                ↩ VOLVER A EDITAR
+            </button>
+
         </div>
-        <button id="matchSubmitButton" class="modal-btn btn-update" onclick="prepareMatchConfirmation()">CONFIRMAR RESULTADO</button>
-        <button class="modal-btn btn-modal-cancel" onclick="closeMatchModal()">CANCELAR</button>
+
+        <button 
+            id="matchSubmitButton" 
+            class="modal-btn btn-update" 
+            onclick="prepareMatchConfirmation()"
+        >
+            CONFIRMAR RESULTADO
+        </button>
+
+        <button 
+            class="modal-btn btn-modal-cancel" 
+            onclick="closeMatchModal()"
+        >
+            CANCELAR
+        </button>
+
     </div>
 </div>
 
+
 <script>
+
     let undoStack = [];
+
     let stats = JSON.parse(localStorage.getItem('torneo_final_stats')) || [];
+
     let partnerships = JSON.parse(localStorage.getItem('torneo_partnerships')) || {};
+
     let prevOrder = JSON.parse(localStorage.getItem('torneo_prev_order')) || [];
+
     let activePlayerIdx = null;
+
     let pressTimer = null;
+
     let isEditMode = false;
 
-    function vibrar(ms = 80) { if (navigator.vibrate) navigator.vibrate(ms); }
-    const sonidoShare = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-    function sonar() { sonidoShare.play().catch(e => {}); }
 
-    function toggleEditMode() {
-        isEditMode = !isEditMode;
-        const btn = document.getElementById('editToggle');
-        btn.innerText = isEditMode ? "EDIT ON" : "EDIT OFF";
-        btn.classList.toggle('active', isEditMode);
-        vibrar(isEditMode ? 150 : 50);
+    function vibrar(ms = 80) { 
+        if (navigator.vibrate) navigator.vibrate(ms); 
     }
 
+
+    const sonidoShare = new Audio(
+        'https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'
+    );
+
+
+    function sonar() { 
+        sonidoShare.play().catch(e => {}); 
+    }
+
+
+    function toggleEditMode() {
+
+        isEditMode = !isEditMode;
+
+        const btn = document.getElementById('editToggle');
+
+        btn.innerText = isEditMode ? "EDIT ON" : "EDIT OFF";
+
+        btn.classList.toggle('active', isEditMode);
+
+        vibrar(isEditMode ? 150 : 50);
+
+        render();
+    }
+
+
     function saveUndoState() {
-        undoStack.push(JSON.stringify({stats, partnerships}));
+
+        undoStack.push(
+            JSON.stringify({
+                stats,
+                partnerships
+            })
+        );
+
         if (undoStack.length > 30) undoStack.shift();
     }
 
+
     function undoLastAction() {
+
         if (undoStack.length > 0) {
+
             const last = JSON.parse(undoStack.pop());
+
             stats = last.stats;
+
             partnerships = last.partnerships;
+
             render();
         }
     }
 
+
     function openMatchModal() {
+
         if (stats.length < 2) return;
+
         const wList = document.getElementById('winnersList');
+
         const lList = document.getElementById('losersList');
+
         const hList = document.getElementById('houseList');
+
         wList.innerHTML = '';
+
         lList.innerHTML = '';
+
         hList.innerHTML = '';
+
         document.getElementById('matchConfirmation').style.display = 'none';
+
         document.getElementById('matchSubmitButton').style.display = 'flex';
-        
+
+
         stats.forEach((p, i) => {
+
             const createItem = (type) => {
+
                 const div = document.createElement('div');
+
                 div.className = 'player-select-item';
+
                 div.id = `container-${type}-${i}`;
+
                 div.innerHTML = `
-                    <input type="checkbox" id="chk-${type}-${i}" data-idx="${i}" data-type="${type}" onchange="syncCheckboxes(this)">
+                    <input 
+                        type="checkbox" 
+                        id="chk-${type}-${i}" 
+                        data-idx="${i}" 
+                        data-type="${type}" 
+                        onchange="syncCheckboxes(this)"
+                    >
+
                     <span>${p.name}</span>
                 `;
+
                 return div;
             };
+
+
             wList.appendChild(createItem('win'));
+
             lList.appendChild(createItem('loss'));
 
+
             const houseDiv = document.createElement('div');
+
             houseDiv.className = 'player-select-item';
+
             houseDiv.innerHTML = `
-                <input type="radio" name="housePlayer" id="house-${i}" value="${i}">
+                <input 
+                    type="radio" 
+                    name="housePlayer" 
+                    id="house-${i}" 
+                    value="${i}"
+                >
+
                 <span>${p.name}</span>
             `;
+
             hList.appendChild(houseDiv);
+
         });
 
+
         const noHouseDiv = document.createElement('div');
+
         noHouseDiv.className = 'player-select-item';
+
         noHouseDiv.innerHTML = `
-            <input type="radio" name="housePlayer" id="house-none" value="-1" checked>
+            <input 
+                type="radio" 
+                name="housePlayer" 
+                id="house-none" 
+                value="-1" 
+                checked
+            >
+
             <span>Nadie</span>
         `;
+
         hList.appendChild(noHouseDiv);
+
 
         document.getElementById('matchModal').style.display = 'flex';
     }
+
+
     function syncCheckboxes(el) {
+
         const idx = el.dataset.idx;
+
         const type = el.dataset.type;
+
         const otherType = type === 'win' ? 'loss' : 'win';
-        const otherContainer = document.getElementById(`container-${otherType}-${idx}`);
-        const otherCheckbox = document.getElementById(`chk-${otherType}-${idx}`);
-        
+
+        const otherContainer = document.getElementById(
+            `container-${otherType}-${idx}`
+        );
+
+        const otherCheckbox = document.getElementById(
+            `chk-${otherType}-${idx}`
+        );
+
+
         if (el.checked) {
+
             otherContainer.classList.add('disabled');
+
             otherCheckbox.checked = false;
+
         } else {
+
             otherContainer.classList.remove('disabled');
+
         }
     }
 
-    function closeMatchModal() { document.getElementById('matchModal').style.display = 'none'; }
+
+    function closeMatchModal() {
+
+        document.getElementById('matchModal').style.display = 'none';
+    }
+
 
     function prepareMatchConfirmation() {
-        const wins = Array.from(document.querySelectorAll('input[data-type="win"]:checked')).map(el => parseInt(el.dataset.idx));
-        const loss = Array.from(document.querySelectorAll('input[data-type="loss"]:checked')).map(el => parseInt(el.dataset.idx));
+
+        const wins = Array.from(
+            document.querySelectorAll('input[data-type="win"]:checked')
+        ).map(el => parseInt(el.dataset.idx));
+
+
+        const loss = Array.from(
+            document.querySelectorAll('input[data-type="loss"]:checked')
+        ).map(el => parseInt(el.dataset.idx));
+
+
         if (wins.length === 0 || loss.length === 0) return;
 
-        const houseSelected = document.querySelector('input[name="housePlayer"]:checked');
-        const houseIdx = houseSelected ? parseInt(houseSelected.value) : -1;
-        const winnerNames = wins.map(idx => stats[idx].name).join(' + ');
-        const loserNames = loss.map(idx => stats[idx].name).join(' + ');
-        const houseName = houseIdx >= 0 && stats[houseIdx] ? stats[houseIdx].name : 'Nadie';
+
+        const houseSelected = document.querySelector(
+            'input[name="housePlayer"]:checked'
+        );
+
+        const houseIdx = houseSelected 
+            ? parseInt(houseSelected.value) 
+            : -1;
+
+
+        const winnerNames = wins
+            .map(idx => stats[idx].name)
+            .join(' + ');
+
+
+        const loserNames = loss
+            .map(idx => stats[idx].name)
+            .join(' + ');
+
+
+        const houseName = houseIdx >= 0 && stats[houseIdx] 
+            ? stats[houseIdx].name 
+            : 'Nadie';
+
 
         document.getElementById('matchConfirmationText').innerHTML = `
-            <div><strong>🏆 EQUIPO GANADOR:</strong><br>${winnerNames}</div>
-            <div style="margin-top:8px;"><strong>💀 EQUIPO PERDEDOR:</strong><br>${loserNames}</div>
-            <div style="margin-top:8px;"><strong>🏠 CASA:</strong><br>${houseName}</div>`;
+            <div>
+                <strong>🏆 EQUIPO GANADOR:</strong><br>
+                ${winnerNames}
+            </div>
+
+            <div style="margin-top:8px;">
+                <strong>💀 EQUIPO PERDEDOR:</strong><br>
+                ${loserNames}
+            </div>
+
+            <div style="margin-top:8px;">
+                <strong>🏠 CASA:</strong><br>
+                ${houseName}
+            </div>
+        `;
+
+
         document.getElementById('matchConfirmation').style.display = 'block';
+
         document.getElementById('matchSubmitButton').style.display = 'none';
-        document.querySelectorAll('#winnersList input, #losersList input, #houseList input').forEach(input => input.disabled = true);
+
+
+        document
+            .querySelectorAll('#winnersList input, #losersList input, #houseList input')
+            .forEach(input => input.disabled = true);
     }
+
 
     function cancelMatchConfirmation() {
+
         document.getElementById('matchConfirmation').style.display = 'none';
+
         document.getElementById('matchSubmitButton').style.display = 'flex';
-        document.querySelectorAll('#winnersList input, #losersList input, #houseList input').forEach(input => input.disabled = false);
+
+        document
+            .querySelectorAll('#winnersList input, #losersList input, #houseList input')
+            .forEach(input => input.disabled = false);
     }
 
+
     function confirmMatch() {
-        const wins = Array.from(document.querySelectorAll('input[data-type="win"]:checked')).map(el => parseInt(el.dataset.idx));
-        const loss = Array.from(document.querySelectorAll('input[data-type="loss"]:checked')).map(el => parseInt(el.dataset.idx));
-        if (wins.length === 0 || loss.length === 0) { cancelMatchConfirmation(); return; }
-        const houseSelected = document.querySelector('input[name="housePlayer"]:checked');
-        const houseIdx = houseSelected ? parseInt(houseSelected.value) : -1;
+
+        const wins = Array.from(
+            document.querySelectorAll('input[data-type="win"]:checked')
+        ).map(el => parseInt(el.dataset.idx));
+
+
+        const loss = Array.from(
+            document.querySelectorAll('input[data-type="loss"]:checked')
+        ).map(el => parseInt(el.dataset.idx));
+
+
+        if (wins.length === 0 || loss.length === 0) {
+
+            cancelMatchConfirmation();
+
+            return;
+        }
+
+
+        const houseSelected = document.querySelector(
+            'input[name="housePlayer"]:checked'
+        );
+
+
+        const houseIdx = houseSelected 
+            ? parseInt(houseSelected.value) 
+            : -1;
+
+
         saveUndoState();
+
         vibrar(100);
-        wins.forEach(idx => handleStatChange(idx, 'g', stats[idx].g + 1));
-        loss.forEach(idx => handleStatChange(idx, 'p', stats[idx].p + 1));
-        if (houseIdx >= 0 && stats[houseIdx]) stats[houseIdx].food++;
+
+
+        wins.forEach(idx => 
+            handleStatChange(idx, 'g', stats[idx].g + 1)
+        );
+
+
+        loss.forEach(idx => 
+            handleStatChange(idx, 'p', stats[idx].p + 1)
+        );
+
+
+        if (houseIdx >= 0 && stats[houseIdx]) {
+            stats[houseIdx].food++;
+        }
+
+
         const recordPair = (idxA, idxB) => {
-            const names = [stats[idxA].name, stats[idxB].name].sort();
+
+            const names = [
+                stats[idxA].name, 
+                stats[idxB].name
+            ].sort();
+
             const key = names.join(' | ');
+
             partnerships[key] = (partnerships[key] || 0) + 1;
         };
-        for(let i=0; i<wins.length; i++) for(let j=i+1; j<wins.length; j++) recordPair(wins[i], wins[j]);
-        for(let i=0; i<loss.length; i++) for(let j=i+1; j<loss.length; j++) recordPair(loss[i], loss[j]);
+
+
+        for(let i = 0; i < wins.length; i++) {
+            for(let j = i + 1; j < wins.length; j++) {
+                recordPair(wins[i], wins[j]);
+            }
+        }
+
+
+        for(let i = 0; i < loss.length; i++) {
+            for(let j = i + 1; j < loss.length; j++) {
+                recordPair(loss[i], loss[j]);
+            }
+        }
+
+
         closeMatchModal();
+
         saveTableData();
     }
 
+
     function getCurrentTournamentFecha() {
+
         const now = new Date();
+
         const year = now.getFullYear();
+
+
         const getFirstFriday = (y, m) => {
+
             let d = new Date(y, m, 1);
-            while (d.getDay() !== 5) d.setDate(d.getDate() + 1);
+
+            while (d.getDay() !== 5) {
+                d.setDate(d.getDate() + 1);
+            }
+
             return d;
         };
+
+
         const getLastFriday = (y, m) => {
-            let d = new Date(y, m + 1, 0); 
-            while (d.getDay() !== 5) d.setDate(d.getDate() - 1);
+
+            let d = new Date(y, m + 1, 0);
+
+            while (d.getDay() !== 5) {
+                d.setDate(d.getDate() - 1);
+            }
+
             return d;
         };
+
+
         const startApertura = getFirstFriday(year, 0);
+
         const startClausura = getFirstFriday(year, 6);
 
-        // El cambio de torneo ocurre el sábado anterior al primer viernes del Clausura
-        const corteClausura = new Date(startClausura.getTime() - (6 * 24 * 60 * 60 * 1000));
-        
+
+        const corteClausura = new Date(
+            startClausura.getTime() - (6 * 24 * 60 * 60 * 1000)
+        );
+
+
         const isClausura = now >= corteClausura;
-        const seasonStart = isClausura ? startClausura : startApertura;
-        const seasonEnd = isClausura ? getLastFriday(year, 11) : getLastFriday(year, 5);
-        
-        let diffMs = now.getTime() - seasonStart.getTime() + (6 * 24 * 60 * 60 * 1000);
-        let diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
-        
-        let totalFechasSeason = Math.floor((seasonEnd.getTime() - seasonStart.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+
+        const seasonStart = isClausura 
+            ? startClausura 
+            : startApertura;
+
+        const seasonEnd = isClausura 
+            ? getLastFriday(year, 11) 
+            : getLastFriday(year, 5);
+
+
+        let diffMs = 
+            now.getTime() - 
+            seasonStart.getTime() + 
+            (6 * 24 * 60 * 60 * 1000);
+
+
+        let diffWeeks = 
+            Math.floor(
+                diffMs / (7 * 24 * 60 * 60 * 1000)
+            ) + 1;
+
+
+        let totalFechasSeason = 
+            Math.floor(
+                (seasonEnd.getTime() - seasonStart.getTime()) /
+                (7 * 24 * 60 * 60 * 1000)
+            ) + 1;
+
 
         return {
-            actual: Math.max(1, Math.min(totalFechasSeason, diffWeeks)),
+
+            actual: Math.max(
+                1, 
+                Math.min(totalFechasSeason, diffWeeks)
+            ),
+
             total: totalFechasSeason
         };
     }
 
 
     function renderResumen() {
+
         if (stats.length === 0) return;
-        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 1);
-        const currentLeaderG = Math.max(...stats.map(p => p.g), 0);
+
+
+        const maxPJ = Math.max(
+            ...stats.map(p => p.g + p.p), 
+            1
+        );
+
+
+        const currentLeaderG = Math.max(
+            ...stats.map(p => p.g), 
+            0
+        );
+
+
         const fechaInfo = getCurrentTournamentFecha();
+
         const TOTAL_FECHAS = fechaInfo.total;
+
         const fechaActual = fechaInfo.actual;
-        const fechasFaltantes = Math.max(0, TOTAL_FECHAS - fechaActual + 1);
-        
+
+        const fechasFaltantes = Math.max(
+            0, 
+            TOTAL_FECHAS - fechaActual + 1
+        );
+
+
         const data = stats.map(p => {
+
             const total = p.g + p.p;
+
             return {
-                name: p.name, pj: total, g: p.g,
-                perc: total > 0 ? (p.g / total) * 100 : 0,
+
+                name: p.name,
+
+                pj: total,
+
+                g: p.g,
+
+                perc: total > 0 
+                    ? (p.g / total) * 100 
+                    : 0,
+
                 racha: getRacha(p.history),
-                isBA: (maxPJ >= 7 && total < (maxPJ / 2))
+
+                isBA: (
+                    maxPJ >= 7 && 
+                    total < (maxPJ / 2)
+                )
             };
         });
 
+
         const validData = data.filter(d => !d.isBA);
 
-        const topPerc = [...validData].sort((a,b) => b.perc - a.perc).slice(0, 3);
-        const botPerc = [...validData].sort((a,b) => a.perc - b.perc).slice(0, 3);
-        const topRacha = [...validData].sort((a,b) => b.racha - a.racha).slice(0, 3);
-        const botRacha = [...validData].sort((a,b) => a.racha - b.racha).slice(0, 3);
 
-        const validNames = new Set(validData.map(d => d.name));
+        const topPerc = [...validData]
+            .sort((a,b) => b.perc - a.perc)
+            .slice(0, 3);
+
+
+        const botPerc = [...validData]
+            .sort((a,b) => a.perc - b.perc)
+            .slice(0, 3);
+
+
+        const topRacha = [...validData]
+            .sort((a,b) => b.racha - a.racha)
+            .slice(0, 3);
+
+
+        const botRacha = [...validData]
+            .sort((a,b) => a.racha - b.racha)
+            .slice(0, 3);
+
+
+        const validNames = new Set(
+            validData.map(d => d.name)
+        );
+
+
         const duoEntries = Object.entries(partnerships)
-            .map(([duo, count]) => ({ duo, count }))
+
+            .map(([duo, count]) => ({
+                duo,
+                count
+            }))
+
             .filter(({ duo }) => {
+
                 const [p1, p2] = duo.split(' | ');
-                return validNames.has(p1) && validNames.has(p2);
+
+                return (
+                    validNames.has(p1) && 
+                    validNames.has(p2)
+                );
             })
+
             .sort((a,b) => b.count - a.count);
+
+
         const topDuos = duoEntries.slice(0, 3);
-        const botDuos = duoEntries.filter(d => d.count > 0).reverse().slice(0, 3);
+
+        const botDuos = duoEntries
+            .filter(d => d.count > 0)
+            .reverse()
+            .slice(0, 3);
+
 
         const html = `
+
             <div class="resumen-section">
+
                 <h4>Mejores (%)</h4>
-                ${topPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${Math.round(p.perc)}%</span></div>`).join('')}
-                <h4 style="margin-top:6px">Peores (%)</h4>
-                ${botPerc.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${Math.round(p.perc)}%</span></div>`).join('')}
-                <h4 style="margin-top:6px">Parejas más frecuentes</h4>
-                ${topDuos.length > 0 ? topDuos.map(d => `<div class="resumen-item"><span>${d.duo}</span><span class="val-win">${d.count}</span></div>`).join('') : '<div>-</div>'}
+
+                ${topPerc.map(p => `
+                    <div class="resumen-item">
+                        <span>${p.name}</span>
+                        <span class="val-win">
+                            ${Math.round(p.perc)}%
+                        </span>
+                    </div>
+                `).join('')}
+
+
+                <h4 style="margin-top:6px">
+                    Peores (%)
+                </h4>
+
+                ${botPerc.map(p => `
+                    <div class="resumen-item">
+                        <span>${p.name}</span>
+                        <span class="val-loss">
+                            ${Math.round(p.perc)}%
+                        </span>
+                    </div>
+                `).join('')}
+
+
+                <h4 style="margin-top:6px">
+                    Parejas más frecuentes
+                </h4>
+
+                ${
+                    topDuos.length > 0 
+                    ? topDuos.map(d => `
+                        <div class="resumen-item">
+                            <span>${d.duo}</span>
+                            <span class="val-win">
+                                ${d.count}
+                            </span>
+                        </div>
+                    `).join('')
+                    : '<div>-</div>'
+                }
+
             </div>
+
+
             <div class="resumen-section">
+
                 <h4>Mejores Rachas</h4>
-                ${topRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-win">${p.racha > 0 ? '' + p.racha : '-'}</span></div>`).join('')}
-                <h4 style="margin-top:6px">Peores Rachas</h4>
-                ${botRacha.map(p => `<div class="resumen-item"><span>${p.name}</span><span class="val-loss">${p.racha < 0 ? '' + Math.abs(p.racha) : '-'}</span></div>`).join('')}
-                <h4 style="margin-top:6px">Parejas menos frecuentes</h4>
-                ${botDuos.length > 0 ? botDuos.map(d => `<div class="resumen-item"><span>${d.duo}</span><span class="val-loss">${d.count}</span></div>`).join('') : '<div>-</div>'}
+
+                ${topRacha.map(p => `
+                    <div class="resumen-item">
+                        <span>${p.name}</span>
+                        <span class="val-win">
+                            ${p.racha > 0 ? '' + p.racha : '-'}
+                        </span>
+                    </div>
+                `).join('')}
+
+
+                <h4 style="margin-top:6px">
+                    Peores Rachas
+                </h4>
+
+                ${botRacha.map(p => `
+                    <div class="resumen-item">
+                        <span>${p.name}</span>
+                        <span class="val-loss">
+                            ${p.racha < 0 ? '' + Math.abs(p.racha) : '-'}
+                        </span>
+                    </div>
+                `).join('')}
+
+
+                <h4 style="margin-top:6px">
+                    Parejas menos frecuentes
+                </h4>
+
+                ${
+                    botDuos.length > 0 
+                    ? botDuos.map(d => `
+                        <div class="resumen-item">
+                            <span>${d.duo}</span>
+                            <span class="val-loss">
+                                ${d.count}
+                            </span>
+                        </div>
+                    `).join('')
+                    : '<div>-</div>'
+                }
+
             </div>
+
+
             <div class="resumen-section resumen-full-width">
-                <h4 style="text-align: center;">PROBABILIDADES CAMPEÓN (FALTAN ${fechasFaltantes} FECHAS)</h4>
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">
-                ${maxPJ > 0 ? validData.map(d => {
-                    const r = Math.max(0, TOTAL_FECHAS - maxPJ);
-                    const maxPossibleWins = d.g + r;
-                    if (maxPossibleWins < currentLeaderG || d.pj === 0) {
-                        return { name: d.name, score: 0 };
-                    }
-                    const smoothedWinRate = (d.g + 1) / (d.pj + 2);
-                    const attendanceFactor = d.pj / maxPJ;
-                    const chance = Math.pow(d.g + (r * smoothedWinRate * attendanceFactor), 3);
-                    return { name: d.name, score: chance };
-                }).sort((a,b)=>b.score-a.score).map(p => {
-                    const totalS = validData.reduce((acc,s)=>{
-                        const r = Math.max(0, TOTAL_FECHAS - maxPJ);
-                        if ((s.g + r) < currentLeaderG) return acc;
-                        return acc + Math.pow(s.g+(r*((s.g+1)/(s.pj+2))*(s.pj/maxPJ)), 3);
-                    }, 0);
-                    const perc = Math.round((p.score / (totalS||1))*100);
-                    return `<div style="text-align: center; min-width: 48px; flex: 1; padding: 2px; background: rgba(255,255,255,0.05); border-radius: 3px;">
-                        <div style="font-weight: 800; font-size: 0.5rem; color: ${perc > 0 ? '#fff' : '#666'}">${p.name}</div>
-                        <div class="val-prob" style="font-size: 0.7rem; color: ${perc > 0 ? 'var(--dorado-campeon)' : '#666'}">${perc}%</div>
-                    </div>`;
-                }).join('') : '<div style="font-size:0.6rem; color:#666; width:100%; text-align:center">Disponible en Fecha 13</div>'}
+
+                <h4 style="text-align: center;">
+                    PROBABILIDADES CAMPEÓN 
+                    (FALTAN ${fechasFaltantes} FECHAS)
+                </h4>
+
+
+                <div 
+                    style="
+                        display: flex; 
+                        flex-wrap: wrap; 
+                        justify-content: center; 
+                        gap: 2px;
+                    "
+                >
+
+                ${maxPJ > 0 ? validData
+
+                    .map(d => {
+
+                        const r = Math.max(
+                            0, 
+                            TOTAL_FECHAS - maxPJ
+                        );
+
+
+                        const maxPossibleWins = d.g + r;
+
+
+                        if (
+                            maxPossibleWins < currentLeaderG || 
+                            d.pj === 0
+                        ) {
+
+                            return {
+                                name: d.name,
+                                score: 0
+                            };
+                        }
+
+
+                        const smoothedWinRate = 
+                            (d.g + 1) / (d.pj + 2);
+
+
+                        const attendanceFactor = 
+                            d.pj / maxPJ;
+
+
+                        const chance = Math.pow(
+                            d.g + (
+                                r * 
+                                smoothedWinRate * 
+                                attendanceFactor
+                            ), 
+                            3
+                        );
+
+
+                        return {
+                            name: d.name,
+                            score: chance
+                        };
+
+                    })
+
+
+                    .sort((a,b) => b.score - a.score)
+
+
+                    .map(p => {
+
+                        const totalS = validData.reduce(
+                            (acc,s) => {
+
+                                const r = Math.max(
+                                    0, 
+                                    TOTAL_FECHAS - maxPJ
+                                );
+
+
+                                if (
+                                    (s.g + r) < currentLeaderG
+                                ) {
+                                    return acc;
+                                }
+
+
+                                return acc + Math.pow(
+                                    s.g + (
+                                        r *
+                                        ((s.g + 1) / (s.pj + 2)) *
+                                        (s.pj / maxPJ)
+                                    ),
+                                    3
+                                );
+
+                            }, 
+                            0
+                        );
+
+
+                        const perc = Math.round(
+                            (p.score / (totalS || 1)) * 100
+                        );
+
+
+                        return `
+                            <div 
+                                style="
+                                    text-align: center; 
+                                    min-width: 48px; 
+                                    flex: 1; 
+                                    padding: 2px; 
+                                    background: rgba(255,255,255,0.05); 
+                                    border-radius: 3px;
+                                "
+                            >
+
+                                <div 
+                                    style="
+                                        font-weight: 800; 
+                                        font-size: 0.5rem; 
+                                        color: ${perc > 0 ? '#fff' : '#666'}
+                                    "
+                                >
+                                    ${p.name}
+                                </div>
+
+                                <div 
+                                    class="val-prob" 
+                                    style="
+                                        font-size: 0.7rem; 
+                                        color: ${perc > 0 
+                                            ? 'var(--dorado-campeon)' 
+                                            : '#666'}
+                                    "
+                                >
+                                    ${perc}%
+                                </div>
+
+                            </div>
+                        `;
+
+                    })
+
+                    .join('')
+
+                    : `
+                        <div 
+                            style="
+                                font-size:0.6rem; 
+                                color:#666; 
+                                width:100%; 
+                                text-align:center
+                            "
+                        >
+                            Disponible en Fecha 13
+                        </div>
+                    `
+                }
+
                 </div>
-            </div>`;
-        document.getElementById('resumenCompacto').innerHTML = html;
+            </div>
+        `;
+
+
+        document.getElementById(
+            'resumenCompacto'
+        ).innerHTML = html;
     }
 
+
+    /*
+     * NUEVO:
+     * Oculta un emoji concreto de un jugador.
+     *
+     * Solo funciona cuando EDIT ON está activo.
+     */
+    function removePlayerEmoji(idx, emojiType) {
+
+        if (!isEditMode) return;
+
+        saveUndoState();
+
+        if (!stats[idx].hiddenEmojis) {
+            stats[idx].hiddenEmojis = {};
+        }
+
+        stats[idx].hiddenEmojis[emojiType] = true;
+
+        vibrar(50);
+
+        saveTableData();
+    }
+
+
+    /*
+     * NUEVO:
+     * Comprueba si un emoji concreto debe mostrarse.
+     */
+    function shouldShowEmoji(player, emojiType) {
+
+        return !(
+            player.hiddenEmojis &&
+            player.hiddenEmojis[emojiType]
+        );
+    }
+
+
     function render() {
-        const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
-        const maxPJ = Math.max(...stats.map(p => p.g + p.p), 0);
+
+        const tbody = document.getElementById('tableBody');
+
+        tbody.innerHTML = '';
+
+
+        const maxPJ = Math.max(
+            ...stats.map(p => p.g + p.p), 
+            0
+        );
+
+
         stats.forEach((p, i) => {
+
             const total = p.g + p.p;
-            const perc = total > 0 ? Math.round((p.g / total) * 100) : 0;
-            const isBA = maxPJ >= 7 && total < (maxPJ / 2);
-            const bgPerc = isBA ? '#888' : getGradientColor(perc);
-            let posDisplay = (i===0)?'🏆':(i===1)?'🥈':(i===2)?'🥉':(i===stats.length-1 && stats.length > 3)?'💀':i+1;
-            
-            let rachaIcon = '';
-            const oldIndex = prevOrder.indexOf(p.name);
-            if (oldIndex !== -1) {
-                if (i < oldIndex) rachaIcon = '<span class="racha sube">↑</span>';
-                else if (i > oldIndex) rachaIcon = '<span class="racha baja">↓</span>';
+
+
+            const perc = total > 0 
+                ? Math.round((p.g / total) * 100) 
+                : 0;
+
+
+            const isBA = (
+                maxPJ >= 7 && 
+                total < (maxPJ / 2)
+            );
+
+
+            const bgPerc = isBA 
+                ? '#888' 
+                : getGradientColor(perc);
+
+
+            let posDisplay = 
+                (i === 0) ? '🏆' :
+                (i === 1) ? '🥈' :
+                (i === 2) ? '🥉' :
+                (i === stats.length - 1 && stats.length > 3) 
+                    ? '💀' 
+                    : i + 1;
+
+
+            /*
+             * EMOJIS DEL NOMBRE
+             */
+
+            let nameEmojis = '';
+
+
+            /*
+             * 👑 CAMPEÓN
+             */
+            if (
+                p.isChampion &&
+                shouldShowEmoji(p, 'champion')
+            ) {
+
+                nameEmojis += `
+                    <span 
+                        class="editable-emoji"
+                        onclick="removePlayerEmoji(${i}, 'champion')"
+                        title="${isEditMode ? 'Eliminar emoji' : ''}"
+                    >
+                        👑
+                    </span>
+                `;
             }
 
-            const racha = getRacha(p.history);
-            const anchor = racha <= -4 ? ' ⚓' : '';
-            const fire = racha >= 4 ? ' 🔥' : '';
-            const trunk = (total >= 5 && perc < 30) ? ' 🪵' : '';
 
+            /*
+             * 🔥 RACHA POSITIVA
+             */
+            const racha = getRacha(p.history);
+
+            if (
+                racha >= 4 &&
+                shouldShowEmoji(p, 'fire')
+            ) {
+
+                nameEmojis += `
+                    <span 
+                        class="editable-emoji"
+                        onclick="removePlayerEmoji(${i}, 'fire')"
+                        title="${isEditMode ? 'Eliminar emoji' : ''}"
+                    >
+                        🔥
+                    </span>
+                `;
+            }
+
+
+            /*
+             * ⚓ RACHA NEGATIVA
+             */
+            if (
+                racha <= -4 &&
+                shouldShowEmoji(p, 'anchor')
+            ) {
+
+                nameEmojis += `
+                    <span 
+                        class="editable-emoji"
+                        onclick="removePlayerEmoji(${i}, 'anchor')"
+                        title="${isEditMode ? 'Eliminar emoji' : ''}"
+                    >
+                        ⚓
+                    </span>
+                `;
+            }
+
+
+            /*
+             * 🪵 BAJO RENDIMIENTO
+             */
+            if (
+                total >= 5 &&
+                perc < 30 &&
+                shouldShowEmoji(p, 'trunk')
+            ) {
+
+                nameEmojis += `
+                    <span 
+                        class="editable-emoji"
+                        onclick="removePlayerEmoji(${i}, 'trunk')"
+                        title="${isEditMode ? 'Eliminar emoji' : ''}"
+                    >
+                        🪵
+                    </span>
+                `;
+            }
+
+
+            /*
+             * ↑ / ↓ CAMBIO DE POSICIÓN
+             */
+            let rachaIcon = '';
+
+            const oldIndex = prevOrder.indexOf(p.name);
+
+
+            if (oldIndex !== -1) {
+
+                if (
+                    i < oldIndex &&
+                    shouldShowEmoji(p, 'up')
+                ) {
+
+                    rachaIcon = `
+                        <span 
+                            class="racha sube editable-emoji"
+                            onclick="removePlayerEmoji(${i}, 'up')"
+                            title="${isEditMode ? 'Eliminar emoji' : ''}"
+                        >
+                            ↑
+                        </span>
+                    `;
+
+                } else if (
+                    i > oldIndex &&
+                    shouldShowEmoji(p, 'down')
+                ) {
+
+                    rachaIcon = `
+                        <span 
+                            class="racha baja editable-emoji"
+                            onclick="removePlayerEmoji(${i}, 'down')"
+                            title="${isEditMode ? 'Eliminar emoji' : ''}"
+                        >
+                            ↓
+                        </span>
+                    `;
+                }
+            }
+
+
+            const anchor = '';
+            const fire = '';
+            const trunk = '';
+
+
+            /*
+             * PUNTOS DE HISTORIAL
+             * Estos NO son emojis editables.
+             */
             const lastResults = (p.history || []).slice(-30);
-            let dots = '<div class="dots-container">' + lastResults.map(res => `<span class="dot dot-${res}"></span>`).join('') + '</div>';
+
+
+            let dots = 
+                '<div class="dots-container">' +
+                lastResults
+                    .map(res => `
+                        <span class="dot dot-${res}"></span>
+                    `)
+                    .join('') +
+                '</div>';
+
+
+            /*
+             * NOMBRE + EMOJIS
+             */
+            const displayName = `
+                ${nameEmojis}
+                <span 
+                    style="
+                        white-space: nowrap; 
+                        overflow: hidden; 
+                        text-overflow: ellipsis;
+                    "
+                >
+                    ${p.name}
+                    ${rachaIcon}
+                    ${isBA ? ' <small>(BA)</small>' : ''}
+                </span>
+            `;
+
 
             tbody.innerHTML += `
-                <tr class="${(i === 0 && p.isChampion) ? 'fila-campeon' : ''}">
-                    <td class="col-pos">${posDisplay}</td>
-                    <td class="name-col" onmousedown="handleStart(${i})" onmouseup="handleEnd()" ontouchstart="handleStart(${i})" ontouchend="handleEnd()">
-                        <div class="name-wrapper">
-                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.isChampion ? '👑 ' : ''}${p.name}${fire}${anchor}${trunk}${isBA ? ' <small>(BA)</small>' : ''}${rachaIcon}</span>
-                            ${dots}
-                        </div>
+
+                <tr class="${(i === 0 && p.isChampion) 
+                    ? 'fila-campeon' 
+                    : ''}">
+
+                    <td class="col-pos">
+                        ${posDisplay}
                     </td>
-                    <td class="col-pj">${total}</td>
-                    <td class="col-p" onclick="quickAdd(${i}, 'p')"><input type="number" class="table-input" readonly value="${p.p}"><span class="input-snapshot">${p.p}</span></td>
-                    <td class="col-g" onclick="quickAdd(${i}, 'g')"><input type="number" class="table-input" readonly value="${p.g}"><span class="input-snapshot">${p.g}</span></td>
-                    <td class="perc-cell" style="background:${bgPerc}; color:${(isBA||perc>=75||perc<35)?'white':'black'}">${perc}%</td>
-                    <td class="col-food"><input type="number" class="table-input" readonly value="${p.food}"><span class="input-snapshot">${p.food}</span></td>
-                </tr>`;
+
+
+                    <td 
+                        class="name-col"
+                        onmousedown="handleStart(${i})"
+                        onmouseup="handleEnd()"
+                        ontouchstart="handleStart(${i})"
+                        ontouchend="handleEnd()"
+                    >
+
+                        <div class="name-wrapper">
+
+                            <span 
+                                style="
+                                    display:flex;
+                                    align-items:center;
+                                    min-width:0;
+                                "
+                            >
+                                ${displayName}
+                            </span>
+
+                            ${dots}
+
+                        </div>
+
+                    </td>
+
+
+                    <td class="col-pj">
+                        ${total}
+                    </td>
+
+
+                    <td 
+                        class="col-p" 
+                        onclick="quickAdd(${i}, 'p')"
+                    >
+
+                        <input 
+                            type="number" 
+                            class="table-input" 
+                            readonly 
+                            value="${p.p}"
+                        >
+
+                        <span class="input-snapshot">
+                            ${p.p}
+                        </span>
+
+                    </td>
+
+
+                    <td 
+                        class="col-g" 
+                        onclick="quickAdd(${i}, 'g')"
+                    >
+
+                        <input 
+                            type="number" 
+                            class="table-input" 
+                            readonly 
+                            value="${p.g}"
+                        >
+
+                        <span class="input-snapshot">
+                            ${p.g}
+                        </span>
+
+                    </td>
+
+
+                    <td 
+                        class="perc-cell" 
+                        style="
+                            background:${bgPerc}; 
+                            color:${(isBA || perc >= 75 || perc < 35)
+                                ? 'white'
+                                : 'black'
+                        "
+                    >
+                        ${perc}%
+                    </td>
+
+
+                    <td class="col-food">
+
+                        <input 
+                            type="number" 
+                            class="table-input" 
+                            readonly 
+                            value="${p.food}"
+                        >
+
+                        <span class="input-snapshot">
+                            ${p.food}
+                        </span>
+
+                    </td>
+
+                </tr>
+            `;
         });
-        localStorage.setItem('torneo_final_stats', JSON.stringify(stats));
-        localStorage.setItem('torneo_partnerships', JSON.stringify(partnerships));
+
+
+        localStorage.setItem(
+            'torneo_final_stats', 
+            JSON.stringify(stats)
+        );
+
+
+        localStorage.setItem(
+            'torneo_partnerships', 
+            JSON.stringify(partnerships)
+        );
+
+
         renderResumen();
     }
 
-    function updateTitle(val) { document.getElementById('displayTitle').innerText = val; localStorage.setItem('torneo_titulo', val); }
-    function handleStart(idx) { if (!isEditMode) return; pressTimer = setTimeout(() => openPlayerModal(idx), 3000); }
-    function handleEnd() { clearTimeout(pressTimer); }
-    function openPlayerModal(idx) { vibrar(200); activePlayerIdx = idx; document.getElementById('modalPlayerName').innerText = stats[idx].name; resetModalViews(); document.getElementById('playerModal').style.display = 'flex'; }
-    function closeModal() { document.getElementById('playerModal').style.display = 'none'; }
-    function showEditSection() { document.getElementById('modalMainActions').style.display = 'none'; document.getElementById('editNameContainer').style.display = 'block'; document.getElementById('editNameInput').value = stats[activePlayerIdx].name; }
-    function showDelSection() { document.getElementById('modalMainActions').style.display = 'none'; document.getElementById('confirmDelContainer').style.display = 'block'; }
-    function resetModalViews() { document.getElementById('modalMainActions').style.display = 'block'; document.getElementById('editNameContainer').style.display = 'none'; document.getElementById('confirmDelContainer').style.display = 'none'; }
-    
+
+    function updateTitle(val) {
+
+        document.getElementById(
+            'displayTitle'
+        ).innerText = val;
+
+
+        localStorage.setItem(
+            'torneo_titulo', 
+            val
+        );
+    }
+
+
+    function handleStart(idx) {
+
+        if (!isEditMode) return;
+
+        pressTimer = setTimeout(
+            () => openPlayerModal(idx), 
+            3000
+        );
+    }
+
+
+    function handleEnd() {
+
+        clearTimeout(pressTimer);
+    }
+
+
+    function openPlayerModal(idx) {
+
+        vibrar(200);
+
+        activePlayerIdx = idx;
+
+        document.getElementById(
+            'modalPlayerName'
+        ).innerText = stats[idx].name;
+
+        resetModalViews();
+
+        document.getElementById(
+            'playerModal'
+        ).style.display = 'flex';
+    }
+
+
+    function closeModal() {
+
+        document.getElementById(
+            'playerModal'
+        ).style.display = 'none';
+    }
+
+
+    function showEditSection() {
+
+        document.getElementById(
+            'modalMainActions'
+        ).style.display = 'none';
+
+
+        document.getElementById(
+            'editNameContainer'
+        ).style.display = 'block';
+
+
+        document.getElementById(
+            'editNameInput'
+        ).value = stats[activePlayerIdx].name;
+    }
+
+
+    function showDelSection() {
+
+        document.getElementById(
+            'modalMainActions'
+        ).style.display = 'none';
+
+
+        document.getElementById(
+            'confirmDelContainer'
+        ).style.display = 'block';
+    }
+
+
+    function resetModalViews() {
+
+        document.getElementById(
+            'modalMainActions'
+        ).style.display = 'block';
+
+
+        document.getElementById(
+            'editNameContainer'
+        ).style.display = 'none';
+
+
+        document.getElementById(
+            'confirmDelContainer'
+        ).style.display = 'none';
+    }
+
+
     function modalAction(type) {
+
         saveUndoState();
-        if (type === 'edit') stats[activePlayerIdx].name = document.getElementById('editNameInput').value.trim();
-        else if (type === 'champion') { const was = stats[activePlayerIdx].isChampion; stats.forEach(s=>s.isChampion=false); stats[activePlayerIdx].isChampion = !was; }
+
+
+        if (type === 'edit') {
+
+            stats[activePlayerIdx].name = 
+                document.getElementById(
+                    'editNameInput'
+                ).value.trim();
+
+        }
+
+
+        else if (type === 'champion') {
+
+            const was = 
+                stats[activePlayerIdx].isChampion;
+
+
+            stats.forEach(
+                s => s.isChampion = false
+            );
+
+
+            stats[activePlayerIdx].isChampion = !was;
+
+        }
+
+
         else if (type === 'delete') {
-            const deletedName = stats[activePlayerIdx].name;
-            stats.splice(activePlayerIdx, 1);
+
+            const deletedName = 
+                stats[activePlayerIdx].name;
+
+
+            stats.splice(
+                activePlayerIdx, 
+                1
+            );
+
+
             for (let key in partnerships) {
-                if (key.split(' | ').includes(deletedName)) {
+
+                if (
+                    key
+                        .split(' | ')
+                        .includes(deletedName)
+                ) {
+
                     delete partnerships[key];
                 }
             }
         }
-        render(); closeModal();
+
+
+        render();
+
+        closeModal();
     }
 
+
     function getRacha(history) {
+
         if (!history || history.length === 0) return 0;
-        let r = 0; const last = history[history.length - 1];
-        for (let i = history.length - 1; i >= 0; i--) if (history[i] === last) r++; else break;
+
+
+        let r = 0;
+
+        const last = history[history.length - 1];
+
+
+        for (
+            let i = history.length - 1; 
+            i >= 0; 
+            i--
+        ) {
+
+            if (history[i] === last) {
+                r++;
+            } else {
+                break;
+            }
+        }
+
+
         return last === 'g' ? r : -r;
     }
 
-    function getGradientColor(perc) { if (perc >= 70) return "#388E3C"; if (perc >= 50) return "#FBC02D"; if (perc >= 35) return "#F57C00"; return "#D32F2F"; }
-    function quickAdd(idx, field) { if (!isEditMode) return; saveUndoState(); handleStatChange(idx, field, stats[idx][field] + 1); saveTableData(); }
-    function handleStatChange(idx, f, v) { 
-        if (!stats[idx].history) stats[idx].history = [];
-        if (v > stats[idx][f]) stats[idx].history.push(f);
-        else if (v < stats[idx][f]) { const l = stats[idx].history.lastIndexOf(f); if (l !== -1) stats[idx].history.splice(l, 1); }
+
+    function getGradientColor(perc) {
+
+        if (perc >= 70) return "#388E3C";
+
+        if (perc >= 50) return "#FBC02D";
+
+        if (perc >= 35) return "#F57C00";
+
+        return "#D32F2F";
+    }
+
+
+    function quickAdd(idx, field) {
+
+        if (!isEditMode) return;
+
+        saveUndoState();
+
+        handleStatChange(
+            idx, 
+            field, 
+            stats[idx][field] + 1
+        );
+
+        saveTableData();
+    }
+
+
+    function handleStatChange(idx, f, v) {
+
+        if (!stats[idx].history) {
+            stats[idx].history = [];
+        }
+
+
+        if (v > stats[idx][f]) {
+
+            stats[idx].history.push(f);
+
+        } else if (v < stats[idx][f]) {
+
+            const l = 
+                stats[idx].history.lastIndexOf(f);
+
+
+            if (l !== -1) {
+                stats[idx].history.splice(l, 1);
+            }
+        }
+
+
         stats[idx][f] = v;
     }
-    function handleFoodChange(idx) { if (!isEditMode) return; saveUndoState(); stats[idx].food++; render(); }
-    
-    function saveTableData() { 
-        vibrar();
-        prevOrder = stats.map(s => s.name); 
-        localStorage.setItem('torneo_prev_order', JSON.stringify(prevOrder)); 
-        stats.sort((a, b) => {
-            if (b.g !== a.g) return b.g - a.g;
-            return (b.g/(b.g+b.p||1)) - (a.g/(a.g+a.p||1));
-        });
-        render(); 
-    }
-    
-    async function shareAsImage() { sonar(); document.body.classList.add('exporting'); try { const c = await html2canvas(document.getElementById('captureArea'), { backgroundColor: "#000", scale: 3 }); const b = await new Promise(r => c.toBlob(r)); const f = new File([b], 'tabla.png', { type: 'image/png' }); if (navigator.share) await navigator.share({ files: [f] }); } catch (e) {} document.body.classList.remove('exporting'); }
-    function exportData() { const b = new Blob([JSON.stringify({stats, partnerships})], {type: "application/json"}); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = "backup.json"; a.click(); }
-    function importData() { const i = document.createElement('input'); i.type = 'file'; i.onchange = e => { const r = new FileReader(); r.onload = ev => { const d = JSON.parse(ev.target.result); stats = d.stats || d; partnerships = d.partnerships || {}; render(); }; r.readAsText(e.target.files[0]); }; i.click(); }
-    function addNewPlayer() { const n = document.getElementById('newPlayerName').value.trim(); if (n) { saveUndoState(); stats.push({ name: n, p: 0, g: 0, food: 0, history: [], isChampion: false }); document.getElementById('newPlayerName').value = ''; saveTableData(); } }
 
-    const savedTitle = localStorage.getItem('torneo_titulo') || "Clausura Truco 2026";
-    document.getElementById('displayTitle').innerText = savedTitle;
-    document.getElementById('editTitle').value = savedTitle;
+
+    function handleFoodChange(idx) {
+
+        if (!isEditMode) return;
+
+        saveUndoState();
+
+        stats[idx].food++;
+
+        render();
+    }
+
+
+    function saveTableData() {
+
+        vibrar();
+
+
+        prevOrder = stats.map(
+            s => s.name
+        );
+
+
+        localStorage.setItem(
+            'torneo_prev_order', 
+            JSON.stringify(prevOrder)
+        );
+
+
+        stats.sort((a, b) => {
+
+            if (b.g !== a.g) {
+                return b.g - a.g;
+            }
+
+
+            return (
+                b.g / (b.g + b.p || 1)
+            ) - (
+                a.g / (a.g + a.p || 1)
+            );
+        });
+
+
+        render();
+    }
+
+
+    async function shareAsImage() {
+
+        sonar();
+
+        document.body.classList.add('exporting');
+
+
+        try {
+
+            const c = await html2canvas(
+                document.getElementById('captureArea'), 
+                {
+                    backgroundColor: "#000", 
+                    scale: 3
+                }
+            );
+
+
+            const b = await new Promise(
+                r => c.toBlob(r)
+            );
+
+
+            const f = new File(
+                [b], 
+                'tabla.png', 
+                {
+                    type: 'image/png'
+                }
+            );
+
+
+            if (navigator.share) {
+
+                await navigator.share({
+                    files: [f]
+                });
+            }
+
+        } catch (e) {}
+
+
+        document.body.classList.remove('exporting');
+    }
+
+
+    function exportData() {
+
+        const b = new Blob(
+            [
+                JSON.stringify({
+                    stats, 
+                    partnerships
+                })
+            ], 
+            {
+                type: "application/json"
+            }
+        );
+
+
+        const u = URL.createObjectURL(b);
+
+        const a = document.createElement('a');
+
+        a.href = u;
+
+        a.download = "backup.json";
+
+        a.click();
+    }
+
+
+    function importData() {
+
+        const i = document.createElement('input');
+
+        i.type = 'file';
+
+
+        i.onchange = e => {
+
+            const r = new FileReader();
+
+
+            r.onload = ev => {
+
+                const d = JSON.parse(
+                    ev.target.result
+                );
+
+
+                stats = d.stats || d;
+
+                partnerships = 
+                    d.partnerships || {};
+
+
+                render();
+            };
+
+
+            r.readAsText(
+                e.target.files[0]
+            );
+        };
+
+
+        i.click();
+    }
+
+
+    function addNewPlayer() {
+
+        const n = 
+            document.getElementById(
+                'newPlayerName'
+            ).value.trim();
+
+
+        if (n) {
+
+            saveUndoState();
+
+
+            stats.push({
+
+                name: n,
+
+                p: 0,
+
+                g: 0,
+
+                food: 0,
+
+                history: [],
+
+                isChampion: false,
+
+                hiddenEmojis: {}
+
+            });
+
+
+            document.getElementById(
+                'newPlayerName'
+            ).value = '';
+
+
+            saveTableData();
+        }
+    }
+
+
+    const savedTitle = 
+        localStorage.getItem('torneo_titulo') || 
+        "Clausura Truco 2026";
+
+
+    document.getElementById(
+        'displayTitle'
+    ).innerText = savedTitle;
+
+
+    document.getElementById(
+        'editTitle'
+    ).value = savedTitle;
+
+
     render();
+
 </script>
 
 </body>
